@@ -3,13 +3,13 @@
 
 Synapse::Synapse(
     i64 _id,
-    Vec3 _loc,
+    VecS _loc,
     double _max_strength,
     double _cur_strength
 )   :   id(_id),
-        location(_loc),
         max_strength(_max_strength),
-        cur_strength(_cur_strength)
+        cur_strength(_cur_strength),
+        location(_loc)
 {
     parent = nullptr;
     input[0] = 0.0;

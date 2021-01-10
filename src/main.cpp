@@ -1,8 +1,13 @@
 #include<iostream>
 #include<cstring>
 
-#include"ProjectRadius.hpp"
 #include"unit_tests.hpp"
+
+#ifdef DEBUG
+    #define RUN_TEST 1
+#else
+    #define RUN_TEST 0
+#endif
 
 int main(int argc, char**argv) {
 
@@ -16,9 +21,9 @@ int main(int argc, char**argv) {
         return 1;
     }
 
-    // TEST(Test_Vec3_A, "Test_Vec3_A");
-    // TEST(Test_Vec3_B, "Test_Vec3_B (x,y,z)", 8, 8, 8);
-    // TEST_SUMMARY();
+    if(RUN_TEST==1) {
+        UnitTests();
+    }
 
 
     return 0;

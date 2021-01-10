@@ -15,6 +15,8 @@ struct Vec3 {
 	double Y();
 	double Z();
 
+	Vec3 operator-(const Vec3 & other);
+	Vec3 operator+(const Vec3 & other);
 	bool operator==(const Vec3 & other);
     bool operator!=(const Vec3 & other);
     void operator+=(const Vec3 & other);
@@ -30,6 +32,7 @@ struct Vec3 {
 
 	Vec3 ForceVector(Vec3 & dest, double force);
 
+	// double AngularDistanceBetween(const Vec3 & v1, const Vec3 & v2);
     //-----------------------------------
     // Static functions
     static double Distance(Vec3 & a, Vec3 & b);

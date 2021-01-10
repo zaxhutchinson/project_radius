@@ -2,7 +2,7 @@
 
 
 #include"zxlb.hpp"
-#include"vec3.hpp"
+#include"vec_s.hpp"
 #include"writer.hpp"
 #include"data.hpp"
 
@@ -12,7 +12,7 @@ struct Synapse {
     double input[2];
     double max_strength;  
     double cur_strength;
-    Vec3 location;
+    VecS location;
     double error;
     i64 time_error;
     i64 time_cur_spike;
@@ -21,13 +21,13 @@ struct Synapse {
     Synapse * parent;
     vec<Synapse*> children;
     bool record_data;
-    i64 record_interval;
-    i64 record_data_size;
+    std::size_t record_interval;
+    std::size_t record_data_size;
     uptr<SynapseData> data;
 
     Synapse(
         i64 _id,
-        Vec3 _loc,
+        VecS _loc,
         double _max_strength,
         double _cur_strength
     );

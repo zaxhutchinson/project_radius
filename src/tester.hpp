@@ -12,6 +12,17 @@
 
 #include<iostream>
 
+#include"zxlb.hpp"
+
+enum class Eval {
+    EQ,
+    NEQ,
+    LT,
+    LTEQ,
+    GT,
+    GTEQ
+};
+
 static int test_num = 0;
 static int tests_passed = 0;
 static int tests_failed = 0;
@@ -28,14 +39,14 @@ static void pp(T t) {
 // Pass in the function, and the name of the test along with the arguments
 // that the function needs.
 template<class Fun, class... Args>
-static bool TEST(Fun&& f, std::string name, Args&&... args) {
+static void TEST(Fun&& f, std::string name, Args&&... args) {
 
-    bool rtn = std::forward<Fun>(f)(std::forward<Args>(args)...);
+    UTRTN rtn = std::forward<Fun>(f)(std::forward<Args>(args)...);
 
-    if(rtn) tests_passed++;
+    if(rtn.first) tests_passed++;
     else tests_failed++;
 
-    std::cout << (rtn ? "\033[32mPASSED\033[0m" : "\033[31mFAILED\033[0m") 
+    std::cout << (rtn.first ? "\033[32mPASSED\033[0m" : "\033[31mFAILED\033[0m") 
         << " --- ";
 
     std::cout << "TEST# " << test_num++ << " --- NAME: " << name;
@@ -47,9 +58,10 @@ static bool TEST(Fun&& f, std::string name, Args&&... args) {
         std::cout << " --- ARGS: None ";
     }
     std::cout << std::endl;
-    
 
-    return rtn;
+    if(!rtn.first) {
+        std::cout << "\tRESULT: " << rtn.second << std::endl;
+    }
 }
 
 static void TEST_SUMMARY() {

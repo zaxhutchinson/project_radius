@@ -20,6 +20,20 @@ double Vec3::X() { return x; }
 double Vec3::Y() { return y; }
 double Vec3::Z() { return z; }
 
+Vec3 Vec3::operator-(const Vec3 & other) {
+    Vec3 v;
+    v.x = other.x - x;
+    v.y = other.y - y;
+    v.z = other.z - z;
+    return v;
+}
+Vec3 Vec3::operator+(const Vec3 & other) {
+    Vec3 v;
+    v.x = other.x + x;
+    v.y = other.y + y;
+    v.z = other.z + z;
+    return v;
+}
 bool Vec3::operator==(const Vec3 & other) {
     return x==other.x && y==other.y && z==other.z;
 }
@@ -68,6 +82,17 @@ Vec3 Vec3::ForceVector(Vec3 & dest, double force) {
 	return vec_to;
 }
 
+// double Vec3::AngularDistanceBetween(const Vec3 & v1, const Vec3 & v2) {
+//     Vec3 sv1 = (*this)-v1;
+//     Vec3 sv2 = (*this)-v2;
+//     double v1_yx = std::atan2(sv1.y,sv1.x);
+//     double v1_yz = std::atan2(sv1.y,sv1.z);
+//     double v2_yx = std::atan2(sv2.y,sv2.x);
+//     double v2_yz = std::atan2(sv2.y,sv2.z);
+
+    
+// }
+
 //-------------------------------------------------
 // Static functions
 double Vec3::Distance(Vec3 & a, Vec3 & b) {
@@ -87,6 +112,7 @@ Vec3 Vec3::Average(Vec3 & a, Vec3 & b) {
     avg_v.z = (a.Z()+b.Z()) / 2.0;
     return avg_v;
 }
+
 
 
 

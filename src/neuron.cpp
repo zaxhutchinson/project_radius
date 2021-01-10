@@ -3,7 +3,7 @@
 
 Neuron::Neuron(
     i64 _id,
-    Vec3 _loc,
+    VecS _loc,
     const NeuronTemplate & _nt
 )   :   id(_id),
         location(_loc),
@@ -49,7 +49,8 @@ void Neuron::Update(i64 time, Writer * writer) {
     if(vcur > nt.vpeak) {
         vpre = vcur = nt.c;
         upre = ucur = ucur + nt.d;
-        spike_times.push_back(time);
+        spike_times_live.push_back(time);
+        spike_times_data.push_back(time);
 
         // Add Back prop
     
@@ -78,6 +79,10 @@ void Neuron::WriteData(i64 time, Writer * writer) {
         ResetWriteData();
     }
     data->data_size++;
-
-
+    data->time_indexes.push_back(time);
+    data->locations.push_back(location);
+    data->v.push_back(vcur);
+    data->u.push_back(ucur);
+    data->spike_times.push_back(spike_times_data);
+    data->output.push_back(output);
 }

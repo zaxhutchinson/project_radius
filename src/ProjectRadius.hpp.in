@@ -1,3 +1,0 @@
-// the configured options and settings for Project Radius
-#define ProjectRadius_VERSION_MAJOR @ProjectRadius_VERSION_MAJOR@
-#define ProjectRadius_VERSION_MINOR @ProjectRadius_VERSION_MINOR@

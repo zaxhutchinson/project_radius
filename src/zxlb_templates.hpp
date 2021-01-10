@@ -8,6 +8,7 @@
 #include<unordered_map>
 #include<random>
 #include<mutex>
+#include<list>
 
 using u8 = uint8_t;
 using u16 = uint16_t;
@@ -43,3 +44,5 @@ using vsptr = vec<sptr<T>>;
 
 template<typename T>
 using quptr = que<uptr<T>>;
+
+using UTRTN = std::pair<bool, str>;

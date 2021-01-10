@@ -10,25 +10,26 @@
 
 struct Neuron {
     i64 id;
-    Vec3 location;
+    VecS location;
     NeuronTemplate nt;
     double vpre;
     double vcur;
     double upre;
     double ucur;
-    lst<i64> spike_times;
+    lst<i64> spike_times_live;
+    vec<i64> spike_times_data;
     vsptr<Synapse> dendrite;
     vsptr<Synapse> axon;
     double output;
     double baseline_input;
     bool record_data;
-    i64 record_interval;
-    i64 record_data_size;
+    std::size_t record_interval;
+    std::size_t record_data_size;
     uptr<NeuronData> data;
 
     Neuron(
         i64 _id,
-        Vec3 _loc,
+        VecS _loc,
         const NeuronTemplate & _nt
     );
 

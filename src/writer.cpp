@@ -78,5 +78,30 @@ void Writer::AddNeuronData(uptr<NeuronData> data) {
 }
 
 void Writer::WriteNeuronData() {
-    
+    if(!neuron_data.empty()) {
+        mtx_neuron.lock();
+        uptr<NeuronData> data = std::move(neuron_data.front());
+        neuron_data.pop();
+        mtx_neuron.unlock();
+
+        str fname(write_directory+"/"+data->id);
+        std::ofstream ofs(fname, std::ios::out | std::ios::app);
+
+        for(std::size_t i = 0; i < data->data_size; i++) { 
+            ofs << data->time_indexes[i] << ","
+                << data->locations[i].X() << ","
+                << data->locations[i].Y() << ","
+                << data->locations[i].Z() << ","
+                << data->v[i] << ","
+                << data->u[i] << ","
+                << data->output[i] << ",";
+                str spikes("[");
+                for(std::size_t k = 0; k < data->spike_times[i].size(); k++) {
+                    spikes += data->spike_times[i][k] + ",";
+                }
+                spikes = spikes.substr(0,spikes.size()-1) + "]";
+                ofs << spikes << "\n";
+        }
+        ofs.close();
+    }
 }
