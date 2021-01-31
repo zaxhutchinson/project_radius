@@ -1,3 +1,6 @@
+**Version 0.02**
+- Redesign of neuron and synapse around a more data-centered focus rather than an OOP design. Shifting away from pointers.
+
 **Version 0.01**
 - First version of the VecS class which uses spherical geometry to track and move synapses.
 - Might also be the first version to use the Tester.hpp file. My own brand of janky unit testing.

@@ -13,12 +13,14 @@
     following sources:
         https://stackoverflow.com/a/26711070
         https://en.wikipedia.org/wiki/Great-circle_distance
+        http://www.movable-type.co.uk/scripts/latlong.html
 */
 
 
 #pragma once
 #include<cmath>
 #include"zxlb.hpp"
+#include"vec3.hpp"
 
 struct VecS {
     double lat;
@@ -38,8 +40,12 @@ struct VecS {
 
 
     double Distance(const VecS & v);
+    double DistanceWithRadius(const VecS & v);
     double HeadingTo(const VecS & v);
-    void Move(double heading, double distance);
+    Vec3 VectorTo(const VecS & v);
+    void Orbit(double heading, double distance);
+    Vec3 ToVec3();
+    
 };
 
 

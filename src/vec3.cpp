@@ -1,13 +1,14 @@
 #include"vec3.hpp"
 
 Vec3::Vec3()
-    : x(0.0), y(0.0), z(0.0) {
-
-}
+    : x(0.0), y(0.0), z(0.0) 
+{}
+Vec3::Vec3(double _x, double _y)
+    : x(_x), y(_y), z(0.0)
+{}
 Vec3::Vec3(double _x, double _y, double _z)
-    : x(_x), y(_y), z(_z) {
-
-}
+    : x(_x), y(_y), z(_z) 
+{}
 
 Vec3::Vec3(const Vec3 & other) {
     x = other.x;
@@ -33,6 +34,9 @@ Vec3 Vec3::operator+(const Vec3 & other) {
     v.y = other.y + y;
     v.z = other.z + z;
     return v;
+}
+Vec3 Vec3::operator*(double v) {
+    return Vec3(x*v, y*v, z*v);
 }
 bool Vec3::operator==(const Vec3 & other) {
     return x==other.x && y==other.y && z==other.z;
@@ -61,6 +65,9 @@ void Vec3::Zero() {
 
 double Vec3::Length() {
 	return std::sqrt(x*x + y*y + z*z);
+}
+double Vec3::ToBearing() {
+    return atan2(y,x);
 }
 Vec3 Vec3::Normalize() {
 	double len = Length();

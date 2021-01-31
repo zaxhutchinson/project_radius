@@ -8,6 +8,7 @@ struct Vec3 {
 	double z;
 
 	Vec3();
+	Vec3(double _x, double _y);
 	Vec3(double _x, double _y, double _z);
 	Vec3(const Vec3 & other);
 
@@ -17,6 +18,7 @@ struct Vec3 {
 
 	Vec3 operator-(const Vec3 & other);
 	Vec3 operator+(const Vec3 & other);
+	Vec3 operator*(double v);
 	bool operator==(const Vec3 & other);
     bool operator!=(const Vec3 & other);
     void operator+=(const Vec3 & other);
@@ -27,6 +29,8 @@ struct Vec3 {
 
 	double Length();
 	Vec3 Normalize();
+
+	double ToBearing();
 
 	Vec3 VectorTo(Vec3 & dest);
 
@@ -39,6 +43,7 @@ struct Vec3 {
     static double Distance2(Vec3 & a, Vec3 & b);
 
     static Vec3 Average(Vec3 & a, Vec3 & b);
+	
 };
 
 

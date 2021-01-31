@@ -2,7 +2,7 @@
 
 
 Synapse::Synapse(
-    i64 _id,
+    int _id,
     VecS _loc,
     double _max_strength,
     double _cur_strength
@@ -11,9 +11,11 @@ Synapse::Synapse(
         cur_strength(_cur_strength),
         location(_loc)
 {
-    parent = nullptr;
-    input[0] = 0.0;
-    input[1] = 0.0;
+    parent = -1;
+    signal[0] = 0.0;
+    signal[1] = 0.0;
+    bap[0] = 0.0;
+    bap[1] = 0.0;
     error = 0.0;
     time_error = 0;
     time_cur_spike = 0;
@@ -21,9 +23,29 @@ Synapse::Synapse(
     record_data = false;
     record_interval = 1;
     record_data_size = 1000;
+    dendrite_path_length = 0.0;
 
     ResetWriteData();
 }
+
+void Synapse::SetSignal(i64 time, double amt) {
+    signal[time%2]=amt;
+
+}
+
+void Synapse::SetCurSpike(i64 time) {
+    time_pre_spike = time_cur_spike;
+    time_cur_spike = time;
+}
+
+
+double Synapse::GetSignal(i64 time) {
+    // Needs more work. Prev version modified the signal by the strength.
+    return signal[(time+1)%2];
+}
+
+
+
 
 
 void Synapse::Update(i64 time, Writer * writer) {
@@ -52,21 +74,18 @@ void Synapse::WriteData(i64 time, Writer * writer) {
     }
 
     data->data_size++;
-    data->input.push_back(input[time%2]);
+    data->input.push_back(signal[time%2]);
     data->strength.push_back(cur_strength);
     data->error.push_back(error);
     data->locations.push_back(location);
     data->spikes.push_back(spikes);
     spikes = 0;     // RESET SPIKES.
     data->time_indexes.push_back(time);
-    if(parent != nullptr) {
-        data->parent_id.push_back(parent->id);
-    } else {
-        data->parent_id.push_back(-1);
-    }
-    vec<i64> c_ids;
+    data->parent_id.push_back(parent);
+    vec<int> c_ids;
     for(std::size_t i = 0; i < children.size(); i++) {
-        c_ids.push_back(children[i]->id);
+        c_ids.push_back(children[i]);
     }
     data->children_ids.push_back(c_ids);
 }
+

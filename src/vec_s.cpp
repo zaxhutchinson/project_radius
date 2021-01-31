@@ -61,6 +61,14 @@ double VecS::Distance(const VecS & v) {
     // return atan(top / bot);
 }
 
+/* Distance is computed by first taking the differences in the radius.
+    Then the arc length. In visual terms, this vec moves to the orbit of
+    the other vec, and then moves around.
+*/
+double VecS::DistanceWithRadius(const VecS & v) {
+    return std::abs(v.rad-rad) + (v.rad * Distance(v));
+}
+
 double VecS::HeadingTo(const VecS & v) {
     double dlon = v.lon - lon;
     return atan2(
@@ -69,7 +77,7 @@ double VecS::HeadingTo(const VecS & v) {
     );
 }
 
-void VecS::Move(double heading, double distance) {
+void VecS::Orbit(double heading, double distance) {
     double delta = distance / rad;
     double nlat = asin(
         sin(lat) * cos(delta) + cos(lat) * sin(delta) * cos(heading)
@@ -80,6 +88,22 @@ void VecS::Move(double heading, double distance) {
     );
     lat = nlat;
     lon = nlon;
+}
+
+Vec3 VecS::VectorTo(const VecS & v) {
+    Vec3 vec3;
+    double dlon = v.lon - lon;
+    vec3.x = sin(dlon) * cos(v.lat);
+    vec3.y = cos(lat) * sin(v.lat) - sin(lat) * cos(v.lat) * cos(dlon);
+    return vec3;
+}
+
+Vec3 VecS::ToVec3() {
+    return Vec3(
+        rad * sin(lat) * cos(lon),
+        rad * sin(lat) * sin(lon),
+        rad * cos(lat)
+    );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -141,7 +165,7 @@ UTRTN T_VecS_3() {
 
     double val = A.HeadingTo(B);
     double dis = A.Distance(B);
-    A.Move(val,dis);
+    A.Orbit(val,dis);
     // bool cor = abs(val - M_PI) < 0.0000001;
     bool cor = A.Lat()==B.Lat() && A.Lon()==B.Lon();
     str msg = "VAL " + std::to_string(A.Lat()) + "," + std::to_string(A.Lon()) + " COMP " + std::to_string(B.Lat()) + "," + std::to_string(B.Lon());
