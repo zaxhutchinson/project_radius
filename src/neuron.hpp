@@ -9,7 +9,7 @@
 
 
 struct Neuron {
-    int id;
+    i64 id;
     VecS location;
     NeuronTemplate nt;
     double vpre;
@@ -22,8 +22,8 @@ struct Neuron {
     lst<i64> spike_times_live;
     vec<i64> spike_times_data;
     vec<Synapse> synapses;
-    vec<int> dendrites;
-    vec<pair<int,int>> axons;
+    vec<i64> dendrites;
+    vec<pair<i64,i64>> axons;
     double output;
     double baseline;
     double raw_input;
@@ -33,17 +33,17 @@ struct Neuron {
     uptr<NeuronData> data;
 
     Neuron(
-        int _id,
+        i64 _id,
         VecS _loc,
         const NeuronTemplate & _nt
     );
 
     void SetBaseline(double amt);
     void SetRawInput(double amt);
-    void PresynapticInput(i64 time, int synapse_id, bool pre_spike);
-    void PresynapticSpike(i64 time, int synapse_id);
-    void PostsynapticInput(i64 time, double error);
-    void bAP(i64 time, int synapse_id, double amt, double error);
+    void PresynapticSignal(i64 time, i64 synapse_id, bool pre_spike);
+    void PresynapticSpike(i64 time, i64 synapse_id);
+    void PostsynapticSignal(i64 time, double error);
+    void bAP(i64 time, i64 synapse_id, double amt, double error);
 
     void Update(i64 time, Writer * writer);
     void ResetWriteData();

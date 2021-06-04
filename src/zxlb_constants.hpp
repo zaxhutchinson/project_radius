@@ -5,7 +5,7 @@
 namespace zxlb {
 
     inline constexpr double MAJOR_VERSION {0.0};
-    inline constexpr double MINOR_VERSION {0.02};
+    inline constexpr double MINOR_VERSION {0.03};
 
     /* NEURON_SPIKE_TIME_WINDOW
         Determines how long spikes are saved and continue to affect neuronal
@@ -29,4 +29,13 @@ namespace zxlb {
     inline constexpr double POST_SOMA_FORCE_TIME_WINDOW { 30.0 };
 
     inline constexpr double LEARNING_TIME_WINDOW { 30.0 };
+
+    /* BF: Balancing Factor
+        Used in the calculation of dendritic path lengths. Part of the
+        dendrite building algorithm developed by Cuntz2007.
+
+        It represents the effect the total path length to an unconnected
+        synapse has on calculating distance for Prim's Algorithm.
+    */
+    inline constexpr double BF = 0.2;
 };

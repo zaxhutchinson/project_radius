@@ -2,7 +2,7 @@
 
 
 Neuron::Neuron(
-    int _id,
+    i64 _id,
     VecS _loc,
     const NeuronTemplate & _nt
 )   :   id(_id),
@@ -32,7 +32,7 @@ void Neuron::SetRawInput(double amt) {
     raw_input = amt;
 }
 
-void Neuron::PresynapticInput(i64 time, int synapse_id, bool pre_spike) {
+void Neuron::PresynapticSignal(i64 time, i64 synapse_id, bool pre_spike) {
     synapses[synapse_id].SetSignal(time,output);
     if(pre_spike) {
         synapses[synapse_id].SetCurSpike(time);
@@ -40,7 +40,7 @@ void Neuron::PresynapticInput(i64 time, int synapse_id, bool pre_spike) {
     }
 }
 
-void Neuron::PresynapticSpike(i64 time, int synapse_id) {
+void Neuron::PresynapticSpike(i64 time, i64 synapse_id) {
 
     double time_diff_self = static_cast<double>(
         synapses[synapse_id].time_cur_spike - synapses[synapse_id].time_pre_spike
@@ -84,7 +84,7 @@ void Neuron::PresynapticSpike(i64 time, int synapse_id) {
 
 }
 
-void Neuron::PostsynapticInput(i64 time, double error) {
+void Neuron::PostsynapticSignal(i64 time, double error) {
 
     if(just_spiked) {
 
@@ -131,7 +131,7 @@ void Neuron::PostsynapticInput(i64 time, double error) {
 }
 
 
-void Neuron::bAP(i64 time, int synapse_id, double amt, double error) {
+void Neuron::bAP(i64 time, i64 synapse_id, double amt, double error) {
     double prepost_time_diff = static_cast<double>(
         time_cur_spike - synapses[synapse_id].time_cur_spike
     );
@@ -161,7 +161,7 @@ void Neuron::Update(i64 time, Writer * writer) {
     // Calculate input
     double input = baseline + raw_input;
     for(
-        vec<int>::iterator it = dendrites.begin();
+        vec<i64>::iterator it = dendrites.begin();
         it != dendrites.end();
         it++
     ) {

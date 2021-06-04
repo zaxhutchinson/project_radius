@@ -30,7 +30,10 @@
 *.exe
 *.out
 *.app
+*radius
 
 # Additional adds
 \bld
 .vscode
+\mnist
+\obj

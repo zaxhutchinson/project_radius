@@ -1,3 +1,9 @@
+**Version 0.03**
+- Function name changes.
+- Starting put it all together.
+- MNIST reader copied over.
+- Network struct.
+
 **Version 0.02**
 - Redesign of neuron and synapse around a more data-centered focus rather than an OOP design. Shifting away from pointers.
 

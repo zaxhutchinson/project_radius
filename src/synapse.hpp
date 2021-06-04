@@ -36,7 +36,14 @@ struct Synapse {
     void SetSignal(i64 time, double amt);
     void SetCurSpike(i64 time);
 
+    /* SetPathLength:
+        dendrite_path_length is a temporary var that stores how far this
+        synapse is from the soma when distanse is measured by the dendrite.
+    */
+    void SetDendritePathLength(double path);
+
     double GetSignal(i64 time);
+    double GetDendritePathLength();
 
     void Update(i64 time, Writer * writer);
     void ResetWriteData();

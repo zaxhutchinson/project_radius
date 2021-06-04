@@ -13,7 +13,7 @@ void UpdateNeurons(i64 time, Writer * writer, vec<Neuron> & neurons, double erro
 
         // Pass the neuron's output to all axonal synapses.
         for(std::size_t i = 0; i < it->axons.size(); i++) {
-            neurons[it->axons[i].first].PresynapticInput(
+            neurons[it->axons[i].first].PresynapticSignal(
                 time, 
                 it->axons[i].second,
                 it->just_spiked
@@ -21,7 +21,7 @@ void UpdateNeurons(i64 time, Writer * writer, vec<Neuron> & neurons, double erro
         }
 
         // Pass the neuron's output to all dendritic synapses.
-        it->PostsynapticInput(time, error);
+        it->PostsynapticSignal(time, error);
 
     }
 }
@@ -39,13 +39,8 @@ void BuildDendrites(vec<Neuron> & neurons) {
         //-------------------------------------
         // Init lists.
         vec<Synapse> & syns = it->synapses;
-        lst<sizet> unconnected;
-        lst<sizet> connected;
-        lst<sizet>::iterator min_it;
-        lst<sizet>::iterator to_it;
-        lst<sizet>::iterator from_it;
-        double min_dist;
-        double cur_dist;
+        lst<i64> unconnected;
+        lst<i64> connected;
 
         //-------------------------------------
         // Disconnect
@@ -61,93 +56,75 @@ void BuildDendrites(vec<Neuron> & neurons) {
             unconnected.push_back(i);
         }
 
-        //-------------------------------------
-        // Connect initial syn
-
-        // Find the synapse with the smallest Radius.
-        min_dist = std::numeric_limits<double>::max();
-        cur_dist = 0.0;
-        min_it = unconnected.begin();
-        for(
-            lst<sizet>::iterator ucit = unconnected.begin();
-            ucit != unconnected.end();
-            ucit++
-            ) {
-            cur_dist = syns[*ucit].location.Rad();
-            if(cur_dist < min_dist) {
-                min_dist = cur_dist;
-                min_it = ucit;
-            }
-        }
-
-        // Connect the initial min
-        connected.push_back(*min_it);    
-        unconnected.erase(min_it);
-        it->dendrites.push_back(*min_it);
-
-
-        //-------------------------------------
-        // Connect the rest
-
-        double min_dist = 0.0;
-        double cur_dist = 0.0;
-        sizet from = 0;
-        sizet to = 0;
 
         while(!unconnected.empty()) {
 
-            // Reinit
-            min_dist = std::numeric_limits<double>::max();
-            to_it = unconnected.begin();
+            i64 usyn = *(unconnected.begin());
+            i64 csyn = -1;
+            double min_dist = syns[usyn].location.Rad();
 
             // Find the unconnected synapse with the smallest radius.
             for(
-                lst<sizet>::iterator ucit = unconnected.begin();
+                lst<i64>::iterator ucit = unconnected.begin();
                 ucit != unconnected.end();
                 ucit++ 
             ) {
 
-                cur_dist = syns[*ucit].location.Rad();
-                if(cur_dist < min_dist) {
-                    to_it = ucit;
-                    min_dist = cur_dist;
+                // Begin by setting the min dist to the syn's radius.
+                double local_min_dist = syns[*ucit].location.Rad();
+                i64 local_csyn = -1;
+
+                for(
+                    lst<i64>::iterator cit = connected.begin();
+                    cit != connected.end();
+                    cit++
+                )
+                {
+                    double dist_to_conn = syns[*ucit].location.DistanceWithRadius(syns[*cit].location);
+                    double dist = 
+                        dist_to_conn +
+                        zxlb::BF * (
+                            syns[*cit].GetDendritePathLength() +
+                            dist_to_conn
+                        );
+
+                    if(dist < local_min_dist) {
+                        local_min_dist = dist;
+                        local_csyn = *cit;
+                    }
+
+                }
+
+                
+                if(local_min_dist < min_dist) {
+                    min_dist = local_min_dist;
+                    usyn = *ucit;
+                    csyn = local_csyn;
                 }
             }
 
-            // Don't reset min distance because it currently contains
-            // the radius of the syn closest to the soma. 
-            // If none are closer, this syn will connect to the soma.
-
-
-            // Find the connected syn closest to the to_it syn.
-            from_it = connected.begin();
-
-            for(
-                lst<sizet>::iterator cit = connected.begin();
-                cit != connected.end();
-                cit
-            ) {
-                cur_dist = syns[*cit].location.DistanceWithRadius(syns[*to_it].location);
-                if(cur_dist < min_dist) {
-                    from_it = cit;
-                    min_dist = cur_dist;
-                }
-            }
-
-
-            // Connect. If none were closer than it is to the soma,
-            // connect to soma, else connect to already connected syn.
-            if(from_it == connected.end()) {
-                it->dendrites.push_back(*from_it);
-                syns[*to_it].parent = -1;
+            // Connect. If csyn is -1, connect to the soma,
+            // else connect to already connected syn.
+            // Set the dendritic path length.
+            if(csyn == -1) {
+                it->dendrites.push_back(usyn);
+                syns[usyn].parent = -1;
+                syns[usyn].SetDendritePathLength(syns[usyn].location.Rad());
             } else {
-                syns[*from_it].children.push_back(*to_it);
-                syns[*to_it].parent = *from_it;
+                syns[csyn].children.push_back(usyn);
+                syns[usyn].parent = csyn;
+                syns[usyn].SetDendritePathLength(min_dist);
             }
 
-            // Update connected lists.
-            connected.push_back(*to_it);
-            unconnected.erase(to_it);
+            // Update connected/unconnected lists.
+            connected.push_back(usyn);
+            unconnected.erase(
+                std::find(
+                    unconnected.begin(),
+                    unconnected.end(),
+                    usyn
+                )
+            );
 
         }
     }

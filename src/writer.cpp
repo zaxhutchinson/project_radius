@@ -52,9 +52,9 @@ void Writer::WriteSynapseData() {
 
         for(std::size_t i = 0; i < data->data_size; i++) {
             ofs << data->time_indexes[i] << ","
-                << data->locations[i].X() << ","
-                << data->locations[i].Y() << ","
-                << data->locations[i].Z() << ","
+                << data->locations[i].Lat() << ","
+                << data->locations[i].Lon() << ","
+                << data->locations[i].Rad() << ","
                 << data->strength[i] << ","
                 << data->spikes[i] << ","
                 << data->input[i] << ","
@@ -89,9 +89,9 @@ void Writer::WriteNeuronData() {
 
         for(std::size_t i = 0; i < data->data_size; i++) { 
             ofs << data->time_indexes[i] << ","
-                << data->locations[i].X() << ","
-                << data->locations[i].Y() << ","
-                << data->locations[i].Z() << ","
+                << data->locations[i].Lat() << ","
+                << data->locations[i].Lon() << ","
+                << data->locations[i].Rad() << ","
                 << data->v[i] << ","
                 << data->u[i] << ","
                 << data->output[i] << ",";

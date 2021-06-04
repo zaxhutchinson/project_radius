@@ -38,12 +38,17 @@ void Synapse::SetCurSpike(i64 time) {
     time_cur_spike = time;
 }
 
+void Synapse::SetDendritePathLength(double path) {
+    dendrite_path_length = path;
+}
 
 double Synapse::GetSignal(i64 time) {
     // Needs more work. Prev version modified the signal by the strength.
     return signal[(time+1)%2];
 }
-
+double Synapse::GetDendritePathLength() {
+    return dendrite_path_length;
+}
 
 
 

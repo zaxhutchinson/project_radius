@@ -1,7 +1,9 @@
 #pragma once
 
+#include<algorithm>
+
 #include"zxlb.hpp"
-#include"neuron.hpp"
+#include"network.hpp"
 #include"writer.hpp"
 
 

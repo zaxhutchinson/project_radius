@@ -53,7 +53,7 @@ static void TEST(Fun&& f, std::string name, Args&&... args) {
 
     if(sizeof...(args) > 0) {
         std::cout << " --- ARGS: ";
-        int dummy[] = {0, ((void) pp(std::forward<Args>(args)),0) ... };
+        [[maybe_unused]] int dummy[] = {0, ((void) pp(std::forward<Args>(args)),0) ... };
     } else {
         std::cout << " --- ARGS: None ";
     }
