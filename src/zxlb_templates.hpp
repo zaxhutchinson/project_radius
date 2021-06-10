@@ -3,6 +3,7 @@
 #include<cstdint>
 #include<vector>
 #include<queue>
+#include<stack>
 #include<memory>
 #include<optional>
 #include<unordered_map>
@@ -32,6 +33,8 @@ template<typename T>
 using que = std::queue<T>;
 template<typename T>
 using lst = std::list<T>;
+template<typename T>
+using stk = std::stack<T>;
 template<typename T, typename U>
 using umap = std::unordered_map<T,U>;
 template<typename T>

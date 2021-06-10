@@ -4,9 +4,6 @@ VecS::VecS() : lat(0.0), lon(0.0), rad(0.0) {}
 VecS::VecS(double _lat, double _lon, double _rad)
     : lat(_lat), lon(_lon), rad(_rad)
 {}
-VecS::VecS(const VecS & v) 
-    : lat(v.lat), lon(v.lon), rad(v.rad)
-{}
 
 double VecS::Lat() { return lat; }
 double VecS::Lon() { return lon; }

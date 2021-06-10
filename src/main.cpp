@@ -69,7 +69,10 @@ void Run() {
 }
 
 uptr<Network> BuildNetwork(int network_id) {
+    uptr<Network> network;
 
-    
+
+
+    return std::move(network);
 
 }

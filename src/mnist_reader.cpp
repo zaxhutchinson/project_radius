@@ -134,11 +134,11 @@ void MNISTReader::PrintStats() {
 
     std::map<unsigned,unsigned> count;
     
-    for(int i = 0; i < data.size(); i++) {
+    for(sizet i = 0; i < data.size(); i++) {
         unsigned cur = 0;
         try {
             cur = count.at(data[i].label);
-        } catch(std::out_of_range e) {}
+        } catch(std::out_of_range &e) {}
         count.insert_or_assign(data[i].label,cur+1);
     }
 
@@ -152,7 +152,11 @@ void MNISTReader::PrintStats() {
     }
     std::cout << "TOTAL: " << total << std::endl;
     
-    if(labels_size==images_size && images_size==data.size() && data.size()==total) {
+    if(
+        labels_size==images_size && 
+        images_size==static_cast<i32>(data.size()) && 
+        data.size()==total
+    ) {
         std::cout << "Sizes match.\n";
     } else {
         std::cout << "Size mismatch.\n";
@@ -162,7 +166,7 @@ void MNISTReader::PrintStats() {
 
 void MNISTReader::NormalizeImage(double max_value) {
     for(std::size_t i = 0; i < data.size(); i++) {
-        for(std::size_t k = 0; k < images_rows*images_cols; k++) {
+        for(i32 k = 0; k < images_rows*images_cols; k++) {
             data[i].image[k] /= max_value;
         }
     }
@@ -172,16 +176,16 @@ MNISTData MNISTReader::FlipDataAt(unsigned i, MNISTDIR dir) {
     MNISTData d = GetDataAt(i);
 
     if(dir==MNISTDIR::HOR) {
-        for(std::size_t x = 0; x < images_rows; x++) {
-            for(std::size_t ys = 0, ye=images_cols-1; ys<ye ;ys++,ye--) {
+        for(i32 x = 0; x < images_rows; x++) {
+            for(i32 ys = 0, ye=images_cols-1; ys<ye ;ys++,ye--) {
                 double temp = d.image[ys+x*images_cols];
                 d.image[ys+x*images_cols]=d.image[ye+x*images_cols];
                 d.image[ye+x*images_cols]=temp;
             }
         }
     } else if(dir==MNISTDIR::VER) {
-        for(std::size_t y = 0; y < images_cols; y++) {
-            for(std::size_t xs = 0, xe=images_rows-1; xs<xe ;xs++,xe--) {
+        for(i32 y = 0; y < images_cols; y++) {
+            for(i32 xs = 0, xe=images_rows-1; xs<xe ;xs++,xe--) {
                 double temp = d.image[y+xs*images_cols];
                 d.image[y+xs*images_cols]=d.image[y+xe*images_cols];
                 d.image[y+xe*images_cols]=temp;

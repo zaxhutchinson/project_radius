@@ -1,8 +1,14 @@
+**Version 0.04**
+- Neuron input via dendrite and synapses. Iterative solution - untested.
+- Higher-level arch: Network -> Layer -> Neuron -> Synapse.
+- Axon struct added.
+
 **Version 0.03**
 - Function name changes.
 - Starting put it all together.
 - MNIST reader copied over.
 - Network struct.
+- Network building based on Cuntz2007 - untested.
 
 **Version 0.02**
 - Redesign of neuron and synapse around a more data-centered focus rather than an OOP design. Shifting away from pointers.

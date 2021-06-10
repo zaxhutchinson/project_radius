@@ -5,6 +5,7 @@
 #include"data.hpp"
 #include"writer.hpp"
 #include"synapse.hpp"
+#include"axon.hpp"
 #include"neuron_template.hpp"
 
 
@@ -23,7 +24,7 @@ struct Neuron {
     vec<i64> spike_times_data;
     vec<Synapse> synapses;
     vec<i64> dendrites;
-    vec<pair<i64,i64>> axons;
+    vec<Axon> axons;
     double output;
     double baseline;
     double raw_input;
@@ -32,11 +33,21 @@ struct Neuron {
     std::size_t record_data_size;
     uptr<NeuronData> data;
 
+    Neuron();
     Neuron(
-        i64 _id,
         VecS _loc,
         const NeuronTemplate & _nt
     );
+    Neuron(const Neuron & n) = delete;
+    Neuron(Neuron && n) = default;
+    Neuron& operator=(const Neuron & n) = delete;
+    Neuron& operator=(Neuron && n) = default;
+    //------------------------------------------------------------------------
+
+    void SetID(i64 _id);
+
+    void AddSynapse(Synapse synapse);
+    Synapse * GetSynapse(i64 index);
 
     void SetBaseline(double amt);
     void SetRawInput(double amt);
@@ -45,9 +56,18 @@ struct Neuron {
     void PostsynapticSignal(i64 time, double error);
     void bAP(i64 time, i64 synapse_id, double amt, double error);
 
+   
     void Update(i64 time, Writer * writer);
     void ResetWriteData();
     void WriteData(i64 time, Writer * writer);
     void CleanupData(Writer * writer);
+
+private:
+     /* GetInput:
+        Pulls synaptic input from the entire dendritic tree(s).
+        Iterative solution used because synapses can't talk
+        to each other.
+    */
+    double GetInput(i64 time);
 
 };

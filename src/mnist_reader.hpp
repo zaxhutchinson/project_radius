@@ -19,6 +19,8 @@
 #include<string>
 #include<algorithm>
 
+#include"zxlb.hpp"
+
 template<typename T, typename U>
 using umap = std::unordered_map<T,U>;
 template<typename T>

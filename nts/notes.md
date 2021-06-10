@@ -1,0 +1,27 @@
+**June 4, 2021**
+*Version 0.03 work*
+
+Finished the first version of the algorithm which will rebuild the dendritic
+tree. Came out easier than expected.
+
+*Version 0.04 work*
+
+* Worked on the first version of neural input from the dendritic tree. Not an
+easy bit of code. Iterative solution used because synapses cannot talk to each
+other unlike the previous version (project place). Depth first. Synapses
+have a small set of transient values which store upstream signals. This allows
+the algorithm to walk down to the leaves and push signals downstream
+step-by-step.
+
+* The next step is to work on the network builder. I'd intended to make this a
+generic algorithm which uses a JSON template. I can already see that templates
+are going to be large.
+
+* I have decided to go with a layered network architecture by default. This
+means networks will consist of layers of neurons (rather than an organic
+approach which can accommodate more types of structures). However, layers
+is a bit of misnomer. They are really groups of neurons which can connect
+to other groups of neurons. This was done to make a simpler network JSON
+template.
+
+* Cleaned up a few things for 0.04

@@ -11,14 +11,15 @@ void UpdateNeurons(i64 time, Writer * writer, vec<Neuron> & neurons, double erro
         // Call the neuron's update method.
         it->Update(time,writer);
 
+        // NEED TO UPDATE FOR LAYERS
         // Pass the neuron's output to all axonal synapses.
-        for(std::size_t i = 0; i < it->axons.size(); i++) {
-            neurons[it->axons[i].first].PresynapticSignal(
-                time, 
-                it->axons[i].second,
-                it->just_spiked
-            );
-        }
+        // for(std::size_t i = 0; i < it->axons.size(); i++) {
+        //     neurons[it->axons[i].first].PresynapticSignal(
+        //         time, 
+        //         it->axons[i].second,
+        //         it->just_spiked
+        //     );
+        // }
 
         // Pass the neuron's output to all dendritic synapses.
         it->PostsynapticSignal(time, error);

@@ -29,7 +29,10 @@ struct VecS {
 
     VecS();
     VecS(double _lat, double _lon, double _rad);
-    VecS(const VecS & v);
+    VecS(const VecS & v) = default;
+    VecS(VecS && v) = default;
+    VecS& operator=(const VecS & v) = default;
+    VecS& operator=(VecS && v) = default;
 
     double Lat();
     double Lon();
@@ -37,7 +40,6 @@ struct VecS {
     void Lat(double _lat);
     void Lon(double _lon);
     void Rad(double _rad);
-
 
     double Distance(const VecS & v);
     double DistanceWithRadius(const VecS & v);

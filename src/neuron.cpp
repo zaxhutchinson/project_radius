@@ -1,12 +1,28 @@
 #include"neuron.hpp"
 
+Neuron::Neuron()
+{
+    id = 0;
+    location = VecS(0.0, 0.0, 0.0);
+    nt = NeuronTemplate();
+    vpre = vcur = nt.c;
+    upre = ucur = nt.d;
+    output = 0.0;
+    baseline = 0.0;
+    raw_input = 0.0;
+    record_data = false;
+    record_interval = 1;
+    record_interval = 1000;
+    time_cur_spike = 0;
+    time_pre_spike = 0;
+    just_spiked = false;
+    ResetWriteData();
+}
 
 Neuron::Neuron(
-    i64 _id,
     VecS _loc,
     const NeuronTemplate & _nt
-)   :   id(_id),
-        location(_loc),
+)   :   location(_loc),
         nt(_nt)
 {
     
@@ -24,6 +40,19 @@ Neuron::Neuron(
     ResetWriteData();
 }
 
+void Neuron::SetID(i64 _id) {
+    id = _id;
+}
+
+void Neuron::AddSynapse(Synapse synapse) {
+    // Set the synapse's ID to the index it will
+    // occupy in the vector.
+    synapse.SetID(static_cast<i64>(synapses.size()));
+    synapses.push_back(std::move(synapse));
+}
+Synapse * Neuron::GetSynapse(i64 index) {
+    return &(synapses[index]);
+}
 
 void Neuron::SetBaseline(double amt) {
     baseline = amt;
@@ -49,7 +78,7 @@ void Neuron::PresynapticSpike(i64 time, i64 synapse_id) {
     Vec3 force;
     double partial_force = 0.0;
 
-    for(std::size_t i = 0; i < synapses.size(); i++) {
+    for(i64 i = 0; i < static_cast<i64>(synapses.size()); i++) {
         if(i != synapse_id) {
             double time_diff_other = static_cast<double>(
                 time - synapses[synapse_id].time_cur_spike
@@ -156,24 +185,81 @@ void Neuron::bAP(i64 time, i64 synapse_id, double amt, double error) {
 }
 
 
-void Neuron::Update(i64 time, Writer * writer) {
-    
+
+double Neuron::GetInput(i64 time) {
     // Calculate input
     double input = baseline + raw_input;
+
+    // Push all the synapses that connect directly
+    // to the soma onto the stack.
+    stk<i64> synstk;
     for(
         vec<i64>::iterator it = dendrites.begin();
         it != dendrites.end();
         it++
     ) {
-        // Get input from synapses. However that happens.
+        synstk.push(*it);
     }
 
+    i64 synid;
+    Synapse * syn;
+    vec<i64> * children;
+
+    while(!synstk.empty()) {
+
+        // Get the top synapse id
+        synid = synstk.top();
+
+        syn = GetSynapse(synid);
+        children = syn->GetChildren();
+
+        // If the syn has no children, or
+        // its children have already been evaluated,
+        // process and pop.
+        if(children->empty() || syn->GetUpstreamEval()) {
+
+            // If this isn't a synapse that connects directly
+            // to the soma, update it's parent's upstream signal.
+            if(syn->GetParent() != -1) {
+                Synapse * parent = GetSynapse(syn->GetParent());
+                parent->SetUpstreamEval(true);
+                parent->AddToUpstreamSignal(syn->GetSignalFull(time));
+            }
+            synstk.pop();
+        } else {
+            // Reset the upstream eval from the last get input.
+            syn->SetUpstreamEval(false);
+            for(
+                vec<i64>::iterator it = children->begin();
+                it != children->end();
+                it++
+            ) {
+                synstk.push(*it);
+            }
+        }
+    }
+
+    // All synapses have been evaluated. Accumulated input
+    // is in the synapses that connect directly to the soma.
+    // Add this to the mix.
+    for(
+        vec<i64>::iterator it = dendrites.begin();
+        it != dendrites.end();
+        it++
+    ) {
+        input += synapses[*it].GetSignalFull(time);
+    }
+
+    return input;
+}
+
+void Neuron::Update(i64 time, Writer * writer) {
     // Calculate voltage
     vcur = vpre +
     (
         nt.k * (vpre - nt.vr) * (vpre - nt.vt) -
         upre +
-        input
+        GetInput(time)
     ) / nt.cap;
 
     // Calculate recovery

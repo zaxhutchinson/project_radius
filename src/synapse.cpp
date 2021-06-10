@@ -1,13 +1,39 @@
 #include"synapse.hpp"
 
+Synapse::Synapse()
+    :   id(0),
+        max_strength(0.0),
+        abs_max_strength(0.0),
+        cur_strength(0.0),
+        location(VecS(0.0, 0.0, 0.0))
+{
+    parent = -1;
+    signal[0] = 0.0;
+    signal[1] = 0.0;
+    bap[0] = 0.0;
+    bap[1] = 0.0;
+    error = 0.0;
+    time_error = 0;
+    time_cur_spike = 0;
+    time_pre_spike = 0;
+    record_data = false;
+    record_interval = 1;
+    record_data_size = 1000;
+    dendrite_path_length = 0.0;
+
+    upstream_signal = 0.0;
+    upstream_eval = false;
+
+    ResetWriteData();
+}
 
 Synapse::Synapse(
-    int _id,
     VecS _loc,
     double _max_strength,
     double _cur_strength
-)   :   id(_id),
+)   :   id(0),
         max_strength(_max_strength),
+        abs_max_strength(std::abs(_max_strength)),
         cur_strength(_cur_strength),
         location(_loc)
 {
@@ -25,7 +51,14 @@ Synapse::Synapse(
     record_data_size = 1000;
     dendrite_path_length = 0.0;
 
+    upstream_signal = 0.0;
+    upstream_eval = false;
+
     ResetWriteData();
+}
+
+void Synapse::SetID(i64 _id) {
+    id = _id;
 }
 
 void Synapse::SetSignal(i64 time, double amt) {
@@ -42,16 +75,68 @@ void Synapse::SetDendritePathLength(double path) {
     dendrite_path_length = path;
 }
 
+double Synapse::GetStrength() {
+    return (cur_strength * max_strength) / 
+        (std::abs(cur_strength) + abs_max_strength);
+}
+
 double Synapse::GetSignal(i64 time) {
-    // Needs more work. Prev version modified the signal by the strength.
     return signal[(time+1)%2];
 }
+
+double Synapse::GetSignalWithStrength(i64 time) {
+    // Needs more work. Prev version modified the signal by the strength.
+    return (
+        signal[(time+1)%2] *
+        (
+            (cur_strength * max_strength) / 
+            (std::abs(cur_strength) + abs_max_strength)
+        )
+    );
+}
+double Synapse::GetSignalFull(i64 time) {
+    return (
+        (signal[(time+1)%2] + upstream_signal) *
+        (
+            (cur_strength * max_strength) / 
+            (std::abs(cur_strength) + abs_max_strength)
+        )
+    );
+}
+
+
+
 double Synapse::GetDendritePathLength() {
     return dendrite_path_length;
 }
 
 
+//------------------------------------------------------------------------
+    // Dendrite connections
+vec<i64> * Synapse::GetChildren() {
+    return &children;
+}
+i64 Synapse::GetParent() {
+    return parent;
+}
 
+//------------------------------------------------------------------------
+    // Upstream signal
+double Synapse::GetUpstreamSignal() {
+    return upstream_signal;
+}
+void Synapse::ResetUpstreamSignal() {
+    upstream_signal = 0.0;
+}
+void Synapse::AddToUpstreamSignal(double sig) {
+    upstream_signal += sig;
+}
+bool Synapse::GetUpstreamEval() {
+    return upstream_eval;
+}
+void Synapse::SetUpstreamEval(bool b) {
+    upstream_eval = b;
+}
 
 void Synapse::Update(i64 time, Writer * writer) {
     if(record_data && time%record_interval==0) {
