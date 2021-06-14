@@ -4,7 +4,7 @@ Neuron::Neuron()
 {
     id = 0;
     location = VecS(0.0, 0.0, 0.0);
-    nt = NeuronTemplate();
+    nt = tmps::NeuronTemplate();
     vpre = vcur = nt.c;
     upre = ucur = nt.d;
     output = 0.0;
@@ -21,7 +21,7 @@ Neuron::Neuron()
 
 Neuron::Neuron(
     VecS _loc,
-    const NeuronTemplate & _nt
+    const tmps::NeuronTemplate & _nt
 )   :   location(_loc),
         nt(_nt)
 {
@@ -40,18 +40,26 @@ Neuron::Neuron(
     ResetWriteData();
 }
 
+i64 Neuron::GetID() {
+    return id;
+}
 void Neuron::SetID(i64 _id) {
     id = _id;
 }
 
-void Neuron::AddSynapse(Synapse synapse) {
+i64 Neuron::AddSynapse(Synapse synapse) {
     // Set the synapse's ID to the index it will
     // occupy in the vector.
-    synapse.SetID(static_cast<i64>(synapses.size()));
+    i64 synapse_id = static_cast<i64>(synapses.size());
+    synapse.SetID(synapse_id);
     synapses.push_back(std::move(synapse));
+    return synapse_id;
 }
 Synapse * Neuron::GetSynapse(i64 index) {
     return &(synapses[index]);
+}
+void Neuron::AddAxon(Axon axon) {
+    axons.push_back(axon);
 }
 
 void Neuron::SetBaseline(double amt) {

@@ -37,3 +37,4 @@
 .vscode
 \mnist
 \obj
+\log

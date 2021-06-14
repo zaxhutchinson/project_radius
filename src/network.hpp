@@ -9,14 +9,18 @@ private:
     vec<sizet> input_layers;
     vec<sizet> output_layers;
 public:
-    Network();
+    Network() = default;
     Network(const Network & n) = default;
     Network(Network && n) = default;
     Network& operator=(const Network & n) = default;
     Network& operator=(Network && n) = default;
     
     //------------------------------------------------------------------------
-    void AddLayer(Layer layer, bool is_input, bool is_output);
+    /* AddLayer:
+        Adds a layer to the network. Sets its id based on its place in the
+        vector. Returns the new layer's id.
+    */
+    i64 AddLayer(Layer layer);
     Layer * GetLayer(i64 index);
 };
 

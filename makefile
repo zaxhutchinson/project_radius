@@ -5,9 +5,9 @@ CC=g++ # define the compiler to use
 TARGET=radius # define the name of the executable
 
 # RELEASE
-#CFLAGS= -c -std=c++17 -O3 -fopenmp -Wall 
+#CFLAGS= -c -std=c++20 -O3 -fopenmp -Wall 
 # DEBUG
-CFLAGS= -c -std=c++17 -g3 -fopenmp -Wall -DDEBUG
+CFLAGS= -c -std=c++20 -g3 -fopenmp -Wall -DDEBUG
 
 LFLAGS= -Llib -lm -lsfml-graphics -lsfml-window -lsfml-system -lconfig++ -pthread -fopenmp
 SRCDIR = src

@@ -1,6 +1,7 @@
 #include"vec_s.hpp"
 
 VecS::VecS() : lat(0.0), lon(0.0), rad(0.0) {}
+VecS::VecS(double _rad) : rad(_rad) {}
 VecS::VecS(double _lat, double _lon, double _rad)
     : lat(_lat), lon(_lon), rad(_rad)
 {}
@@ -11,6 +12,14 @@ double VecS::Rad() { return rad; }
 void VecS::Lat(double _lat) { lat = _lat; }
 void VecS::Lon(double _lon) { lon = _lon; }
 void VecS::Rad(double _rad) { rad = _rad; }
+
+void VecS::RandomizeLatLong(RNG & rng) {
+    std::uniform_real_distribution<double> dist(
+        M_PI, -M_PI
+    );
+    lat = dist(rng);
+    lon = dist(rng);
+}
 
 double VecS::Distance(const VecS & v) {
 

@@ -28,6 +28,7 @@ struct VecS {
     double rad;
 
     VecS();
+    VecS(double _rad);
     VecS(double _lat, double _lon, double _rad);
     VecS(const VecS & v) = default;
     VecS(VecS && v) = default;
@@ -40,6 +41,8 @@ struct VecS {
     void Lat(double _lat);
     void Lon(double _lon);
     void Rad(double _rad);
+
+    void RandomizeLatLong(RNG & rng);
 
     double Distance(const VecS & v);
     double DistanceWithRadius(const VecS & v);

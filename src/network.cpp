@@ -1,17 +1,19 @@
 #include"network.hpp"
 
-void Network::AddLayer(Layer layer, bool is_input, bool is_output) {
+i64 Network::AddLayer(Layer layer) {
     i64 id = static_cast<i64>(layers.size());
     // Set the layer's id.
     layer.SetID(id);
     // Add to vec
     layers.push_back(std::move(layer));
-    if(is_input) {
+    if(layer.IsInput()) {
         input_layers.push_back(id);
     }
-    if(is_output) {
+    if(layer.IsOutput()) {
         output_layers.push_back(id);
     }
+
+    return id;
 }
 
 Layer * Network::GetLayer(i64 index) {

@@ -7,8 +7,27 @@ void Layer::SetID(i64 _id) {
 i64 Layer::GetID() {
     return id;
 }
-
-
+void Layer::SetName(str _name) {
+    name = _name;
+}
+str Layer::GetName() {
+    return name;
+}
+bool Layer::IsInput() {
+    return is_input;
+}
+bool Layer::IsOutput() {
+    return is_output;
+}
+void Layer::SetInput(bool b) {
+    is_input = b;
+}
+void Layer::SetOutput(bool b) {
+    is_output = b;
+}
+i64 Layer::GetLayerSize() {
+    return static_cast<i64>(neurons.size());
+}
 
 void Layer::AddNeuron(Neuron neuron) {
     // Set the neuron's id to its index in the list.

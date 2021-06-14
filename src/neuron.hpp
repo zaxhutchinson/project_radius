@@ -12,7 +12,7 @@
 struct Neuron {
     i64 id;
     VecS location;
-    NeuronTemplate nt;
+    tmps::NeuronTemplate nt;
     double vpre;
     double vcur;
     double upre;
@@ -36,7 +36,7 @@ struct Neuron {
     Neuron();
     Neuron(
         VecS _loc,
-        const NeuronTemplate & _nt
+        const tmps::NeuronTemplate & _nt
     );
     Neuron(const Neuron & n) = delete;
     Neuron(Neuron && n) = default;
@@ -44,10 +44,12 @@ struct Neuron {
     Neuron& operator=(Neuron && n) = default;
     //------------------------------------------------------------------------
 
+    i64 GetID();
     void SetID(i64 _id);
 
-    void AddSynapse(Synapse synapse);
+    i64 AddSynapse(Synapse synapse);
     Synapse * GetSynapse(i64 index);
+    void AddAxon(Axon axon);
 
     void SetBaseline(double amt);
     void SetRawInput(double amt);

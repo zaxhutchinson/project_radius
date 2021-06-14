@@ -1,3 +1,18 @@
+**June 11, 2021**
+*Version 0.05 work*
+
+* Added logging
+* Added the first version of the network builder. Went pretty smooth. Seems to be working. It creates all the template objects. Next I'm going to work on the code that takes the templates and builds an actual network.
+* First version that transforms templates into an actual network with layers,
+neurons and synapses. So far, so good.
+
+
+**June 10, 2021**
+*Version 0.05 work*
+
+* Layer, Network and Connection Templates added. These will be used to generate networks.
+* Example network json file made. Establishes the starting format.
+
 **June 4, 2021**
 *Version 0.03 work*
 

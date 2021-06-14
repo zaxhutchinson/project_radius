@@ -1,3 +1,8 @@
+**Version 0.05**
+- Begin work on the JSON network builder.
+- Network builder, v1, complete.
+- Adds logging capabilities from another project. Reworked how the logger functions.
+
 **Version 0.04**
 - Neuron input via dendrite and synapses. Iterative solution - untested.
 - Higher-level arch: Network -> Layer -> Neuron -> Synapse.

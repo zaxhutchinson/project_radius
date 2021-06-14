@@ -5,7 +5,7 @@
 namespace zxlb {
 
     inline constexpr double MAJOR_VERSION {0.0};
-    inline constexpr double MINOR_VERSION {0.04};
+    inline constexpr double MINOR_VERSION {0.05};
 
     /* NEURON_SPIKE_TIME_WINDOW
         Determines how long spikes are saved and continue to affect neuronal

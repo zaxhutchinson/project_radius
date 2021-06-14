@@ -1,0 +1,28 @@
+{
+    "network1" : {
+        "layer1" : {
+            "is_input_layer" : true,
+            "is_output_layer" : false,
+            "neuron_templates" : {
+                "Regular Spiking" : 10
+            },
+            "connections" : {
+                "layer2" : {
+                    "number_of_downstream_connections" : 10,
+                    "prob_of_making_downstream_connection" : 0.1,
+                    "min_starting_strength": 10,
+                    "max_starting_strength": 10,
+                    "max_strength": 1,
+                    "radius": 100.0
+                }
+            }
+        },
+        "layer2" : {
+            "is_input_layer" : false,
+            "is_output_layer" : true,
+            "neuron_templates" : {
+                "Regular Spiking" : 10
+            }
+        }
+    }
+}
