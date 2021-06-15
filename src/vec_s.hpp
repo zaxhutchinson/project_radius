@@ -42,6 +42,8 @@ struct VecS {
     void Lon(double _lon);
     void Rad(double _rad);
 
+    void ChangeRad(double amt);
+
     void RandomizeLatLong(RNG & rng);
 
     double Distance(const VecS & v);

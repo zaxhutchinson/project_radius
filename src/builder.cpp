@@ -1,6 +1,8 @@
 #include"builder.hpp"
 
 uptr<Network> BuildNetwork(str network_id, RNG & rng) {
+
+    zxlog::Debug("Building network " + network_id);
     
     // If not such network id, return null
     if(!tmps::NETWORK_TEMPLATES.contains(network_id)) {
@@ -23,10 +25,8 @@ uptr<Network> BuildNetwork(str network_id, RNG & rng) {
         Layer layer;
         layer.SetName(lit->first);
 
-        
-
-        layer.SetInput(lit->second.is_input_layer);
-        layer.SetOutput(lit->second.is_output_layer);
+        layer.SetIsInput(lit->second.is_input_layer);
+        layer.SetIsOutput(lit->second.is_output_layer);
 
         // Create and add the neurons
         for(
@@ -36,6 +36,9 @@ uptr<Network> BuildNetwork(str network_id, RNG & rng) {
         ) {
             for(i64 i = 0; i < nit->second; i++) {
                 Neuron neuron(VecS(), nit->first);
+                neuron.record_data = lit->second.record_data;
+                neuron.record_interval = lit->second.record_interval;
+                neuron.record_data_size = lit->second.record_data_size;
                 neuron.SetID(i);
                 layer.AddNeuron(std::move(neuron));
             }
@@ -43,6 +46,8 @@ uptr<Network> BuildNetwork(str network_id, RNG & rng) {
 
         // Add layer to network and capture the layer's network-assigned id.
         i64 layer_id = network->AddLayer(std::move(layer));
+
+        zxlog::Debug("Adding layer " + std::to_string(layer_id));
 
         // Add layer to the lookup table.
         layer_lookup.insert({lit->first, layer_id});
@@ -99,14 +104,13 @@ uptr<Network> BuildNetwork(str network_id, RNG & rng) {
                             strengthDist(rng)
                         );
 
-                        i64 synapse_id = neuron_ds->AddSynapse(std::move(synapse));
+                        ConnectionAddress ca;
+                        ca.pre_layer = layer_us->GetID();
+                        ca.pre_neuron = neuron_us->GetID();
+                        ca.post_layer = layer_ds->GetID();
+                        ca.post_neuron = neuron_ds->GetID();
 
-                        Axon axon;
-                        axon.layer_index = layer_ds->GetID();
-                        axon.neuron_index = neuron_ds->GetID();
-                        axon.synapse_index = synapse_id;
-
-                        neuron_us->AddAxon(axon);
+                        synapse.SetConnectionAddress(ca);
                     }
                 }
 

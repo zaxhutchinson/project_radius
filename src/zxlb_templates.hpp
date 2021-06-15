@@ -60,3 +60,5 @@ using UTRTN = std::pair<bool, str>;
 // Return of a Neuron Update
 // <SPIKED?, OUTPUT>
 using NEURTN = std::pair<bool, double>;
+
+

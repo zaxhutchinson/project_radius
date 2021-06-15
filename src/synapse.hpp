@@ -5,6 +5,7 @@
 #include"vec_s.hpp"
 #include"writer.hpp"
 #include"data.hpp"
+#include"connection.hpp"
 
 struct Synapse {
 
@@ -27,6 +28,7 @@ struct Synapse {
     std::size_t record_interval;
     std::size_t record_data_size;
     uptr<SynapseData> data;
+    ConnectionAddress ca;
 
     // Helper variable.
     // Stores upstream signals during the
@@ -47,8 +49,12 @@ struct Synapse {
     Synapse& operator=(Synapse && s) = default;
     //------------------------------------------------------------------------
 
-    void SetID(i64 _id);
+    void Reset();
 
+    double GetError();
+
+    void SetID(i64 _id);
+    void SetConnectionAddress(ConnectionAddress ca);
     void SetSignal(i64 time, double amt);
     void SetCurSpike(i64 time);
 
@@ -85,7 +91,7 @@ struct Synapse {
 
     //------------------------------------------------------------------------
     //
-    void Update(i64 time, Writer * writer);
+    bool Update(i64 time, Writer * writer, ConnectionMatrix & cm);
     void ResetWriteData();
     void WriteData(i64 time, Writer * writer);
     void CleanupData(Writer * writer);

@@ -21,6 +21,10 @@ void VecS::RandomizeLatLong(RNG & rng) {
     lon = dist(rng);
 }
 
+void VecS::ChangeRad(double amt) {
+    rad += amt;
+}
+
 double VecS::Distance(const VecS & v) {
 
     double alon = v.lon-lon;

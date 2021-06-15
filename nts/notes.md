@@ -1,3 +1,13 @@
+**June 15, 2021**
+*Version 0.05 work*
+
+* Worked on RunMNIST() code. Looking back at the way I loaded MNIST data in Project Place, I've decided to offload the carving up of the data into the MNISTReader itself. Seems to be working.
+* Added a reset to the whole network (layers, neurons, synapses, connections). I am hoping that a hard reset to the network will work better than an ITI. Previous experiments showed that even with a 1 sec ITI, network errors favored the previous item category by a few percent. A possible downside is that the network will be "cold" for each example. By cold, I mean that it takes several 10s of milliseconds before the neuron variables charge up to an operating state. Again, not sure this is a downside.
+* Going to call this version 0.05.
+* The sim is working, but there are some problems. Input is way too high, but I think that has to do with the way input is funneled down through the dendrite. I'm seeing error rates of -450, which means it is spiking at a rate of +450 hz. And I don't have baseline input in for the input neurons.
+* Also, there might be a problem with the Writer. Need to debug that. It's not throwing errors, but nothing is being written.
+
+
 **June 11, 2021**
 *Version 0.05 work*
 

@@ -29,14 +29,25 @@ namespace tmps {
 
                 zxlog::Debug("LayerTemplate " + layer_template.layer_template_id + " loading.");
 
-                layer_template.is_input_layer = false;
                 if(lit->contains("is_input_layer")) {
                     layer_template.is_input_layer = lit->at("is_input_layer");
-                }
-                layer_template.is_output_layer = false;
+                } else layer_template.is_input_layer = false;
+                
                 if(lit->contains("is_output_layer")) {
                     layer_template.is_output_layer = lit->at("is_output_layer");
-                }
+                } else layer_template.is_output_layer = false;
+                
+                if(lit->contains("record_data")) {
+                    layer_template.record_data = lit->at("record_data");
+                } else layer_template.record_data = false;
+
+                if(lit->contains("record_interval")) {
+                    layer_template.record_interval = lit->at("record_interval");
+                } else layer_template.record_interval = 1;
+
+                if(lit->contains("record_data_size")) {
+                    layer_template.record_data_size = lit->at("record_data_size");
+                } else layer_template.record_data_size = 1000;
 
                 if(lit->contains("neuron_templates")) {
                     json neuron_temps = lit->at("neuron_templates");
@@ -104,6 +115,10 @@ namespace tmps {
                         " has no connections."
                     );
                 }
+
+                network_template.layers.push_back(
+                    std::make_pair(lit.key(), layer_template)
+                );
 
             }
 

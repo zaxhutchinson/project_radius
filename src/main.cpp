@@ -3,6 +3,8 @@
 #include<omp.h>
 #include<random>
 
+#include"zxlb.hpp"
+#include"config.hpp"
 #include"sim.hpp"
 #include"unit_tests.hpp"
 #include"mnist_reader.hpp"
@@ -18,8 +20,12 @@
 
 
 
-void Run();
-uptr<Network> BuildNetwork(int network_id);
+void RunMNIST(
+    Writer * writer,
+    Network * network,
+    MNISTReader & mnist,
+    RNG & rng
+);
 
 int main(int argc, char**argv) {
     //-------------------------------------------------------------------------
@@ -45,11 +51,11 @@ int main(int argc, char**argv) {
     //-------------------------------------------------------------------------
     // WRITER
     zxlog::Debug("MAIN: Setting up writer.");
-    Writer writer(std::string("/home/zax/Projects/project_radius_output/output"));
+    Writer writer(str("/home/zax/Projects/project_radius_output/output"));
 
     //-------------------------------------------------------------------------
     // Process command line args.
-    str network_id = "-1";
+    str network_id = "mnist_network_001";
 
     zxlog::Debug("MAIN: Processing cmd line args.");
     for(int i = 1; i < argc; i++) {
@@ -62,6 +68,10 @@ int main(int argc, char**argv) {
             UnitTests();
         }
     }
+
+    //-------------------------------------------------------------------------
+    // Init the config data
+    config::InitConfig();
 
     //-------------------------------------------------------------------------
     // Load the network templates
@@ -78,11 +88,102 @@ int main(int argc, char**argv) {
 
     //-------------------------------------------------------------------------
     // Run network
-    Run();
+    RunMNIST(
+        &writer,
+        network.get(),
+        mnist_reader,
+        rng
+    );
 
     return 0;
 }
 
-void Run() {
-    std::cout << "RUN STARTED\n";
+void RunMNIST(
+    Writer * writer,
+    Network * network,
+    MNISTReader & mnist,
+    RNG & rng
+) {
+    zxlog::Debug("RunMNIST() called.");
+
+    // Label, Index of output neuron
+    vec<unsigned> labels = {0,1,2,3,4,5,6,7,8,9};
+    umap<unsigned, sizet> labels_with_indexes = {
+        {0,0},
+        {1,1},
+        {2,2},
+        {3,3},
+        {4,4},
+        {5,5},
+        {6,6},
+        {7,7},
+        {8,8},
+        {9,9}
+    };
+    sizet num_iterations = 1000;
+    sizet examples_per_iteration = 1;
+    sizet iteration_size = examples_per_iteration * labels.size();
+    i64 time_per_example = 1000;
+    sizet correct_choice = 0;
+    i64 output_layer_index = network->GetOutputLayerIndex();
+    i64 error_rate_start_time = 100;
+
+    zxlog::Debug("Get MNIST data.");
+    vec<vec<MNISTData>> data = mnist.GetDataAsIteration(
+        labels,
+        num_iterations,
+        examples_per_iteration,
+        rng
+    );
+
+    //-------------------------------------------------------------------------
+    // Build the rates vector. Default to incorrect rates.
+    vec<double> rates;
+    for(sizet i = 0; i < labels.size(); i++) {
+        rates.push_back(config::INCORRECT_EXPECTED);
+    }
+
+    //-------------------------------------------------------------------------
+    // Start the run
+    
+    
+    for(sizet i = 0; i < num_iterations; i++) {
+        zxlog::Debug("Iteration " + std::to_string(i));
+
+        for(sizet k = 0; k < iteration_size; k++) {
+            zxlog::Debug("   Image " + std::to_string(k));
+
+            // Get the image
+            MNISTData & d = data[i][k];
+
+            // Set the inputs to the pixel data
+            network->SetInputs(d.image);
+
+            // Update the error rates before and after swapping
+            // to the new correct choice
+            rates[correct_choice] = config::INCORRECT_EXPECTED;
+            correct_choice = labels_with_indexes[d.label]; // look up neuron index.
+            rates[correct_choice] = config::CORRECT_EXPECTED;
+
+            network->UpdateLayerErrorValues(
+                rates, error_rate_start_time, output_layer_index
+            );
+
+            for(i64 time = 0; time < time_per_example; time++) {
+                network->Update(
+                    time,
+                    writer
+                );
+            }
+
+            
+        }
+
+        vec<double> error_rates = network->GetErrorRates(output_layer_index);
+        for(sizet i = 0; i < error_rates.size(); i++) {
+            std::cout << i << ":" << error_rates[i] << std::endl;
+        }
+
+    }
+
 }

@@ -1,6 +1,14 @@
 #include"layer.hpp"
 
-
+void Layer::Reset() {
+    for(
+        vec<Neuron>::iterator it = neurons.begin();
+        it != neurons.end();
+        it++
+    ) {
+        it->Reset();
+    }
+}
 void Layer::SetID(i64 _id) {
     id = _id;
 }
@@ -19,10 +27,10 @@ bool Layer::IsInput() {
 bool Layer::IsOutput() {
     return is_output;
 }
-void Layer::SetInput(bool b) {
+void Layer::SetIsInput(bool b) {
     is_input = b;
 }
-void Layer::SetOutput(bool b) {
+void Layer::SetIsOutput(bool b) {
     is_output = b;
 }
 i64 Layer::GetLayerSize() {
@@ -44,8 +52,22 @@ Neuron * Layer::GetNeuron(i64 index) {
     }
 }
 
-void Layer::UpdateNeurons(i64 time, Writer * writer) {
+void Layer::Update(i64 time, Writer * writer, ConnectionMatrix & cm) {
     for(sizet i = 0; i < neurons.size(); i++) {
-        neurons[i].Update(time, writer);
+        neurons[i].Update(time, writer, id, cm);
+        neurons[i].PostsynapticSignal(time);
+    }
+}
+
+void Layer::SetInputs(vec<double> & inputs) {
+    if(inputs.size() != neurons.size()) {
+        zxlog::Error(
+            "Layer: Input vector size differs from neuron vector size. Inputs = " +
+            std::to_string(inputs.size()) + "Neurons = " + std::to_string(neurons.size())
+        );
+    } else {
+        for(sizet i = 0; i < inputs.size(); i++) {
+            neurons[i].SetRawInput(inputs[i]);
+        }
     }
 }

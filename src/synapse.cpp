@@ -57,13 +57,29 @@ Synapse::Synapse(
     ResetWriteData();
 }
 
+void Synapse::Reset() {
+    signal[0] = signal[1] = 0.0;
+    bap[0] = bap[1] = 0.0;
+    error = 0.0;
+    time_error = 0;
+    time_cur_spike = 0;
+    time_pre_spike = 0;
+}
+
+double Synapse::GetError() {
+    return error;
+}
+
 void Synapse::SetID(i64 _id) {
     id = _id;
 }
 
-void Synapse::SetSignal(i64 time, double amt) {
-    signal[time%2]=amt;
+void Synapse::SetConnectionAddress(ConnectionAddress ca) {
+    this->ca = ca;
+}
 
+void Synapse::SetSignal(i64 time, double amt) {
+    signal[time%2] = amt;
 }
 
 void Synapse::SetCurSpike(i64 time) {
@@ -138,9 +154,22 @@ void Synapse::SetUpstreamEval(bool b) {
     upstream_eval = b;
 }
 
-void Synapse::Update(i64 time, Writer * writer) {
+bool Synapse::Update(i64 time, Writer * writer, ConnectionMatrix & cm) {
+    
+
+    SetSignal(time, cm[ca.pre_layer][ca.pre_neuron].output);
+
+    error = cm[ca.post_layer][ca.post_neuron].GetErrorRate();
+
     if(record_data && time%record_interval==0) {
         WriteData(time,writer);
+    }
+
+    if(cm[ca.pre_layer][ca.pre_neuron].just_spiked) {
+        SetCurSpike(time);
+        return true;
+    } else {
+        return false;
     }
 }
 

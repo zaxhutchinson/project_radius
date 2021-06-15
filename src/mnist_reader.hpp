@@ -20,6 +20,7 @@
 #include<algorithm>
 
 #include"zxlb.hpp"
+#include"log.hpp"
 
 template<typename T, typename U>
 using umap = std::unordered_map<T,U>;
@@ -58,6 +59,11 @@ struct MNISTReader {
     // Returns a pointer to the ith MNISTData object. Returns nullptr if
     // your i is bad.
     MNISTData GetDataAt(unsigned i);
+
+    // Returns a vector of MNISTData built by iteration size. Each iteration
+    // will contain one example of each label. The order within each iteration
+    // is randomized.
+    vec<vec<MNISTData>> GetDataAsIteration(vec<unsigned> labels, sizet num_iterations, sizet examples_per_iteration, RNG & rng);
 
     // Converts the ith image to a b&w ppm image file named: image_[i].ppm
     // If the i is bad, nothing happens

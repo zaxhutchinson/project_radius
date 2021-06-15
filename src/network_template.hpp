@@ -26,6 +26,9 @@ namespace tmps {
         bool is_input_layer;
         bool is_output_layer;
         vec<ConnectionTemplate> connections;
+        bool record_data;
+        sizet record_interval;
+        sizet record_data_size;
     };
 
     struct NetworkTemplate {

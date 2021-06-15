@@ -78,6 +78,43 @@ MNISTData MNISTReader::GetDataAt(unsigned i) {
     return data.at(i);
 }
 
+vec<vec<MNISTData>> MNISTReader::GetDataAsIteration(vec<unsigned> labels, sizet num_iterations, sizet examples_per_iteration, RNG & rng) {
+    zxlog::Debug("MNISTReader: GetDataAsIteration");
+    vec<vec<MNISTData>> data_by_label;
+    for(sizet i = 0; i < labels.size(); i++) {
+        vec<MNISTData> data = GetDataWithLabel(labels[i]);
+        std::shuffle(data.begin(), data.end(), rng);
+        data.resize(num_iterations*examples_per_iteration);
+
+        zxlog::Debug(
+            "Label "+std::to_string(labels[i]) +
+            ", Num examples "+std::to_string(data.size())
+        );
+
+        data_by_label.push_back(std::move(data));
+    }
+
+    vec<vec<MNISTData>> data_by_iteration;
+    for(sizet n = 0; n < num_iterations; n++) {
+        vec<MNISTData> iteration;
+        for(sizet l = 0; l < data_by_label.size(); l++) {
+            for(sizet i = 0; i < examples_per_iteration; i++) {
+
+                // zxlog::Debug(
+                //     "Data by label size " + std::to_string(data_by_label[l].size())
+                // );
+
+                iteration.push_back(data_by_label[l].back());
+                data_by_label[l].pop_back();
+            }
+        }
+        std::shuffle(iteration.begin(), iteration.end(), rng);
+        data_by_iteration.push_back(iteration);
+    }
+
+    return data_by_iteration;
+}
+
 void MNISTReader::ToPPM(unsigned i) {
     MNISTData md = GetDataAt(i);
 

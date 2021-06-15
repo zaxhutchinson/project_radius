@@ -7,7 +7,6 @@ Neuron::Neuron()
     nt = tmps::NeuronTemplate();
     vpre = vcur = nt.c;
     upre = ucur = nt.d;
-    output = 0.0;
     baseline = 0.0;
     raw_input = 0.0;
     record_data = false;
@@ -16,6 +15,7 @@ Neuron::Neuron()
     time_cur_spike = 0;
     time_pre_spike = 0;
     just_spiked = false;
+    output = 0.0;
     ResetWriteData();
 }
 
@@ -28,7 +28,6 @@ Neuron::Neuron(
     
     vpre = vcur = nt.c;
     upre = ucur = nt.d;
-    output = 0.0;
     baseline = 0.0;
     raw_input = 0.0;
     record_data = false;
@@ -37,7 +36,26 @@ Neuron::Neuron(
     time_cur_spike = 0;
     time_pre_spike = 0;
     just_spiked = false;
+    output = 0.0;
     ResetWriteData();
+}
+
+void Neuron::Reset() {
+    vpre = vcur = nt.c;
+    upre = ucur = nt.d;
+    raw_input = 0.0;
+    time_cur_spike = 0;
+    time_pre_spike = 0;
+    just_spiked = false;
+    output = 0.0;
+
+    for(
+        vec<Synapse>::iterator it = synapses.begin();
+        it != synapses.end();
+        it++
+    ) {
+        it->Reset();
+    }
 }
 
 i64 Neuron::GetID() {
@@ -58,9 +76,6 @@ i64 Neuron::AddSynapse(Synapse synapse) {
 Synapse * Neuron::GetSynapse(i64 index) {
     return &(synapses[index]);
 }
-void Neuron::AddAxon(Axon axon) {
-    axons.push_back(axon);
-}
 
 void Neuron::SetBaseline(double amt) {
     baseline = amt;
@@ -69,13 +84,13 @@ void Neuron::SetRawInput(double amt) {
     raw_input = amt;
 }
 
-void Neuron::PresynapticSignal(i64 time, i64 synapse_id, bool pre_spike) {
-    synapses[synapse_id].SetSignal(time,output);
-    if(pre_spike) {
-        synapses[synapse_id].SetCurSpike(time);
-        PresynapticSpike(time, synapse_id);
-    }
-}
+// void Neuron::PresynapticSignal(i64 time, i64 synapse_id, double signal, bool pre_spike) {
+//     synapses[synapse_id].SetSignal(time,signal);
+//     if(pre_spike) {
+//         synapses[synapse_id].SetCurSpike(time);
+//         PresynapticSpike(time, synapse_id);
+//     }
+// }
 
 void Neuron::PresynapticSpike(i64 time, i64 synapse_id) {
 
@@ -85,6 +100,7 @@ void Neuron::PresynapticSpike(i64 time, i64 synapse_id) {
 
     Vec3 force;
     double partial_force = 0.0;
+    double error = synapses[synapse_id].GetError();
 
     for(i64 i = 0; i < static_cast<i64>(synapses.size()); i++) {
         if(i != synapse_id) {
@@ -111,7 +127,9 @@ void Neuron::PresynapticSpike(i64 time, i64 synapse_id) {
                 std::tanh(distance)
             );
 
-            force += synapses[synapse_id].location.VectorTo(synapses[i].location) * partial_force;
+            force += synapses[synapse_id].location.VectorTo(synapses[i].location) * 
+                partial_force * 
+                error;
         }
     }
 
@@ -121,7 +139,7 @@ void Neuron::PresynapticSpike(i64 time, i64 synapse_id) {
 
 }
 
-void Neuron::PostsynapticSignal(i64 time, double error) {
+void Neuron::PostsynapticSignal(i64 time) {
 
     if(just_spiked) {
 
@@ -143,21 +161,20 @@ void Neuron::PostsynapticSignal(i64 time, double error) {
             //     std::exp( - time_diff_synapse / zxlb::POST_SYNAPSE_FORCE_TIME_WINDOW)
             // );
 
-            double force_soma = (
-                (time_diff_soma + zxlb::POST_SOMA_FORCE_TIME_WINDOW) /
-                zxlb::POST_SOMA_FORCE_TIME_WINDOW *
-                std::exp( - time_diff_soma / zxlb::POST_SOMA_FORCE_TIME_WINDOW)
-            );
+            double force = (
+                    (time_diff_soma + zxlb::POST_SOMA_FORCE_TIME_WINDOW) /
+                    zxlb::POST_SOMA_FORCE_TIME_WINDOW *
+                    std::exp( - time_diff_soma / zxlb::POST_SOMA_FORCE_TIME_WINDOW)
+                ) * 
+                std::tanh(distance) * 
+                synapses[i].GetError();
 
-            synapses[i].location.Rad(
-                force_soma *
-                std::tanh(distance)
-            );
+            synapses[i].location.ChangeRad( force );
 
         }
 
         for(std::size_t i = 0; i < dendrites.size(); i++) {
-            bAP(time, dendrites[i], output, error);
+            bAP(time, dendrites[i], output);
         }
 
     }
@@ -168,7 +185,7 @@ void Neuron::PostsynapticSignal(i64 time, double error) {
 }
 
 
-void Neuron::bAP(i64 time, i64 synapse_id, double amt, double error) {
+void Neuron::bAP(i64 time, i64 synapse_id, double amt) {
     double prepost_time_diff = static_cast<double>(
         time_cur_spike - synapses[synapse_id].time_cur_spike
     );
@@ -183,14 +200,15 @@ void Neuron::bAP(i64 time, i64 synapse_id, double amt, double error) {
         (synapses[synapse_id].max_strength + std::abs(synapses[synapse_id].cur_strength))
     );
 
-    synapses[synapse_id].cur_strength += (time_delta * str_delta * error);
+    synapses[synapse_id].cur_strength += (time_delta * str_delta * synapses[synapse_id].GetError());
 
     double bap_amt = std::tanh(time_delta + amt);
 
     for(std::size_t i = 0; i < synapses[synapse_id].children.size(); i++) {
-        bAP(time, synapses[synapse_id].children[i], bap_amt, error);
+        bAP(time, synapses[synapse_id].children[i], bap_amt);
     }
 }
+
 
 
 
@@ -214,6 +232,7 @@ double Neuron::GetInput(i64 time) {
     vec<i64> * children;
 
     while(!synstk.empty()) {
+        //zxlog::Debug(std::to_string(synstk.size()));
 
         // Get the top synapse id
         synid = synstk.top();
@@ -261,7 +280,17 @@ double Neuron::GetInput(i64 time) {
     return input;
 }
 
-void Neuron::Update(i64 time, Writer * writer) {
+void Neuron::Update(i64 time, Writer * writer, i64 layer_id, ConnectionMatrix & cm) {
+
+    // Update all the synapses
+    for(sizet i = 0; i < synapses.size(); i++) {
+        // Update, and if the input source for this synapse
+        // produced a spike, then process it.
+        if(synapses[i].Update(time, writer, cm)) {
+            PresynapticSpike(time, i);
+        }
+    }
+
     // Calculate voltage
     vcur = vpre +
     (
@@ -303,14 +332,19 @@ void Neuron::Update(i64 time, Writer * writer) {
             it = spike_times_live.erase(it);
         } else {
             output += diff * std::exp( -(diff - 1.0) );
+            it++;
         }
     }
-
     output = std::tanh(output);
+
+    // Update connection matrix.
+    cm[layer_id][id].Update(just_spiked, output);
 
     if(record_data && (time%record_interval)==0) {
         WriteData(time, writer);
     }
+
+    
 }
 
 void Neuron::ResetWriteData() {
