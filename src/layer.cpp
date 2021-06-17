@@ -11,6 +11,9 @@ void Layer::Reset() {
 }
 void Layer::SetID(i64 _id) {
     id = _id;
+    for(sizet i = 0; i < neurons.size(); i++) {
+        neurons[i].SetLayerID(id);
+    }
 }
 i64 Layer::GetID() {
     return id;
@@ -69,5 +72,22 @@ void Layer::SetInputs(vec<double> & inputs) {
         for(sizet i = 0; i < inputs.size(); i++) {
             neurons[i].SetRawInput(inputs[i]);
         }
+    }
+}
+
+void Layer::RebuildDendrites() {
+    for(sizet i = 0; i < neurons.size(); i++) {
+        neurons[i].BuildDendrite();
+    }
+}
+
+void Layer::CleanUp(Writer * writer) {
+    for(sizet i = 0; i < neurons.size(); i++) {
+        neurons[i].CleanupData(writer);
+    }
+}
+void Layer::InitWriteData() {
+    for(sizet i = 0; i < neurons.size(); i++) {
+        neurons[i].InitWriteData();
     }
 }

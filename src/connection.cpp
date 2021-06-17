@@ -25,3 +25,8 @@ void Connection::Reset(
 double Connection::GetErrorRate() {
     return target_rate - (static_cast<double>(num_spikes) / (static_cast<double>(time) / 1000.0));
 }
+
+double Connection::GetErrorRateNorm() {
+    double e = target_rate - (static_cast<double>(num_spikes) / (static_cast<double>(time) / 1000.0));
+    return e / (std::abs(e) + target_rate);
+}

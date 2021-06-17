@@ -5,7 +5,7 @@
 namespace zxlb {
 
     inline constexpr double MAJOR_VERSION {0.0};
-    inline constexpr double MINOR_VERSION {0.05};
+    inline constexpr double MINOR_VERSION {0.06};
 
     /* NEURON_SPIKE_TIME_WINDOW
         Determines how long spikes are saved and continue to affect neuronal
@@ -19,7 +19,7 @@ namespace zxlb {
         one. At least for neurons. Plateau potentials will warrant saving spikes
         ...maybe.
     */
-    inline constexpr int64_t NEURON_SPIKE_TIME_WINDOW { 10 };
+    inline constexpr int64_t NEURON_SPIKE_TIME_WINDOW { 30 };
 
 
     inline constexpr double PRE_SELF_FORCE_TIME_WINDOW { 30.0 };
@@ -29,6 +29,8 @@ namespace zxlb {
     inline constexpr double POST_SOMA_FORCE_TIME_WINDOW { 30.0 };
 
     inline constexpr double LEARNING_TIME_WINDOW { 30.0 };
+
+    inline constexpr double MAX_RADIUS {200.0};
 
     /* BF: Balancing Factor
         Used in the calculation of dendritic path lengths. Part of the

@@ -22,7 +22,10 @@ void VecS::RandomizeLatLong(RNG & rng) {
 }
 
 void VecS::ChangeRad(double amt) {
+    amt = (1.0-(std::abs((zxlb::MAX_RADIUS/2.0) - rad) / (zxlb::MAX_RADIUS/2.0))) * amt;
+
     rad += amt;
+    if(rad > zxlb::MAX_RADIUS) rad = zxlb::MAX_RADIUS;
 }
 
 double VecS::Distance(const VecS & v) {
@@ -30,17 +33,18 @@ double VecS::Distance(const VecS & v) {
     double alon = v.lon-lon;
     double alat = v.lat-lat;
 
-    // if(alat==0) {
-    //     alon = fmod(alon+2.0*M_PI,M_PI);
-    //     return (alon < M_PI-alon) ? alon : M_PI - alon;
-    // }; 
-
     double a = pow( sin(alat/2.0), 2.0 ) +
         cos(lat) * cos(v.lat) *
         pow(sin(alon/2.0), 2.0);
     return  2.0 * atan2(sqrt(a), sqrt(1-a));
     
     
+    // if(alat==0) {
+    //     alon = fmod(alon+2.0*M_PI,M_PI);
+    //     return (alon < M_PI-alon) ? alon : M_PI - alon;
+    // }; 
+
+
     // 1
     // return acos(
     //     sin(lat) * sin(v.lat) + cos(lat) * cos(v.lat) * cos(alon)

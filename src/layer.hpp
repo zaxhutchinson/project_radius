@@ -34,4 +34,10 @@ public:
     void Update(i64 time, Writer * writer, ConnectionMatrix & cm);
 
     void SetInputs(vec<double> & inputs);
+
+    void RebuildDendrites();
+
+    void CleanUp(Writer * writer);
+    void InitWriteData();
+
 };

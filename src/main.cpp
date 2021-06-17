@@ -86,6 +86,8 @@ int main(int argc, char**argv) {
     uptr<Network> network = BuildNetwork(network_id, rng);
     zxlog::Debug("MAIN: End building network " + network_id + ".");
 
+    network->InitWriteData();
+
     //-------------------------------------------------------------------------
     // Run network
     RunMNIST(
@@ -120,7 +122,7 @@ void RunMNIST(
         {8,8},
         {9,9}
     };
-    sizet num_iterations = 1000;
+    sizet num_iterations = 10;
     sizet examples_per_iteration = 1;
     sizet iteration_size = examples_per_iteration * labels.size();
     i64 time_per_example = 1000;
@@ -145,7 +147,11 @@ void RunMNIST(
 
     //-------------------------------------------------------------------------
     // Start the run
-    
+    network->RebuildDendrites();
+
+    //network->GetLayer(1)->GetNeuron(0)->PrintDendrite();
+
+    writer->StartRecording();
     
     for(sizet i = 0; i < num_iterations; i++) {
         zxlog::Debug("Iteration " + std::to_string(i));
@@ -165,25 +171,35 @@ void RunMNIST(
             correct_choice = labels_with_indexes[d.label]; // look up neuron index.
             rates[correct_choice] = config::CORRECT_EXPECTED;
 
+
             network->UpdateLayerErrorValues(
                 rates, error_rate_start_time, output_layer_index
             );
 
-            for(i64 time = 0; time < time_per_example; time++) {
+
+
+            for(i64 time = 1; time <= time_per_example; time++) {
                 network->Update(
                     time,
                     writer
                 );
             }
 
-            
-        }
+            vec<double> error_rates = network->GetErrorRates(output_layer_index);
+            std::cout << "/== Iteration " << i << "  Image " << k << " ==============================//\n";
+            for(sizet m = 0; m < error_rates.size(); m++) {
+                std::cout << m << ":" << error_rates[m] << std::endl;
+            }
 
-        vec<double> error_rates = network->GetErrorRates(output_layer_index);
-        for(sizet i = 0; i < error_rates.size(); i++) {
-            std::cout << i << ":" << error_rates[i] << std::endl;
+            network->Reset();
         }
+        network->RebuildDendrites();
 
+        //network->GetLayer(1)->GetNeuron(0)->PrintDendrite();
     }
+
+    network->CleanUpData(writer);
+
+    writer->StopRecording();
 
 }

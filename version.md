@@ -1,7 +1,11 @@
+**Version 0.06**
+- Worked out many of the issues. Committing for posterity.
+
 **Version 0.05**
 - Begin work on the JSON network builder.
 - Network builder, v1, complete.
 - Adds logging capabilities from another project. Reworked how the logger functions.
+- First working version. There are issues, but it works.
 
 **Version 0.04**
 - Neuron input via dendrite and synapses. Iterative solution - untested.

@@ -40,5 +40,10 @@ public:
     );
 
     vec<double> GetErrorRates(i64 layer_id);
+
+    void RebuildDendrites();
+
+    void InitWriteData();
+    void CleanUpData(Writer * writer);
 };
 

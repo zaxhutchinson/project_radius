@@ -23,6 +23,9 @@ void Network::Reset() {
         ) {
             it2->just_spiked = false;
             it2->output = 0.0;
+            it2->time = 0;
+            it2->num_spikes = 0;
+            it2->target_rate = 0.0;
         }
     }
 }
@@ -100,7 +103,7 @@ void Network::UpdateLayerErrorValues(
     i64 time,
     i64 layer_id
 ) {
-    for(sizet i = 0; i < rates.size(); i++) {
+    for(i64 i = 0; i < layers[layer_id].GetLayerSize(); i++) {
         connection_matrix[layer_id][i].Reset(
             rates[i], time
         );
@@ -113,4 +116,23 @@ vec<double> Network::GetErrorRates(i64 layer_id) {
         erates.push_back(connection_matrix[layer_id][i].GetErrorRate());
     }
     return erates;
+}
+
+void Network::InitWriteData() {
+    for(sizet i = 0; i < layers.size(); i++) {
+        layers[i].InitWriteData();
+    }
+}
+
+void Network::RebuildDendrites() {
+    for(sizet i = 0; i < layers.size(); i++) {
+        layers[i].RebuildDendrites();
+    }
+}
+
+
+void Network::CleanUpData(Writer * writer) {
+    for(sizet i = 0; i < layers.size(); i++) {
+        layers[i].CleanUp(writer);
+    }
 }

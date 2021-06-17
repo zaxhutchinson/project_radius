@@ -56,12 +56,16 @@ namespace tmps {
                         neuronit != neuron_temps.end();
                         neuronit++
                     ) {
-                        opt<NeuronTemplate> nt = GetNeuronTemplate(neuronit.key());
+                        NeuronTemplate neuron_template;
+                        str neuron_type = neuronit->at("type");
+                        opt<NeuronType> nt = GetNeuronType(neuron_type);
                         if(nt) {
-                            layer_template.neurons.push_back(
-                                std::make_pair(*nt, neuronit.value())
-                            );
+                            neuron_template.type = *nt;
                         }
+                        neuron_template.number = neuronit->at("number");
+                        neuron_template.baseline = neuronit->at("baseline");
+
+                        layer_template.neurons.push_back(neuron_template);
                     }
                 } else {
                     zxlog::Error(
@@ -106,6 +110,8 @@ namespace tmps {
                             connection_template.radius =
                                 cit->at("radius");
                         }
+
+                        layer_template.connections.push_back(connection_template);
                     }
 
                 } else if(!layer_template.is_output_layer) {

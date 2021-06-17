@@ -25,4 +25,5 @@ struct NeuronData {
     vec<double> u;
     vec<vec<i64>> spike_times;
     vec<double> output;
+    vec<double> input;
 };

@@ -1,17 +1,20 @@
 #pragma once
 
+#include<iostream>
+
 #include"zxlb.hpp"
 #include"log.hpp"
 #include"vec3.hpp"
 #include"data.hpp"
 #include"writer.hpp"
 #include"synapse.hpp"
-#include"neuron_template.hpp"
+#include"neuron_type.hpp"
 
 struct Neuron {
     i64 id;
+    i64 layer_id;
     VecS location;
-    tmps::NeuronTemplate nt;
+    tmps::NeuronType nt;
     double vpre;
     double vcur;
     double upre;
@@ -30,11 +33,12 @@ struct Neuron {
     uptr<NeuronData> data;
     bool just_spiked;
     double output;
+    double input;
 
     Neuron();
     Neuron(
         VecS _loc,
-        const tmps::NeuronTemplate & _nt
+        const tmps::NeuronType & _nt
     );
     Neuron(const Neuron & n) = delete;
     Neuron(Neuron && n) = default;
@@ -46,6 +50,7 @@ struct Neuron {
 
     i64 GetID();
     void SetID(i64 _id);
+    void SetLayerID(i64 _id);
 
     i64 AddSynapse(Synapse synapse);
     Synapse * GetSynapse(i64 index);
@@ -58,9 +63,14 @@ struct Neuron {
     void bAP(i64 time, i64 synapse_id, double amt);
    
     void Update(i64 time, Writer * writer, i64 layer_id, ConnectionMatrix & cm);
+    void InitWriteData();
     void ResetWriteData();
     void WriteData(i64 time, Writer * writer);
     void CleanupData(Writer * writer);
+
+    void BuildDendrite();
+
+    void PrintDendrite();
 
 private:
      /* GetInput:
@@ -68,6 +78,6 @@ private:
         Iterative solution used because synapses can't talk
         to each other.
     */
-    double GetInput(i64 time);
+    void GetInput(i64 time);
 
 };

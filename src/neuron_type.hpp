@@ -4,7 +4,7 @@
 
 namespace tmps {
 
-    struct NeuronTemplate {
+    struct NeuronType {
         str name;
         double cap;
         double vr;
@@ -17,20 +17,20 @@ namespace tmps {
         double d;
     };
 
-    inline const NeuronTemplate NT_REGULAR_SPIKING = {
+    inline const NeuronType NT_REGULAR_SPIKING = {
         "Regular Spiking",
         100.0,
         -60.0,
         -40.0,
-        35.0,
         0.7,
+        35.0,
         0.03,
         -2.0,
         -50.0,
         100.0,
     };
 
-    inline const NeuronTemplate NT_CHATTERING = {
+    inline const NeuronType NT_CHATTERING = {
         "Chattering",
         50.0,
         -60.0,
@@ -43,7 +43,7 @@ namespace tmps {
         150.0
     };
 
-    inline const NeuronTemplate NT_MEDIUM_SPINY = {
+    inline const NeuronType NT_MEDIUM_SPINY = {
         "Medium Spiny",
         50.0,
         -80.0,
@@ -56,7 +56,7 @@ namespace tmps {
         150.0
     };
 
-    inline const NeuronTemplate NT_RELAY = {
+    inline const NeuronType NT_RELAY = {
         "Relay",
         200.0,
         -60.0,
@@ -69,7 +69,7 @@ namespace tmps {
         100.0
     };
 
-    inline const NeuronTemplate NT_FAST_SPIKING = {
+    inline const NeuronType NT_FAST_SPIKING = {
         "Fast Spiking",
         20.0,
         -55.0,
@@ -82,7 +82,7 @@ namespace tmps {
         200.0,
     };
 
-    inline const NeuronTemplate NT_RETICULAR_THALAMIC = {
+    inline const NeuronType NT_RETICULAR_THALAMIC = {
         "Reticular Thalamic",
         40.0,
         -65.0,
@@ -95,7 +95,7 @@ namespace tmps {
         50.0
     };
 
-    inline const NeuronTemplate NT_INTRINSIC_BURSTING = {
+    inline const NeuronType NT_INTRINSIC_BURSTING = {
         "Intrinsic Bursting",
         150.0,
         -75.0,
@@ -108,6 +108,6 @@ namespace tmps {
         130.0
     };
 
-    opt<NeuronTemplate> GetNeuronTemplate(str name);
+    opt<NeuronType> GetNeuronType(str name);
 
 }

@@ -1,3 +1,14 @@
+**June 17, 2021**
+*Version 0.06 work*
+* Spent a lot of time debugging logical errors and bad parameter values. Since the project was started back in spring and only now brought to a working state, there's a clash between what I thought I was going to do and what I ended up doing. However, things are coming together. I made the first run in which the output and behavior looks ok. I will try a really long run tonight or tomorrow. After 10 iterations, the loss values indicate that spiking behavior isn't saturating to max or 0.
+* An idea occurred to me to give the Presynatic() function the ability to boost synaptic strength no matter what. There might be several reasons for doing this. 1) It will prevent neurons from going completely dead forever. I have seen this used elsewhere (not sure the project). The other project to use this (IIRC) boosted only when the value was below some threshold. 2) It might be a way to avoid local minimums; however, this can be done in other ways.
+* I've tacked on several things to various classes/functions within the project. I've overdue to spend a day cleaning up the code and thinking through these hacks.
+
+**June 16, 2021**
+*Version 0.06 work*
+* The program is running, but it is slow. I've had to limit the number of connected synapses to which unconnected ones connect to 10, else the n^3 algorithm takes forever (of course it does).
+* Output doesn't look good. Seems like the output neurons are all 0. A quick check shows that the input to the output neurons goes to infinity during the presentation of the first image. That seems to indicate something's not getting reset between each call to the neuron's GetInput().
+
 **June 15, 2021**
 *Version 0.05 work*
 

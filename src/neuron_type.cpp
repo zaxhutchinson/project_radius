@@ -1,9 +1,9 @@
-#include"neuron_template.hpp"
+#include"neuron_type.hpp"
 
 namespace tmps {
 
-    opt<NeuronTemplate> GetNeuronTemplate(str name) {
-        opt<NeuronTemplate> nt;
+    opt<NeuronType> GetNeuronType(str name) {
+        opt<NeuronType> nt;
         
         if(name=="Regular Spiking") {
             nt = NT_REGULAR_SPIKING;

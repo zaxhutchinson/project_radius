@@ -1,12 +1,13 @@
 #pragma once
 
 #include<fstream>
+#include<iostream>
 
 #include<json.hpp>
 
 #include"zxlb.hpp"
 #include"log.hpp"
-#include"neuron_template.hpp"
+#include"neuron_type.hpp"
 
 namespace tmps {
 
@@ -20,9 +21,15 @@ namespace tmps {
         double radius;
     };
 
+    struct NeuronTemplate {
+        NeuronType type;
+        i64 number;
+        double baseline;
+    };
+
     struct LayerTemplate {
         str layer_template_id;
-        vec<pair<NeuronTemplate, i64>> neurons;
+        vec<NeuronTemplate> neurons;
         bool is_input_layer;
         bool is_output_layer;
         vec<ConnectionTemplate> connections;

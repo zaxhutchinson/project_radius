@@ -1,5 +1,7 @@
 #pragma once
 
+#include<iostream>
+
 #include"zxlb.hpp"
 
 struct ConnectionAddress {
@@ -24,6 +26,7 @@ struct Connection {
         i64 _time=0
     );
     double GetErrorRate();
+    double GetErrorRateNorm();
 };
 
 using ConnectionMatrix = vec<vec<Connection>>;

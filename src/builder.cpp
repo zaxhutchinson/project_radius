@@ -30,12 +30,13 @@ uptr<Network> BuildNetwork(str network_id, RNG & rng) {
 
         // Create and add the neurons
         for(
-            vec<pair<tmps::NeuronTemplate, i64>>::iterator nit = lit->second.neurons.begin();
+            vec<tmps::NeuronTemplate>::iterator nit = lit->second.neurons.begin();
             nit != lit->second.neurons.end();
             nit++
         ) {
-            for(i64 i = 0; i < nit->second; i++) {
-                Neuron neuron(VecS(), nit->first);
+            for(i64 i = 0; i < nit->number; i++) {
+                Neuron neuron(VecS(), nit->type);
+                neuron.baseline = nit->baseline;
                 neuron.record_data = lit->second.record_data;
                 neuron.record_interval = lit->second.record_interval;
                 neuron.record_data_size = lit->second.record_data_size;
@@ -47,14 +48,14 @@ uptr<Network> BuildNetwork(str network_id, RNG & rng) {
         // Add layer to network and capture the layer's network-assigned id.
         i64 layer_id = network->AddLayer(std::move(layer));
 
-        zxlog::Debug("Adding layer " + std::to_string(layer_id));
-
         // Add layer to the lookup table.
         layer_lookup.insert({lit->first, layer_id});
     }
 
 
     std::uniform_real_distribution<double> dice(0.0, 1.0);
+
+    zxlog::Debug("Building connections.");
 
     // Iterate back through all the layer templates so we can connect things.
     for(
@@ -76,6 +77,11 @@ uptr<Network> BuildNetwork(str network_id, RNG & rng) {
             Layer * layer_ds = network->GetLayer(layer_ds_id);
 
             double prob = cit->prob_making_downstream_connection;
+
+            zxlog::Debug(
+                "   Connection: " + lit->first + " to " + std::to_string(layer_ds_id) +
+                " with prob " + std::to_string(prob)
+            );
 
             std::uniform_real_distribution<double> strengthDist(
                 cit->min_starting_strength, cit->max_starting_strength
@@ -103,6 +109,9 @@ uptr<Network> BuildNetwork(str network_id, RNG & rng) {
                             cit->max_strength,
                             strengthDist(rng)
                         );
+                        synapse.SetLayerID(layer_ds_id);
+                        synapse.SetNeuronID(ds_i);
+                        
 
                         ConnectionAddress ca;
                         ca.pre_layer = layer_us->GetID();
@@ -111,6 +120,8 @@ uptr<Network> BuildNetwork(str network_id, RNG & rng) {
                         ca.post_neuron = neuron_ds->GetID();
 
                         synapse.SetConnectionAddress(ca);
+
+                        neuron_ds->AddSynapse(std::move(synapse));
                     }
                 }
 

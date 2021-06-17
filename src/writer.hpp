@@ -4,6 +4,8 @@
 #include<thread>
 #include<fstream>
 #include<string>
+#include<iostream>
+#include<filesystem>
 
 #include"zxlb.hpp"
 #include"data.hpp"
