@@ -18,7 +18,8 @@ namespace tmps {
         double min_starting_strength;
         double max_starting_strength;
         double max_strength;
-        double radius;
+        double min_radius;
+        double max_radius;
     };
 
     struct NeuronTemplate {

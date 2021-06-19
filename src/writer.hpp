@@ -14,8 +14,10 @@ struct Writer {
     str write_directory;
     bool run;
     
+    mtx mtx_example;
     mtx mtx_synapse;
     mtx mtx_neuron;
+    quptr<ExampleData> example_data;
     quptr<SynapseData> synapse_data;
     quptr<NeuronData> neuron_data;
 
@@ -28,6 +30,9 @@ struct Writer {
 
     void WriteThread();
     bool HasDataToWrite();
+
+    void AddExampleData(uptr<ExampleData> data);
+    void WriteExampleData();
 
     void AddSynapseData(uptr<SynapseData> data);
     void WriteSynapseData();

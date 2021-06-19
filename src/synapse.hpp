@@ -99,7 +99,8 @@ struct Synapse {
     //
     bool Update(i64 time, Writer * writer, ConnectionMatrix & cm);
     void ResetWriteData();
-    void WriteData(i64 time, Writer * writer);
+    void SaveData(i64 time);
+    void WriteData(Writer * writer);
     void CleanupData(Writer * writer);
     
 };

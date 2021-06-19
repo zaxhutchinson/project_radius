@@ -16,6 +16,7 @@ Synapse::Synapse()
     time_error = 0;
     time_cur_spike = 0;
     time_pre_spike = 0;
+    spikes = 0;
     record_data = false;
     record_interval = 1;
     record_data_size = 1000;
@@ -46,6 +47,7 @@ Synapse::Synapse(
     time_error = 0;
     time_cur_spike = 0;
     time_pre_spike = 0;
+    spikes = 0;
     record_data = false;
     record_interval = 1;
     record_data_size = 1000;
@@ -63,6 +65,7 @@ void Synapse::Reset() {
     time_error = 0;
     time_cur_spike = 0;
     time_pre_spike = 0;
+    spikes = 0;
     upstream_eval = false;
     upstream_signal =0.0;
 }
@@ -134,12 +137,7 @@ double Synapse::GetSignalFull(i64 time) {
 
 
     double combined_signal = (
-        signal[(time+1)%2] *
-        (
-            (cur_strength * max_strength) / 
-            (std::abs(cur_strength) + abs_max_strength)
-        ) +
-        upstream_signal
+        (signal[(time+1)%2] * cur_strength) + upstream_signal
     );
 
     return (combined_signal * max_strength) / (std::abs(combined_signal) + abs_max_strength);
@@ -186,12 +184,11 @@ bool Synapse::Update(i64 time, Writer * writer, ConnectionMatrix & cm) {
 
     error = cm[ca.post_layer][ca.post_neuron].GetErrorRateNorm();
 
-    if(record_data && time%record_interval==0) {
-        WriteData(time,writer);
-    }
+    SaveData(time);
 
     if(cm[ca.pre_layer][ca.pre_neuron].just_spiked) {
         SetCurSpike(time);
+        spikes++;
         return true;
     } else {
         return false;
@@ -202,6 +199,9 @@ void Synapse::ResetWriteData() {
     data = std::make_unique<SynapseData>();
     data->id = "SYNAPSE_"+std::to_string(layer_id)+"_"+std::to_string(neuron_id)+"_"+std::to_string(id);
     data->data_size = 0;
+    data->synapse_id = id;
+    data->neuron_id = neuron_id;
+    data->layer_id = layer_id;
 }
 
 void Synapse::CleanupData(Writer * writer) {
@@ -211,27 +211,31 @@ void Synapse::CleanupData(Writer * writer) {
     }
 }
 
-void Synapse::WriteData(i64 time, Writer * writer) {
+void Synapse::SaveData(i64 time) {
+    if(record_data && time%record_interval==0) {
+        data->data_size++;
+        data->input.push_back(signal[time%2]);
+        data->strength.push_back(cur_strength);
+        data->error.push_back(error);
+        data->locations.push_back(location);
+        data->spikes.push_back(spikes);
+        spikes = 0;     // RESET SPIKES.
+        data->time_indexes.push_back(time);
+        data->parent_id.push_back(parent);
+        vec<int> c_ids;
+        for(std::size_t i = 0; i < children.size(); i++) {
+            c_ids.push_back(children[i]);
+        }
+        data->children_ids.push_back(c_ids);
+    }
+}
 
-    if(data->data_size==record_data_size) {
+void Synapse::WriteData(Writer * writer) {
+
+    if(record_data) {
         writer->AddSynapseData(std::move(data));
         ResetWriteData();
     }
-
-    data->data_size++;
-    data->input.push_back(signal[time%2]);
-    data->strength.push_back(cur_strength);
-    data->error.push_back(error);
-    data->locations.push_back(location);
-    data->spikes.push_back(spikes);
-    spikes = 0;     // RESET SPIKES.
-    data->time_indexes.push_back(time);
-    data->parent_id.push_back(parent);
-    vec<int> c_ids;
-    for(std::size_t i = 0; i < children.size(); i++) {
-        c_ids.push_back(children[i]);
-    }
-    data->children_ids.push_back(c_ids);
 
 }
 

@@ -23,24 +23,44 @@ void Writer::WriteThread() {
     while(run) {
 
         while(HasDataToWrite()) {
+            WriteExampleData();
             WriteSynapseData();
-
             WriteNeuronData();
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
     while(HasDataToWrite()) {
+        WriteExampleData();
         WriteSynapseData();
-
         WriteNeuronData();
     }
 }
 
 bool Writer::HasDataToWrite() {
-    return (!synapse_data.empty() || !neuron_data.empty());
+    return (!synapse_data.empty() || !neuron_data.empty() || !example_data.empty());
 }
 
+void Writer::AddExampleData(uptr<ExampleData> data) {
+    mtx_example.lock();
+    example_data.push(std::move(data));
+    mtx_example.unlock();
+}
+
+void Writer::WriteExampleData() {
+    if(!example_data.empty()) {
+        mtx_example.lock();
+        uptr<ExampleData> data = std::move(example_data.front());
+        example_data.pop();
+        mtx_example.unlock();
+
+        str fname(write_directory+"/EXAMPLES");
+        std::ofstream ofs(fname, std::ios::out | std::ios::app);
+
+        ofs << data->iteration << " " << data->example << " " << data->label << "\n";
+        ofs.close();
+    }
+}
 
 void Writer::AddSynapseData(uptr<SynapseData> data) {
     mtx_synapse.lock();
@@ -59,21 +79,62 @@ void Writer::WriteSynapseData() {
         str fname(write_directory+"/"+data->id);
         std::ofstream ofs(fname, std::ios::out | std::ios::app);
 
+        ofs << data->layer_id << " " << data->neuron_id << " " << data->synapse_id << "\n";
+
+        ofs << "TIME ";
         for(std::size_t i = 0; i < data->data_size; i++) {
-            ofs << data->time_indexes[i] << ","
-                << data->locations[i].Lat() << ","
-                << data->locations[i].Lon() << ","
-                << data->locations[i].Rad() << ","
-                << data->strength[i] << ","
-                << data->spikes[i] << ","
-                << data->input[i] << ","
-                << data->error[i] << ","
-                << data->parent_id[i] << ",";
-                for(std::size_t k = 0; k < data->children_ids[i].size(); k++) {
-                    ofs << data->children_ids[i][k] << " ";
-                }
-                ofs << "\n";
-        }
+            ofs << data->time_indexes[i] << " ";
+        } ofs << "\n";
+
+        ofs << "LAT ";
+        for(std::size_t i = 0; i < data->data_size; i++) {
+            ofs << data->locations[i].Lat() << " ";
+        } ofs << "\n";
+
+        ofs << "LON ";
+        for(std::size_t i = 0; i < data->data_size; i++) {
+            ofs << data->locations[i].Lon() << " ";
+        } ofs << "\n";
+
+        ofs << "RAD ";
+        for(std::size_t i = 0; i < data->data_size; i++) {
+            ofs << data->locations[i].Rad() << " ";
+        } ofs << "\n";
+
+        ofs << "STR ";
+        for(std::size_t i = 0; i < data->data_size; i++) {
+            ofs << data->strength[i] << " ";
+        } ofs << "\n";
+
+        ofs << "SPKS ";
+        for(std::size_t i = 0; i < data->data_size; i++) {
+            ofs << data->spikes[i] << " ";
+        } ofs << "\n";
+
+        ofs << "IN ";
+        for(std::size_t i = 0; i < data->data_size; i++) {
+            ofs << data->input[i] << " ";
+        } ofs << "\n";
+
+        ofs << "ERR ";
+        for(std::size_t i = 0; i < data->data_size; i++) {
+            ofs << data->error[i] << " ";
+        } ofs << "\n";
+
+        ofs << "PID ";
+        for(std::size_t i = 0; i < data->data_size; i++) {
+            ofs << data->parent_id[i] << " ";
+        } ofs << "\n";
+        
+        ofs << "CID ";
+        for(sizet i = 0; i < data->data_size; i++) {
+            ofs << "[";
+            for(sizet k = 0; k < data->children_ids[i].size(); k++) {
+                ofs << data->children_ids[i][k] << " ";
+            }
+            ofs << "] ";
+         } ofs << "\n";
+
         ofs.close();
     }
 }
@@ -97,20 +158,58 @@ void Writer::WriteNeuronData() {
 
         std::ofstream ofs(fname, std::ios::out | std::ios::app);
 
+        ofs << data->layer_id << " " << data->neuron_id << "\n";
+
+        ofs << "TIME ";
         for(std::size_t i = 0; i < data->data_size; i++) { 
-            ofs << data->time_indexes[i] << ","
-                << data->locations[i].Lat() << ","
-                << data->locations[i].Lon() << ","
-                << data->locations[i].Rad() << ","
-                << data->v[i] << ","
-                << data->u[i] << ","
-                << data->output[i] << ","
-                << data->input[i] << ",";
-                for(std::size_t k = 0; k < data->spike_times[i].size(); k++) {
-                    ofs << data->spike_times[i][k] << " ";
-                }
-                ofs << "\n";
-        }
+            ofs << data->time_indexes[i] << " ";
+        } ofs << "\n";
+
+        ofs << "LAT ";
+        for(std::size_t i = 0; i < data->data_size; i++) { 
+            ofs << data->locations[i].Lat() << " ";
+        } ofs << "\n";
+
+        ofs << "LON ";
+        for(std::size_t i = 0; i < data->data_size; i++) { 
+            ofs << data->locations[i].Lon() << " ";
+        } ofs << "\n";
+
+        ofs << "RAD ";
+        for(std::size_t i = 0; i < data->data_size; i++) { 
+            ofs << data->locations[i].Rad() << " ";
+        } ofs << "\n";
+
+        ofs << "V ";
+        for(std::size_t i = 0; i < data->data_size; i++) { 
+            ofs << data->v[i] << " ";
+        } ofs << "\n";
+
+        ofs << "U ";
+        for(std::size_t i = 0; i < data->data_size; i++) { 
+            ofs << data->u[i] << " ";
+        } ofs << "\n";
+
+        ofs << "OUT ";
+        for(std::size_t i = 0; i < data->data_size; i++) { 
+            ofs << data->output[i] << " ";
+        } ofs << "\n";
+
+        ofs << "IN ";
+        for(std::size_t i = 0; i < data->data_size; i++) { 
+            ofs << data->input[i] << " ";
+        } ofs << "\n";
+
+        ofs << "ERR ";
+        for(std::size_t i = 0; i < data->data_size; i++) { 
+            ofs << data->locations[i].Lat() << " ";
+        } ofs << "\n";
+
+        ofs << "SPKS ";
+        for(std::size_t i = 0; i < data->spike_times.size(); i++) {
+            ofs << data->spike_times[i] << " ";
+        } ofs << "\n";
+
         ofs.close();
     }
 }

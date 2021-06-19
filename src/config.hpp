@@ -7,7 +7,6 @@
 namespace config {
     inline double CORRECT_EXPECTED;
     inline double INCORRECT_EXPECTED;
-    inline i64 TIME_EXPECTED;
     inline i64 TASK_DURATION;
 
     void InitConfig();

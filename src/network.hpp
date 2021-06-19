@@ -35,7 +35,6 @@ public:
 
     void UpdateLayerErrorValues(
         vec<double> & rates,
-        i64 time,
         i64 layer_id
     );
 
@@ -45,5 +44,6 @@ public:
 
     void InitWriteData();
     void CleanUpData(Writer * writer);
+    void WriteData(Writer * writer);
 };
 

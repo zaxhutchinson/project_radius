@@ -58,7 +58,7 @@ Neuron * Layer::GetNeuron(i64 index) {
 void Layer::Update(i64 time, Writer * writer, ConnectionMatrix & cm) {
     for(sizet i = 0; i < neurons.size(); i++) {
         neurons[i].Update(time, writer, id, cm);
-        neurons[i].PostsynapticSignal(time);
+        neurons[i].PostsynapticSignal(time, cm);
     }
 }
 
@@ -89,5 +89,11 @@ void Layer::CleanUp(Writer * writer) {
 void Layer::InitWriteData() {
     for(sizet i = 0; i < neurons.size(); i++) {
         neurons[i].InitWriteData();
+    }
+}
+
+void Layer::WriteData(Writer * writer) {
+    for(sizet i = 0; i < neurons.size(); i++) {
+        neurons[i].WriteData(writer);
     }
 }

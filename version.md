@@ -1,3 +1,6 @@
+**Version 0.07**
+- Visualization and debugging.
+
 **Version 0.06**
 - Worked out many of the issues. Committing for posterity.
 

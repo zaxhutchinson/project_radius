@@ -30,7 +30,9 @@ namespace zxlb {
 
     inline constexpr double LEARNING_TIME_WINDOW { 30.0 };
 
-    inline constexpr double MAX_RADIUS {200.0};
+    inline constexpr double MAX_RADIUS {100.0};
+
+    inline constexpr double LEARNING_RATE {0.1};
 
     /* BF: Balancing Factor
         Used in the calculation of dendritic path lengths. Part of the
@@ -39,5 +41,5 @@ namespace zxlb {
         It represents the effect the total path length to an unconnected
         synapse has on calculating distance for Prim's Algorithm.
     */
-    inline constexpr double BF = 0.2;
+    inline constexpr double BF = 0.5;
 };

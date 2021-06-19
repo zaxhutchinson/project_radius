@@ -101,7 +101,7 @@ void Neuron::SetRawInput(double amt) {
 //     }
 // }
 
-void Neuron::PresynapticSpike(i64 time, i64 synapse_id) {
+void Neuron::PresynapticSpike(i64 time, i64 synapse_id, ConnectionMatrix & cm) {
 
     double time_diff_self = static_cast<double>(
         synapses[synapse_id].time_cur_spike - synapses[synapse_id].time_pre_spike
@@ -145,6 +145,7 @@ void Neuron::PresynapticSpike(i64 time, i64 synapse_id) {
     }
 
     force /= static_cast<double>(synapses.size()-1);
+    force *= zxlb::LEARNING_RATE;
 
     // Presynaptic activity in any context causes an increase in the
     // synapse's strength. Not sure about this one.
@@ -154,7 +155,7 @@ void Neuron::PresynapticSpike(i64 time, i64 synapse_id) {
 
 }
 
-void Neuron::PostsynapticSignal(i64 time) {
+void Neuron::PostsynapticSignal(i64 time, ConnectionMatrix & cm) {
 
     if(just_spiked) {
 
@@ -182,7 +183,8 @@ void Neuron::PostsynapticSignal(i64 time) {
                     std::exp( - time_diff_soma / zxlb::POST_SOMA_FORCE_TIME_WINDOW)
                 ) * 
                 std::tanh(distance) * 
-                synapses[i].GetError();
+                //cm[layer_id][id].GetErrorRateReLU() *
+                zxlb::LEARNING_RATE;
 
             synapses[i].location.ChangeRad( force );
 
@@ -217,7 +219,7 @@ void Neuron::bAP(i64 time, i64 synapse_id, double amt) {
 
     double str_delta = synapses[synapse_id].GetStrengthDelta();
 
-    double delta = (time_delta * str_delta * synapses[synapse_id].GetError() * synapses[synapse_id].GetSignal(time));
+    double delta = ( zxlb::LEARNING_RATE * time_delta * str_delta * synapses[synapse_id].GetError() * synapses[synapse_id].GetSignal(time));
     
     synapses[synapse_id].cur_strength += delta;//(time_delta * str_delta * synapses[synapse_id].GetError() * amt);
 
@@ -319,7 +321,7 @@ void Neuron::Update(i64 time, Writer * writer, i64 layer_id, ConnectionMatrix & 
         // Update, and if the input source for this synapse
         // produced a spike, then process it.
         if(synapses[i].Update(time, writer, cm)) {
-            PresynapticSpike(time, i);
+            PresynapticSpike(time, i, cm);
         }
     }
 
@@ -377,9 +379,7 @@ void Neuron::Update(i64 time, Writer * writer, i64 layer_id, ConnectionMatrix & 
     // Update connection matrix.
     cm[layer_id][id].Update(just_spiked, output);
 
-    if(record_data && (time%record_interval)==0) {
-        WriteData(time, writer);
-    }
+    SaveData(time, cm);
 
 }
 
@@ -394,6 +394,8 @@ void Neuron::ResetWriteData() {
     data = std::make_unique<NeuronData>();
     data->id = "NEURON_"+std::to_string(layer_id)+"_"+std::to_string(id);
     data->data_size = 0;
+    data->neuron_id = id;
+    data->layer_id = layer_id;
 }
 
 void Neuron::CleanupData(Writer * writer) {
@@ -405,21 +407,33 @@ void Neuron::CleanupData(Writer * writer) {
         synapses[i].CleanupData(writer);
     }
 }
+void Neuron::SaveData(i64 time, ConnectionMatrix & cm) {
+    if(record_data && (time%record_interval)==0) {
+        data->data_size++;
+        data->time_indexes.push_back(time);
+        data->locations.push_back(location);
+        data->v.push_back(vcur);
+        data->u.push_back(ucur);
+        for(sizet i = 0; i < spike_times_data.size(); i++) {
+            data->spike_times.push_back(spike_times_data[i]);
+        }
+        spike_times_data.clear();   // Clear out spike times.
+        data->output.push_back(output);
+        data->input.push_back(input);
+        data->error.push_back(cm[layer_id][id].GetErrorRate());
+    }
+}
+void Neuron::WriteData(Writer * writer) {
 
-void Neuron::WriteData(i64 time, Writer * writer) {
-    if(data->data_size == record_data_size) {
+    if(record_data) {
+
         writer->AddNeuronData(std::move(data));
         ResetWriteData();
+
+        for(sizet i = 0; i < synapses.size(); i++) {
+            synapses[i].WriteData(writer);
+        }
     }
-    data->data_size++;
-    data->time_indexes.push_back(time);
-    data->locations.push_back(location);
-    data->v.push_back(vcur);
-    data->u.push_back(ucur);
-    data->spike_times.push_back(spike_times_data);
-    spike_times_data.clear();   // Clear out spike times.
-    data->output.push_back(output);
-    data->input.push_back(input);
 }
 
 
@@ -451,6 +465,24 @@ void Neuron::BuildDendrite() {
         i64 usyn = *(unconnected.begin());
         i64 csyn = -1;
         double min_dist = synapses[usyn].location.Rad();
+
+        // If the distance is less than 1.0, connect directly
+        // to the soma and DO NOT add to the connected this.
+        // In this way, unchanged synapses can participate,
+        // but they cannot be a conduit for active ones.
+        if(min_dist >= zxlb::MAX_RADIUS) {
+            unconnected.erase(
+                std::find(
+                    unconnected.begin(),
+                    unconnected.end(),
+                    usyn
+                )
+            );
+            dendrites.push_back(usyn);
+            synapses[usyn].parent = -1;
+            synapses[usyn].SetDendritePathLength(synapses[usyn].location.Rad());
+            continue;
+        }
 
         // Find the unconnected synapse with the smallest radius.
         for(
@@ -516,9 +548,9 @@ void Neuron::BuildDendrite() {
                 usyn
             )
         );
-        if(connected.size() > 10) {
-            connected.pop_front();
-        }
+        // if(connected.size() > 10) {
+        //     connected.pop_front();
+        // }
 
     }
 

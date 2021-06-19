@@ -1,3 +1,4 @@
+#include<fstream>
 #include<iostream>
 #include<cstring>
 #include<omp.h>
@@ -33,7 +34,7 @@ int main(int argc, char**argv) {
     omp_set_num_threads(7);
 
     // LOGS
-    zxlog::Init(true);
+    zxlog::Init(false);
 
     // MNIST
     zxlog::Debug("MAIN: Loading MNIST data");
@@ -122,13 +123,12 @@ void RunMNIST(
         {8,8},
         {9,9}
     };
-    sizet num_iterations = 10;
+    sizet num_iterations = 100;
     sizet examples_per_iteration = 1;
     sizet iteration_size = examples_per_iteration * labels.size();
     i64 time_per_example = 1000;
     sizet correct_choice = 0;
     i64 output_layer_index = network->GetOutputLayerIndex();
-    i64 error_rate_start_time = 100;
 
     zxlog::Debug("Get MNIST data.");
     vec<vec<MNISTData>> data = mnist.GetDataAsIteration(
@@ -148,8 +148,6 @@ void RunMNIST(
     //-------------------------------------------------------------------------
     // Start the run
     network->RebuildDendrites();
-
-    //network->GetLayer(1)->GetNeuron(0)->PrintDendrite();
 
     writer->StartRecording();
     
@@ -173,7 +171,7 @@ void RunMNIST(
 
 
             network->UpdateLayerErrorValues(
-                rates, error_rate_start_time, output_layer_index
+                rates, output_layer_index
             );
 
 
@@ -191,11 +189,12 @@ void RunMNIST(
                 std::cout << m << ":" << error_rates[m] << std::endl;
             }
 
+            writer->AddExampleData(std::make_unique<ExampleData>(i, k, d.label));
+
             network->Reset();
+            network->WriteData(writer);
         }
         network->RebuildDendrites();
-
-        //network->GetLayer(1)->GetNeuron(0)->PrintDendrite();
     }
 
     network->CleanUpData(writer);

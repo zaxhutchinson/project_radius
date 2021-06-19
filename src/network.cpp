@@ -100,12 +100,11 @@ void Network::Update(i64 time, Writer * writer) {
 
 void Network::UpdateLayerErrorValues(
     vec<double> & rates,
-    i64 time,
     i64 layer_id
 ) {
     for(i64 i = 0; i < layers[layer_id].GetLayerSize(); i++) {
         connection_matrix[layer_id][i].Reset(
-            rates[i], time
+            rates[i]
         );
     }
 }
@@ -134,5 +133,11 @@ void Network::RebuildDendrites() {
 void Network::CleanUpData(Writer * writer) {
     for(sizet i = 0; i < layers.size(); i++) {
         layers[i].CleanUp(writer);
+    }
+}
+
+void Network::WriteData(Writer * writer) {
+    for(sizet i = 0; i < layers.size(); i++) {
+        layers[i].WriteData(writer);
     }
 }

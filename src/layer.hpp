@@ -39,5 +39,6 @@ public:
 
     void CleanUp(Writer * writer);
     void InitWriteData();
+    void WriteData(Writer * writer);
 
 };

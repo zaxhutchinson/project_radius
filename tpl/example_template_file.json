@@ -14,10 +14,11 @@
                 "output_layer" : {
                     "number_of_downstream_connections" : 10,
                     "prob_of_making_downstream_connection" : 1.0,
-                    "min_starting_strength": 200.0,
-                    "max_starting_strength": 200.0,
-                    "max_strength": 400.0,
-                    "radius": 100.0
+                    "min_starting_strength": 1000.0,
+                    "max_starting_strength": 1000.0,
+                    "max_strength": 100.0,
+                    "min_radius": 100.0,
+                    "max_radius": 100.0
                 }
             },
             "record_data" : false,

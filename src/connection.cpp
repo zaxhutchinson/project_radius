@@ -10,14 +10,13 @@ void Connection::SetErrorRate(double rate) {
     target_rate = rate;
 }
 void Connection::Reset(
-    double _target_rate,
-    i64 _time
+    double _target_rate
 ) {
     output = 0.0;
+    time = 1;
     just_spiked = false;
     target_rate = _target_rate;
-    time = _time;
-    num_spikes = static_cast<i64>(target_rate * (time / 1000.0));
+    num_spikes = 0;
 }
 
 
@@ -29,4 +28,10 @@ double Connection::GetErrorRate() {
 double Connection::GetErrorRateNorm() {
     double e = target_rate - (static_cast<double>(num_spikes) / (static_cast<double>(time) / 1000.0));
     return e / (std::abs(e) + target_rate);
+}
+
+double Connection::GetErrorRateReLU() {
+    double err = GetErrorRateNorm();
+    if(err > 0.0) return err;
+    else return 0.0;
 }

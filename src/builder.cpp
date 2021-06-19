@@ -99,7 +99,10 @@ uptr<Network> BuildNetwork(str network_id, RNG & rng) {
                         Neuron * neuron_ds = layer_ds->GetNeuron(ds_i);
 
                         // Set location
-                        double radius = cit->radius;
+                        std::uniform_real_distribution<double> radDist(
+                            cit->min_radius, cit->max_radius
+                        );
+                        double radius = radDist(rng);
                         VecS loc(radius);
                         loc.RandomizeLatLong(rng);
 

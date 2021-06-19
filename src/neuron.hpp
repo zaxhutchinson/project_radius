@@ -58,14 +58,15 @@ struct Neuron {
     void SetBaseline(double amt);
     void SetRawInput(double amt);
     // void PresynapticSignal(i64 time, i64 synapse_id, double signal, bool pre_spike);
-    void PresynapticSpike(i64 time, i64 synapse_id);
-    void PostsynapticSignal(i64 time);
+    void PresynapticSpike(i64 time, i64 synapse_id, ConnectionMatrix & cm);
+    void PostsynapticSignal(i64 time, ConnectionMatrix & cm);
     void bAP(i64 time, i64 synapse_id, double amt);
    
     void Update(i64 time, Writer * writer, i64 layer_id, ConnectionMatrix & cm);
     void InitWriteData();
     void ResetWriteData();
-    void WriteData(i64 time, Writer * writer);
+    void SaveData(i64 time, ConnectionMatrix & cm);
+    void WriteData(Writer * writer);
     void CleanupData(Writer * writer);
 
     void BuildDendrite();

@@ -15,18 +15,18 @@ struct Connection {
     bool just_spiked = false;
     double output = 0.0;
     
-    i64 num_spikes = 0;
+    double num_spikes = 0;
     i64 time = 0;
     double target_rate = 0.0;
 
     void Update(bool _just_spiked, double _output);
     void SetErrorRate(double rate);
     void Reset(
-        double _target_rate=0.0, 
-        i64 _time=0
+        double _target_rate=0.0
     );
     double GetErrorRate();
     double GetErrorRateNorm();
+    double GetErrorRateReLU();
 };
 
 using ConnectionMatrix = vec<vec<Connection>>;

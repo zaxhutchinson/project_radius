@@ -106,9 +106,13 @@ namespace tmps {
                             connection_template.max_strength =
                                 cit->at("max_strength");
                         }
-                        if(cit->contains("radius")) {
-                            connection_template.radius =
-                                cit->at("radius");
+                        if(cit->contains("min_radius")) {
+                            connection_template.min_radius =
+                                cit->at("min_radius");
+                        }
+                        if(cit->contains("max_radius")) {
+                            connection_template.max_radius =
+                                cit->at("max_radius");
                         }
 
                         layer_template.connections.push_back(connection_template);

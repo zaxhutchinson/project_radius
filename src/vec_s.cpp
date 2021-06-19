@@ -22,7 +22,7 @@ void VecS::RandomizeLatLong(RNG & rng) {
 }
 
 void VecS::ChangeRad(double amt) {
-    amt = (1.0-(std::abs((zxlb::MAX_RADIUS/2.0) - rad) / (zxlb::MAX_RADIUS/2.0))) * amt;
+    //amt = (1.0-(std::abs((zxlb::MAX_RADIUS/2.0) - rad) / (zxlb::MAX_RADIUS/2.0))) * amt;
 
     rad += amt;
     if(rad > zxlb::MAX_RADIUS) rad = zxlb::MAX_RADIUS;
@@ -126,11 +126,11 @@ Vec3 VecS::ToVec3() {
 
 UTRTN T_VecS_1() {
 
-    double alat = M_PI/4;
-    double alon = M_PI/4;
+    double alat = M_PI/2;
+    double alon = M_PI/2;
     double arad = 1.0;
-    double blat = -M_PI/4;
-    double blon = -M_PI/4;
+    double blat = M_PI/2;
+    double blon = M_PI/2;
     double brad = 1.0;
 
     VecS A(alat, alon, arad);
@@ -167,11 +167,11 @@ UTRTN T_VecS_2() {
 
 UTRTN T_VecS_3() {
 
-    double alat = M_PI/2-0.001;
-    double alon = -M_PI/4;
+    double alat = M_PI/2-0.1;
+    double alon = -M_PI/2;
     double arad = 1.0;
-    double blat = -M_PI/2+0.001;
-    double blon = M_PI/4;
+    double blat = M_PI/2-0.1;
+    double blon = M_PI/2;
     double brad = 1.0;
 
     VecS A(alat, alon, arad);
@@ -182,7 +182,7 @@ UTRTN T_VecS_3() {
     A.Orbit(val,dis);
     // bool cor = abs(val - M_PI) < 0.0000001;
     bool cor = A.Lat()==B.Lat() && A.Lon()==B.Lon();
-    str msg = "VAL " + std::to_string(A.Lat()) + "," + std::to_string(A.Lon()) + " COMP " + std::to_string(B.Lat()) + "," + std::to_string(B.Lon());
+    str msg = std::to_string(val) + "  " + std::to_string(dis) + "  VAL " + std::to_string(A.Lat()) + "," + std::to_string(A.Lon()) + " COMP " + std::to_string(B.Lat()) + "," + std::to_string(B.Lon());
     UTRTN rtn = std::make_pair(cor,msg);
     return rtn;
 }
