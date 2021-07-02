@@ -2,6 +2,8 @@
 
 #include"zxlb.hpp"
 
+struct VecS;
+
 struct Vec3 {
 	double x;
 	double y;
@@ -16,6 +18,7 @@ struct Vec3 {
 	double Y();
 	double Z();
 
+	str to_string();
 	Vec3 operator-(const Vec3 & other);
 	Vec3 operator+(const Vec3 & other);
 	Vec3 operator*(double v);
@@ -35,6 +38,8 @@ struct Vec3 {
 	Vec3 VectorTo(Vec3 & dest);
 
 	Vec3 ForceVector(Vec3 & dest, double force);
+
+	VecS ToVecS();
 
 	// double AngularDistanceBetween(const Vec3 & v1, const Vec3 & v2);
     //-----------------------------------

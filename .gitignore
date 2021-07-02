@@ -39,3 +39,8 @@
 \obj
 \log
 \output
+\tst
+
+# Python
+*.pyc
+\python\__pycache__

@@ -6,7 +6,6 @@
 #include<json.hpp>
 
 #include"zxlb.hpp"
-#include"log.hpp"
 #include"neuron_type.hpp"
 
 namespace tmps {

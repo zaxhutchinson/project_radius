@@ -6,7 +6,7 @@
 struct ExampleData {
     i64 iteration;
     i64 example;
-    i64 label;
+    str label;
 };
 
 struct SynapseData {

@@ -1,7 +1,6 @@
 #pragma once
 
 #include"zxlb.hpp"
-#include"log.hpp"
 #include"neuron.hpp"
 
 class Layer {
@@ -39,6 +38,7 @@ public:
 
     void CleanUp(Writer * writer);
     void InitWriteData();
+    void SaveData(i64 time, ConnectionMatrix & cm);
     void WriteData(Writer * writer);
 
 };

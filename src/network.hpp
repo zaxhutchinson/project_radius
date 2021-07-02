@@ -44,6 +44,7 @@ public:
 
     void InitWriteData();
     void CleanUpData(Writer * writer);
+    void SaveData(i64 time);
     void WriteData(Writer * writer);
 };
 

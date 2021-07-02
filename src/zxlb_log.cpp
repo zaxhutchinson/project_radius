@@ -1,4 +1,4 @@
-#include"log.hpp"
+#include"zxlb_log.hpp"
 
 namespace zxlog {
     void Init(bool debug) {

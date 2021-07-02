@@ -96,7 +96,7 @@ class Neuron:
         self.errors.append(errors)
 
 class Output:
-    def __init__(self, path):
+    def __init__(self, path, last=True):
         self.path = path
         self.example_filenames = []
         self.neuron_filenames = []

@@ -20,7 +20,6 @@
 #include<algorithm>
 
 #include"zxlb.hpp"
-#include"log.hpp"
 
 template<typename T, typename U>
 using umap = std::unordered_map<T,U>;

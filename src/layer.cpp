@@ -91,7 +91,11 @@ void Layer::InitWriteData() {
         neurons[i].InitWriteData();
     }
 }
-
+void Layer::SaveData(i64 time, ConnectionMatrix & cm) {
+    for(sizet i = 0; i < neurons.size(); i++) {
+        neurons[i].SaveData(time, cm);
+    }
+}
 void Layer::WriteData(Writer * writer) {
     for(sizet i = 0; i < neurons.size(); i++) {
         neurons[i].WriteData(writer);

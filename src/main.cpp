@@ -3,15 +3,16 @@
 #include<cstring>
 #include<omp.h>
 #include<random>
+#include<cassert>
 
 #include"zxlb.hpp"
 #include"config.hpp"
 #include"sim.hpp"
 #include"unit_tests.hpp"
 #include"mnist_reader.hpp"
-#include"log.hpp"
 #include"network_template.hpp"
 #include"builder.hpp"
+#include"pattern_maker.hpp"
 
 // #ifdef DEBUG
 //     #define RUN_TEST 1
@@ -28,7 +29,71 @@ void RunMNIST(
     RNG & rng
 );
 
+void RunPattern001(
+    Writer * writer,
+    Network * network,
+    PatternMaker * pattern_maker,
+    RNG & rng
+);
+
+void RunPattern002(
+    Writer * writer,
+    Network * network,
+    PatternMaker * pattern_maker,
+    RNG & rng
+);
+
 int main(int argc, char**argv) {
+
+    // VecS v1(  0.0, 0.0, 100);
+    // VecS v2(  M_PI/4.0, -M_PI/2.0, 100);
+    // VecS v3(  -M_PI/4.0, M_PI/2.0, 100);
+    // VecS v4(  M_PI/4.0, 0.0, 100);
+
+    // // std::cout << v2.VectorTo(v1).to_string() << std::endl;
+    // // double head = v2.HeadingTo(v1);
+    // // std::cout << Vec3(std::cos(head), std::sin(head)).to_string() << std::endl;
+
+    // // std::cout << v1.VectorTo(v2).ToVecS().to_string() << std::endl;
+
+    // // double hv1v2 = v1.HeadingTo(v2);
+    // // double hv1v3 = v1.HeadingTo(v3);
+    // // double hv1v4 = v1.HeadingTo(v4);
+    // // double hv1v23 = std::abs( hv1v2-hv1v3);
+    // // double hv2v1 = v2.HeadingTo(v1);
+    // std::cout << "V1: " << v1.to_string() << std::endl;
+    // std::cout << "V2: " << v2.to_string() << std::endl;
+    // std::cout << "V3: " << v3.to_string() << std::endl;
+    // std::cout << "V4: " << v4.to_string() << std::endl;
+    // double dist = v2.DistanceWithRadius(v3);
+    // double delta = 0.01;
+    // double x= 0.0;
+    // while( x < dist) {
+
+    //     v2.Orbit(v2.HeadingTo(v3), -delta);
+    //     std::cout << "V2: " << v2.to_string() << std::endl;
+    //     x += delta;
+    // }
+    // std::cout << "V1: " << v1.to_string() << std::endl;
+    // std::cout << "V2: " << v2.to_string() << std::endl;
+    // std::cout << "V3: " << v3.to_string() << std::endl;
+    // std::cout << "V4: " << v4.to_string() << std::endl;
+    // // std::cout << "V1->V2: " << hv1v2 << std::endl;
+    // // std::cout << "V1->V3: " << hv1v3 << std::endl;
+    // // std::cout << "V1->V23: " << hv1v23 << std::endl;
+    // // std::cout << "V1->V4: " << hv1v4 << std::endl;
+    // return 0;
+
+    // Vec3 v3a(-10,-10,-10);
+    // VecS vSa = v3a.ToVecS();
+    // Vec3 v3b = vSa.ToVec3();
+    // VecS vSb = v3b.ToVecS();
+    // std::cout << "V3A: " << v3a.to_string() << std::endl;
+    // std::cout << "VSA: " << vSa.to_string() << std::endl;
+    // std::cout << "V3B: " << v3b.to_string() << std::endl;
+    // std::cout << "VSB: " << vSb.to_string() << std::endl;
+
+    // return 0;
     //-------------------------------------------------------------------------
     // INIT STUFF
     omp_set_num_threads(7);
@@ -36,12 +101,7 @@ int main(int argc, char**argv) {
     // LOGS
     zxlog::Init(false);
 
-    // MNIST
-    zxlog::Debug("MAIN: Loading MNIST data");
-    std::string LABELS_FILENAME("mnist/train-labels-idx1-ubyte");
-    std::string IMAGES_FILENAME("mnist/train-images-idx3-ubyte");
-    MNISTReader mnist_reader;
-    mnist_reader.LoadData(LABELS_FILENAME,IMAGES_FILENAME);
+    
 
     //-------------------------------------------------------------------------
     // RANDOM
@@ -52,11 +112,11 @@ int main(int argc, char**argv) {
     //-------------------------------------------------------------------------
     // WRITER
     zxlog::Debug("MAIN: Setting up writer.");
-    Writer writer(str("/home/zax/Projects/project_radius_output/output"));
+    Writer writer(str("/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/project_radius/output/"));
 
     //-------------------------------------------------------------------------
     // Process command line args.
-    str network_id = "mnist_network_001";
+    str network_id = "pattern_network_001";
 
     zxlog::Debug("MAIN: Processing cmd line args.");
     for(int i = 1; i < argc; i++) {
@@ -91,12 +151,30 @@ int main(int argc, char**argv) {
 
     //-------------------------------------------------------------------------
     // Run network
-    RunMNIST(
+    // MNIST
+    // zxlog::Debug("MAIN: Loading MNIST data");
+    // std::string LABELS_FILENAME("mnist/train-labels-idx1-ubyte");
+    // std::string IMAGES_FILENAME("mnist/train-images-idx3-ubyte");
+    // MNISTReader mnist_reader;
+    // mnist_reader.LoadData(LABELS_FILENAME,IMAGES_FILENAME);
+
+    // RunMNIST(
+    //     &writer,
+    //     network.get(),
+    //     mnist_reader,
+    //     rng
+    // );
+
+    // Pattern
+    zxlog::Debug("MAIN: Loading Pattern data");
+    PatternMaker pattern_maker = BuildPattern001(rng);
+    RunPattern001(
         &writer,
         network.get(),
-        mnist_reader,
+        &pattern_maker,
         rng
     );
+
 
     return 0;
 }
@@ -175,8 +253,8 @@ void RunMNIST(
             );
 
 
-
-            for(i64 time = 1; time <= time_per_example; time++) {
+            i64 time = 1;
+            for(; time <= time_per_example; time++) {
                 network->Update(
                     time,
                     writer
@@ -189,12 +267,18 @@ void RunMNIST(
                 std::cout << m << ":" << error_rates[m] << std::endl;
             }
 
-            writer->AddExampleData(std::make_unique<ExampleData>(i, k, d.label));
+            writer->AddExampleData(std::make_unique<ExampleData>(i, k, std::to_string(d.label)));
+
+            network->SaveData(time);
+            network->WriteData(writer);
 
             network->Reset();
-            network->WriteData(writer);
+            
         }
         network->RebuildDendrites();
+        network->SaveData(-1);
+        network->WriteData(writer);
+        
     }
 
     network->CleanUpData(writer);
@@ -202,3 +286,201 @@ void RunMNIST(
     writer->StopRecording();
 
 }
+
+void RunPattern001(
+    Writer * writer,
+    Network * network,
+    PatternMaker * pattern_maker,
+    RNG & rng
+) {
+
+    zxlog::Debug("RunPatter() called.");
+
+    // Label, Index of output neuron
+    vec<str> labels = pattern_maker->GetAllLabels();
+    umap<str, sizet> labels_with_indexes;
+    for(sizet i = 0; i < labels.size(); i++) {
+        labels_with_indexes.emplace(labels[i], i);
+    }
+
+    sizet num_iterations = 5000;
+    sizet iteration_size = pattern_maker->GetIterationSize();
+    i64 time_per_example = 1000;
+    sizet correct_choice = 0;
+    i64 output_layer_index = network->GetOutputLayerIndex();
+
+    zxlog::Debug("Get PatternMaker data.");
+    vec<vec<Pattern>> data = pattern_maker->GetDataAsIteration(
+        labels,
+        num_iterations,
+        rng
+    );
+
+    //-------------------------------------------------------------------------
+    // Build the rates vector. Default to incorrect rates.
+    vec<double> rates;
+    for(sizet i = 0; i < labels.size(); i++) {
+        rates.push_back(config::INCORRECT_EXPECTED);
+    }
+
+    //-------------------------------------------------------------------------
+    // Start the run
+    network->RebuildDendrites();
+
+    writer->StartRecording();
+    
+    for(sizet i = 0; i < num_iterations; i++) {
+        zxlog::Debug("Iteration " + std::to_string(i));
+
+        for(sizet k = 0; k < iteration_size; k++) {
+            zxlog::Debug("   Image " + std::to_string(k));
+
+            // Get the image
+            Pattern & d = data[i][k];
+
+            // Set the inputs to the pixel data
+            network->SetInputs(d.data);
+
+            // Update the error rates before and after swapping
+            // to the new correct choice
+            rates[correct_choice] = config::INCORRECT_EXPECTED;
+            correct_choice = labels_with_indexes[d.label]; // look up neuron index.
+            rates[correct_choice] = config::CORRECT_EXPECTED;
+
+
+            network->UpdateLayerErrorValues(
+                rates, output_layer_index
+            );
+
+
+            i64 time = 1;
+            for(; time <= time_per_example; time++) {
+                network->Update(
+                    time,
+                    writer
+                );
+            }
+
+            vec<double> error_rates = network->GetErrorRates(output_layer_index);
+            std::cout << "/== Iteration " << i << "  Image " << correct_choice << ":" << d.label << " ==============================//\n";
+            for(sizet m = 0; m < error_rates.size(); m++) {
+                std::cout << m << ":" << error_rates[m] << std::endl;
+            }
+            
+            writer->AddExampleData(std::make_unique<ExampleData>(i, k, d.label));
+
+            // network->SaveData(time);
+            // network->WriteData(writer);
+
+            network->Reset();
+            
+        }
+        network->RebuildDendrites();
+        network->SaveData(-1);
+        network->WriteData(writer);
+        
+    }
+
+    network->CleanUpData(writer);
+
+    writer->StopRecording();
+
+}
+
+void RunPattern002(
+    Writer * writer,
+    Network * network,
+    PatternMaker * pattern_maker,
+    RNG & rng
+) {
+
+    zxlog::Debug("RunPatter() called.");
+
+    // Label, Index of output neuron
+    vec<str> labels = pattern_maker->GetAllLabels();
+    umap<str, sizet> labels_with_indexes;
+    for(sizet i = 0; i < labels.size(); i++) {
+        labels_with_indexes.emplace(labels[i], i);
+    }
+
+    sizet num_iterations = 10000;
+    sizet iteration_size = pattern_maker->GetIterationSize();
+    i64 time_per_example = 1000;
+    sizet correct_choice = 0;
+    i64 output_layer_index = network->GetOutputLayerIndex();
+
+    zxlog::Debug("Get PatternMaker data.");
+    vec<vec<Pattern>> data = pattern_maker->GetDataAsIteration(
+        labels,
+        num_iterations,
+        rng
+    );
+
+    //-------------------------------------------------------------------------
+    // Build the rates vector. Default to incorrect rates.
+    vec<double> rates = {config::INCORRECT_EXPECTED};
+
+    //-------------------------------------------------------------------------
+    // Start the run
+    network->RebuildDendrites();
+
+    writer->StartRecording();
+    
+    for(sizet i = 0; i < num_iterations; i++) {
+        zxlog::Debug("Iteration " + std::to_string(i));
+
+        for(sizet k = 0; k < iteration_size; k++) {
+            zxlog::Debug("   Image " + std::to_string(k));
+
+            // Get the image
+            Pattern & d = data[i][k];
+
+            // Set the inputs to the pixel data
+            network->SetInputs(d.data);
+
+            // Update the error rates before and after swapping
+            // to the new correct choice
+            if(d.label=="4") rates[0] = config::INCORRECT_EXPECTED;
+            else rates[0] = config::CORRECT_EXPECTED;
+
+
+            network->UpdateLayerErrorValues(
+                rates, output_layer_index
+            );
+
+
+            i64 time = 1;
+            for(; time <= time_per_example; time++) {
+                network->Update(
+                    time,
+                    writer
+                );
+            }
+
+            vec<double> error_rates = network->GetErrorRates(output_layer_index);
+            std::cout << "/== Iteration " << i << "  Image " << correct_choice << ":" << d.label << " ==============================//\n";
+            for(sizet m = 0; m < error_rates.size(); m++) {
+                std::cout << m << ":" << error_rates[m] << std::endl;
+            }
+            
+            writer->AddExampleData(std::make_unique<ExampleData>(i, k, d.label));
+
+            // network->SaveData(time);
+            // network->WriteData(writer);
+
+            network->Reset();
+            
+        }
+        network->RebuildDendrites();
+        network->SaveData(-1);
+        network->WriteData(writer);
+        
+    }
+
+    network->CleanUpData(writer);
+
+    writer->StopRecording();
+
+}
+
+

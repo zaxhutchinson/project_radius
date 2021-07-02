@@ -1,10 +1,18 @@
 #include"vec_s.hpp"
+#include"vec3.hpp"
 
 VecS::VecS() : lat(0.0), lon(0.0), rad(0.0) {}
 VecS::VecS(double _rad) : rad(_rad) {}
 VecS::VecS(double _lat, double _lon, double _rad)
     : lat(_lat), lon(_lon), rad(_rad)
 {}
+
+
+str VecS::to_string() {
+    return str(
+        std::to_string(lat)+","+std::to_string(lon)+","+std::to_string(rad)
+    );
+}
 
 double VecS::Lat() { return lat; }
 double VecS::Lon() { return lon; }
@@ -17,7 +25,7 @@ void VecS::RandomizeLatLong(RNG & rng) {
     std::uniform_real_distribution<double> dist(
         M_PI, -M_PI
     );
-    lat = dist(rng);
+    lat = dist(rng)/2.0;
     lon = dist(rng);
 }
 
@@ -75,6 +83,41 @@ double VecS::Distance(const VecS & v) {
     // return atan(top / bot);
 }
 
+double VecS::DistanceStraightLineSqrd(const VecS & v) {
+    Vec3 v3_this(
+        rad * std::cos(lat) * std::cos(lon),
+        rad * std::cos(lat) * std::sin(lon),
+        rad * std::sin(lat)
+    );
+    Vec3 v3_v(
+        v.rad * std::cos(v.lat) * std::cos(v.lon),
+        v.rad * std::cos(v.lat) * std::sin(v.lon),
+        v.rad * std::sin(v.lat)
+    );
+    return Vec3::Distance2(v3_this, v3_v);
+    
+    // return rad*rad +
+    //     v.rad*v.rad -
+    //     2.0 * rad * v.rad *
+    //     (
+    //         std::sin(lat)*std::sin(v.lat)*std::cos(lon-v.lon) + 
+    //         std::cos(lat)*std::cos(v.lat)
+    //     );
+}
+
+double VecS::DistanceStraightLine(const VecS & v) {
+    Vec3 v3_this(
+        rad * std::cos(lat) * std::cos(lon),
+        rad * std::cos(lat) * std::sin(lon),
+        rad * std::sin(lat)
+    );
+    Vec3 v3_v(
+        v.rad * std::cos(v.lat) * std::cos(v.lon),
+        v.rad * std::cos(v.lat) * std::sin(v.lon),
+        v.rad * std::sin(v.lat)
+    );
+    return Vec3::Distance(v3_this, v3_v);
+}
 /* Distance is computed by first taking the differences in the radius.
     Then the arc length. In visual terms, this vec moves to the orbit of
     the other vec, and then moves around.
@@ -107,16 +150,21 @@ void VecS::Orbit(double heading, double distance) {
 Vec3 VecS::VectorTo(const VecS & v) {
     Vec3 vec3;
     double dlon = v.lon - lon;
-    vec3.x = sin(dlon) * cos(v.lat);
-    vec3.y = cos(lat) * sin(v.lat) - sin(lat) * cos(v.lat) * cos(dlon);
-    return vec3;
+    double heading = atan2(
+        sin(dlon) * cos(v.lat),
+        cos(lat) * sin(v.lat) - sin(lat) * cos(v.lat) * cos(dlon)
+    );
+    
+    // vec3.x = std::sin(dlon) * std::cos(v.lat);
+    // vec3.y = std::cos(lat) * std::sin(v.lat) - std::sin(lat) * std::cos(v.lat) * std::cos(dlon);
+    return Vec3(std::cos(heading), std::sin(heading));
 }
 
 Vec3 VecS::ToVec3() {
     return Vec3(
-        rad * sin(lat) * cos(lon),
-        rad * sin(lat) * sin(lon),
-        rad * cos(lat)
+        rad * std::cos(lat) * std::cos(lon),
+        rad * std::cos(lat) * std::sin(lon),
+        rad * std::sin(lat)
     );
 }
 

@@ -56,7 +56,7 @@ void Writer::WriteExampleData() {
 
         str fname(write_directory+"/EXAMPLES");
         std::ofstream ofs(fname, std::ios::out | std::ios::app);
-
+        
         ofs << data->iteration << " " << data->example << " " << data->label << "\n";
         ofs.close();
     }

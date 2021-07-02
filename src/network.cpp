@@ -112,7 +112,7 @@ void Network::UpdateLayerErrorValues(
 vec<double> Network::GetErrorRates(i64 layer_id) {
     vec<double> erates;
     for(sizet i = 0; i < connection_matrix[layer_id].size(); i++) {
-        erates.push_back(connection_matrix[layer_id][i].GetErrorRate());
+        erates.push_back(connection_matrix[layer_id][i].GetErrorRateRaw());
     }
     return erates;
 }
@@ -133,6 +133,11 @@ void Network::RebuildDendrites() {
 void Network::CleanUpData(Writer * writer) {
     for(sizet i = 0; i < layers.size(); i++) {
         layers[i].CleanUp(writer);
+    }
+}
+void Network::SaveData(i64 time) {
+    for(sizet i = 0; i < layers.size(); i++) {
+        layers[i].SaveData(time, connection_matrix);
     }
 }
 

@@ -1,4 +1,5 @@
 #include"vec3.hpp"
+#include"vec_s.hpp"
 
 Vec3::Vec3()
     : x(0.0), y(0.0), z(0.0) 
@@ -20,6 +21,12 @@ Vec3::Vec3(const Vec3 & other) {
 double Vec3::X() { return x; }
 double Vec3::Y() { return y; }
 double Vec3::Z() { return z; }
+
+str Vec3::to_string() {
+    return str(
+        std::to_string(x)+","+std::to_string(y)+","+std::to_string(z)
+    );
+}
 
 Vec3 Vec3::operator-(const Vec3 & other) {
     Vec3 v;
@@ -89,6 +96,19 @@ Vec3 Vec3::ForceVector(Vec3 & dest, double force) {
 	return vec_to;
 }
 
+VecS Vec3::ToVecS() {
+    VecS v;
+    v.Rad(std::sqrt(x*x+y*y+z*z));
+    if(v.Rad()==0.0) {
+        v.Lat(0.0);
+        v.Lon(0.0);
+    } else {
+        v.Lat(M_PI_2 - std::acos(z/v.Rad()));
+        v.Lon(std::atan2(y,x));
+    }
+    return v;
+}
+
 // double Vec3::AngularDistanceBetween(const Vec3 & v1, const Vec3 & v2) {
 //     Vec3 sv1 = (*this)-v1;
 //     Vec3 sv2 = (*this)-v2;
@@ -132,13 +152,13 @@ Vec3 Vec3::Average(Vec3 & a, Vec3 & b) {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
-bool Test_Vec3_A() {
-    Vec3 v1(1,1,1);
-    Vec3 v2(0,0,0);
-    return v1!=v2;
-}
-bool Test_Vec3_B(double x, double y, double z) {
-    Vec3 v1(x,y,z);
-    Vec3 v2(x,y,z);
-    return Vec3::Distance(v1,v2)==Vec3::Distance(v2,v1);
-}
+// bool Test_Vec3_A() {
+//     Vec3 v1(1,1,1);
+//     Vec3 v2(0,0,0);
+//     return v1!=v2;
+// }
+// bool Test_Vec3_B(double x, double y, double z) {
+//     Vec3 v1(x,y,z);
+//     Vec3 v2(x,y,z);
+//     return Vec3::Distance(v1,v2)==Vec3::Distance(v2,v1);
+// }

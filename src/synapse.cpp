@@ -25,6 +25,7 @@ Synapse::Synapse()
     upstream_signal = 0.0;
     upstream_eval = false;
 
+    children.reserve(10);
 
 }
 
@@ -56,6 +57,7 @@ Synapse::Synapse(
     upstream_signal = 0.0;
     upstream_eval = false;
 
+    children.reserve(10);
 }
 
 void Synapse::Reset() {
@@ -106,7 +108,7 @@ double Synapse::GetStrength() {
         (std::abs(cur_strength) + abs_max_strength);
 }
 double Synapse::GetStrengthDelta() {
-    return (abs_max_strength - std::abs(GetStrength())) / abs_max_strength;
+    return 1.0 - (std::abs(cur_strength) / (abs_max_strength + std::abs(cur_strength)));//(abs_max_strength - std::abs(GetStrength())) / abs_max_strength;
 }
 
 double Synapse::GetSignal(i64 time) {
@@ -182,9 +184,9 @@ bool Synapse::Update(i64 time, Writer * writer, ConnectionMatrix & cm) {
 
     SetSignal(time, cm[ca.pre_layer][ca.pre_neuron].output);
 
-    error = cm[ca.post_layer][ca.post_neuron].GetErrorRateNorm();
+    error = cm[ca.post_layer][ca.post_neuron].GetErrorRateRaw();
 
-    SaveData(time);
+    //SaveData(time);
 
     if(cm[ca.pre_layer][ca.pre_neuron].just_spiked) {
         SetCurSpike(time);
@@ -212,7 +214,7 @@ void Synapse::CleanupData(Writer * writer) {
 }
 
 void Synapse::SaveData(i64 time) {
-    if(record_data && time%record_interval==0) {
+    //if(record_data && time%record_interval==0) {
         data->data_size++;
         data->input.push_back(signal[time%2]);
         data->strength.push_back(cur_strength);
@@ -227,7 +229,7 @@ void Synapse::SaveData(i64 time) {
             c_ids.push_back(children[i]);
         }
         data->children_ids.push_back(c_ids);
-    }
+    //}
 }
 
 void Synapse::WriteData(Writer * writer) {

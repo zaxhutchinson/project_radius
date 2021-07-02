@@ -24,6 +24,7 @@ struct Connection {
     void Reset(
         double _target_rate=0.0
     );
+    double GetErrorRateRaw();
     double GetErrorRate();
     double GetErrorRateNorm();
     double GetErrorRateReLU();

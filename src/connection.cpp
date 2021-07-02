@@ -20,7 +20,9 @@ void Connection::Reset(
 }
 
 
-
+double Connection::GetErrorRateRaw() {
+    return target_rate;
+}
 double Connection::GetErrorRate() {
     return target_rate - (static_cast<double>(num_spikes) / (static_cast<double>(time) / 1000.0));
 }
@@ -31,7 +33,7 @@ double Connection::GetErrorRateNorm() {
 }
 
 double Connection::GetErrorRateReLU() {
-    double err = GetErrorRateNorm();
+    double err = GetErrorRateRaw();
     if(err > 0.0) return err;
     else return 0.0;
 }

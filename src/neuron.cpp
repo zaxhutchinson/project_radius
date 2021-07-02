@@ -107,7 +107,8 @@ void Neuron::PresynapticSpike(i64 time, i64 synapse_id, ConnectionMatrix & cm) {
         synapses[synapse_id].time_cur_spike - synapses[synapse_id].time_pre_spike
     );
 
-    Vec3 force;
+    // Vec3 force;
+    VecS direction = synapses[synapse_id].location;
     double partial_force = 0.0;
     double error = synapses[synapse_id].GetError();
 
@@ -117,7 +118,7 @@ void Neuron::PresynapticSpike(i64 time, i64 synapse_id, ConnectionMatrix & cm) {
                 time - synapses[synapse_id].time_cur_spike
             );
 
-            double distance = synapses[synapse_id].location.Distance(synapses[i].location);
+            //double distance = synapses[synapse_id].location.Distance(synapses[i].location);
 
             double force_self = (
                 (time_diff_self+zxlb::PRE_SELF_FORCE_TIME_WINDOW) /
@@ -132,26 +133,35 @@ void Neuron::PresynapticSpike(i64 time, i64 synapse_id, ConnectionMatrix & cm) {
             );
 
             partial_force = (
-                (force_self * force_other) *
-                std::tanh(distance)
-            );
+                (force_self * force_other)
+            ) * error;
 
-            
-
-            force += synapses[synapse_id].location.VectorTo(synapses[i].location) * 
-                partial_force * 
-                error;
+            direction.Orbit(synapses[synapse_id].location.HeadingTo(synapses[i].location), partial_force);
+            // force += synapses[synapse_id].location.VectorTo(synapses[i].location) * 
+            //     partial_force;
         }
     }
+    synapses[synapse_id].location.Orbit(
+        synapses[synapse_id].location.HeadingTo(direction),
+        synapses[synapse_id].location.Distance(direction) * zxlb::LEARNING_RATE
+    );
 
-    force /= static_cast<double>(synapses.size()-1);
-    force *= zxlb::LEARNING_RATE;
+
+
+    // force /= static_cast<double>(synapses.size()-1);
+    // force *= zxlb::LEARNING_RATE * error;
+    // VecS force_vecS = force.ToVecS();
+    // synapses[synapse_id].location.Orbit(
+    //     //synapses[synapse_id].location.HeadingTo(force_vecS), 
+    //     force.ToBearing(),
+    //     force.Length()
+    // );
 
     // Presynaptic activity in any context causes an increase in the
     // synapse's strength. Not sure about this one.
     //synapses[synapse_id].cur_strength += force.Length() * synapses[synapse_id].GetStrengthDelta();
-    
-    synapses[synapse_id].location.Orbit(force.ToBearing(), force.Length());
+
+
 
 }
 
@@ -183,16 +193,17 @@ void Neuron::PostsynapticSignal(i64 time, ConnectionMatrix & cm) {
                     std::exp( - time_diff_soma / zxlb::POST_SOMA_FORCE_TIME_WINDOW)
                 ) * 
                 std::tanh(distance) * 
-                //cm[layer_id][id].GetErrorRateReLU() *
+                cm[layer_id][id].GetErrorRateReLU() *
                 zxlb::LEARNING_RATE;
 
             synapses[i].location.ChangeRad( force );
 
         }
 
-        for(std::size_t i = 0; i < dendrites.size(); i++) {
-            bAP(time, dendrites[i], output);
-        }
+        // UNCOMMENT TO ADD STRENGTH CHANGES
+        // for(std::size_t i = 0; i < dendrites.size(); i++) {
+        //     bAP(time, dendrites[i], output);
+        // }
 
     }
 
@@ -219,11 +230,9 @@ void Neuron::bAP(i64 time, i64 synapse_id, double amt) {
 
     double str_delta = synapses[synapse_id].GetStrengthDelta();
 
-    double delta = ( zxlb::LEARNING_RATE * time_delta * str_delta * synapses[synapse_id].GetError() * synapses[synapse_id].GetSignal(time));
+    double delta = ( str_delta * time_delta * synapses[synapse_id].GetError() * synapses[synapse_id].GetSignal(time)); // str_delta zxlb::LEARNING_RATE * 
     
     synapses[synapse_id].cur_strength += delta;//(time_delta * str_delta * synapses[synapse_id].GetError() * amt);
-
-    // if(synapses[synapse_id].cur_strength < 0) std::cout << synapses[synapse_id].cur_strength << std::endl;
 
     double bap_amt = std::tanh(synapses[synapse_id].GetSignal(time) + amt);
 
@@ -314,6 +323,17 @@ void Neuron::GetInput(i64 time) {
     // return input;
 }
 
+void Neuron::GetInputSimple(i64 time) {
+    input = baseline + raw_input;
+    for(
+        vec<Synapse>::iterator it = synapses.begin();
+        it != synapses.end();
+        it++
+    ) {
+        input += it->GetSignalWithStrength(time);
+    }
+}
+
 void Neuron::Update(i64 time, Writer * writer, i64 layer_id, ConnectionMatrix & cm) {
 
     // Update all the synapses
@@ -325,8 +345,8 @@ void Neuron::Update(i64 time, Writer * writer, i64 layer_id, ConnectionMatrix & 
         }
     }
 
-    GetInput(time);
-
+    //GetInput(time);
+    GetInputSimple(time);
 
     // Calculate voltage
     vcur = vpre +
@@ -379,7 +399,7 @@ void Neuron::Update(i64 time, Writer * writer, i64 layer_id, ConnectionMatrix & 
     // Update connection matrix.
     cm[layer_id][id].Update(just_spiked, output);
 
-    SaveData(time, cm);
+    //SaveData(time, cm);
 
 }
 
@@ -408,7 +428,7 @@ void Neuron::CleanupData(Writer * writer) {
     }
 }
 void Neuron::SaveData(i64 time, ConnectionMatrix & cm) {
-    if(record_data && (time%record_interval)==0) {
+    //if(record_data && (time%record_interval)==0) {
         data->data_size++;
         data->time_indexes.push_back(time);
         data->locations.push_back(location);
@@ -421,6 +441,10 @@ void Neuron::SaveData(i64 time, ConnectionMatrix & cm) {
         data->output.push_back(output);
         data->input.push_back(input);
         data->error.push_back(cm[layer_id][id].GetErrorRate());
+    //}
+
+    for(sizet i = 0; i < synapses.size(); i++) {
+        synapses[i].SaveData(time);
     }
 }
 void Neuron::WriteData(Writer * writer) {
@@ -444,7 +468,7 @@ void Neuron::BuildDendrite() {
     //-------------------------------------
     // Init lists.
     lst<i64> unconnected;
-    lst<i64> connected;
+    lst<i64> connected = {-1};
 
     //-------------------------------------
     // Disconnect
@@ -457,100 +481,67 @@ void Neuron::BuildDendrite() {
     for(sizet i = 0; i < synapses.size(); i++) {
         synapses[i].parent = -1;
         synapses[i].children.clear();
+        synapses[i].dendrite_path_length = 0.0;
         unconnected.push_back(i);
     }
-
+    // std::cout << "NEWBUILD\n";
     while(!unconnected.empty()) {
 
-        i64 usyn = *(unconnected.begin());
-        i64 csyn = -1;
-        double min_dist = synapses[usyn].location.Rad();
+        lst<i64>::iterator min_uit = unconnected.begin();
+        lst<i64>::iterator min_cit = connected.begin();
+        double min_dist = std::numeric_limits<double>::max();
 
-        // If the distance is less than 1.0, connect directly
-        // to the soma and DO NOT add to the connected this.
-        // In this way, unchanged synapses can participate,
-        // but they cannot be a conduit for active ones.
-        if(min_dist >= zxlb::MAX_RADIUS) {
-            unconnected.erase(
-                std::find(
-                    unconnected.begin(),
-                    unconnected.end(),
-                    usyn
-                )
-            );
-            dendrites.push_back(usyn);
-            synapses[usyn].parent = -1;
-            synapses[usyn].SetDendritePathLength(synapses[usyn].location.Rad());
-            continue;
-        }
-
-        // Find the unconnected synapse with the smallest radius.
         for(
-            lst<i64>::iterator ucit = unconnected.begin();
-            ucit != unconnected.end();
-            ucit++ 
+            lst<i64>::iterator uit = unconnected.begin();
+            uit != unconnected.end();
+            uit++ 
         ) {
-
-            // Begin by setting the min dist to the syn's radius.
-            double local_min_dist = synapses[*ucit].location.Rad();
-            i64 local_csyn = -1;
 
             for(
                 lst<i64>::iterator cit = connected.begin();
                 cit != connected.end();
                 cit++
-            )
-            {
-                double dist_to_conn = synapses[*ucit].location.DistanceWithRadius(synapses[*cit].location);
-                double dist = 
-                    dist_to_conn +
-                    zxlb::BF * (
-                        synapses[*cit].GetDendritePathLength() +
-                        dist_to_conn
-                    );
+            ) {
 
-                if(dist < local_min_dist) {
-                    local_min_dist = dist;
-                    local_csyn = *cit;
+                double uc_dist = 0.0;
+
+                if(*cit==-1) {
+                    uc_dist = synapses[*uit].location.Rad();
+                    //uc_dist += zxlb::BF * uc_dist;
+
+                } else {
+                    uc_dist = synapses[*cit].location.DistanceStraightLine(synapses[*uit].location);
+                    uc_dist += zxlb::BF * synapses[*cit].dendrite_path_length;
+                }
+
+                if(uc_dist < min_dist) {
+                    min_cit = cit;
+                    min_uit = uit;
+                    min_dist = uc_dist;
                 }
 
             }
 
-            
-            if(local_min_dist < min_dist) {
-                min_dist = local_min_dist;
-                usyn = *ucit;
-                csyn = local_csyn;
-            }
         }
 
-        // Connect. If csyn is -1, connect to the soma,
-        // else connect to already connected syn.
-        // Set the dendritic path length.
-
-        if(csyn == -1) {
-            
-            dendrites.push_back(usyn);
-            synapses[usyn].parent = -1;
-            synapses[usyn].SetDendritePathLength(synapses[usyn].location.Rad());
+        if((*min_cit)==-1) {
+            dendrites.push_back(*min_uit);
+            synapses[*min_uit].parent = -1;
+            double min_path_len = synapses[*min_uit].location.Rad();
+            synapses[*min_uit].SetDendritePathLength(min_path_len);
         } else {
-            synapses[csyn].children.push_back(usyn);
-            synapses[usyn].parent = csyn;
-            synapses[usyn].SetDendritePathLength(min_dist);
+            synapses[*min_cit].children.push_back(*min_uit);
+            synapses[*min_uit].parent = *min_cit;
+            double min_path_len = synapses[*min_cit].dendrite_path_length +
+                synapses[*min_cit].location.DistanceStraightLine(synapses[*min_uit].location);
+            synapses[*min_uit].SetDendritePathLength(min_path_len);
         }
 
         // Update connected/unconnected lists.
-        connected.push_back(usyn);
-        unconnected.erase(
-            std::find(
-                unconnected.begin(),
-                unconnected.end(),
-                usyn
-            )
-        );
-        // if(connected.size() > 10) {
-        //     connected.pop_front();
-        // }
+        connected.push_back(*min_uit);
+
+        unconnected.erase(min_uit);
+
 
     }
 
@@ -589,3 +580,126 @@ void Neuron::PrintDendrite() {
     }
 
 }
+
+
+
+
+// OLD VERSION
+// void Neuron::BuildDendrite() {
+
+
+//     //-------------------------------------
+//     // Init lists.
+//     lst<i64> unconnected;
+//     lst<i64> connected;
+
+//     //-------------------------------------
+//     // Disconnect
+
+//     // Disconnect the dendrites.
+//     dendrites.clear();
+
+//     // Disconnect all synapses.
+//     // Complexity: Num Syns
+//     for(sizet i = 0; i < synapses.size(); i++) {
+//         synapses[i].parent = -1;
+//         synapses[i].children.clear();
+//         unconnected.push_back(i);
+//     }
+
+//     while(!unconnected.empty()) {
+
+//         i64 usyn = *(unconnected.begin());
+//         i64 csyn = -1;
+//         double min_dist = synapses[usyn].location.Rad();
+
+//         // If the synapse is at MAX_RADIUS, connect directly
+//         // to the soma and don't add to connected list.
+//         // In this way, unchanged synapses can participate,
+//         // but they cannot be a conduit for active ones.
+//         if(min_dist >= zxlb::MAX_RADIUS) {
+//             unconnected.erase(
+//                 std::find(
+//                     unconnected.begin(),
+//                     unconnected.end(),
+//                     usyn
+//                 )
+//             );
+//             dendrites.push_back(usyn);
+//             synapses[usyn].parent = -1;
+//             synapses[usyn].SetDendritePathLength(synapses[usyn].location.Rad());
+//             continue;
+//         }
+
+//         // Find the unconnected synapse with the smallest radius.
+//         for(
+//             lst<i64>::iterator ucit = unconnected.begin();
+//             ucit != unconnected.end();
+//             ucit++ 
+//         ) {
+
+//             // Begin by setting the min dist to the syn's radius.
+//             double local_min_dist = synapses[*ucit].location.Rad();
+//             i64 local_csyn = -1;
+
+//             for(
+//                 lst<i64>::iterator cit = connected.begin();
+//                 cit != connected.end();
+//                 cit++
+//             )
+//             {
+//                 double dist_to_conn = synapses[*ucit].location.DistanceWithRadius(synapses[*cit].location);
+//                 double dist = 
+//                     dist_to_conn +
+//                     zxlb::BF * (
+//                         synapses[*cit].GetDendritePathLength() +
+//                         dist_to_conn
+//                     );
+
+//                 if(dist < local_min_dist) {
+//                     local_min_dist = dist;
+//                     local_csyn = *cit;
+//                 }
+
+//             }
+
+            
+//             if(local_min_dist < min_dist) {
+//                 min_dist = local_min_dist;
+//                 usyn = *ucit;
+//                 csyn = local_csyn;
+//             }
+//         }
+
+//         // Connect. If csyn is -1, connect to the soma,
+//         // else connect to already connected syn.
+//         // Set the dendritic path length.
+
+//         if(csyn == -1) {
+            
+//             dendrites.push_back(usyn);
+//             synapses[usyn].parent = -1;
+//             synapses[usyn].SetDendritePathLength(synapses[usyn].location.Rad());
+//         } else {
+//             synapses[csyn].children.push_back(usyn);
+//             synapses[usyn].parent = csyn;
+//             synapses[usyn].SetDendritePathLength(min_dist);
+//         }
+
+//         // Update connected/unconnected lists.
+//         connected.push_back(usyn);
+//         unconnected.erase(
+//             std::find(
+//                 unconnected.begin(),
+//                 unconnected.end(),
+//                 usyn
+//             )
+//         );
+//         // if(connected.size() > 10) {
+//         //     connected.pop_front();
+//         // }
+
+//     }
+
+// }
+

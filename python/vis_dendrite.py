@@ -1,20 +1,23 @@
 import math
 
 import matplotlib.pyplot as plt
+import numpy as np
 
 import output
 import defs
 
 out = output.Output(defs.OUTPUT_PATH)
 
-# xs_max = []
-# ys_max = []
-# zs_max = []
+NEURON_ID = 3
+LAYER_ID = 1
 
 xs = []
 ys = []
 zs = []
+
 colors = []
+
+points = []
 
 class Point:
     ID = None
@@ -22,47 +25,61 @@ class Point:
     x = 0.0
     y =0.0
     z = 0.0
+    lat = 0.0
+    lon = 0.0
+    rad = 0.0
+
 
 soma = Point()
 soma.ID = -1
 points = {-1:soma}
 
 for name,syn in out.synapses.items():
-    lat = syn.lats[-1][-1]
-    lon = syn.lons[-1][-1]
-    rad = syn.rads[-1][-1]
-    pid = syn.parents[-1][-1]
+    if syn.neuron_id == NEURON_ID and syn.layer_id == LAYER_ID:
+        lat = syn.lats[-1][-1]
+        lon = syn.lons[-1][-1]
+        rad = syn.rads[-1][-1]
+        pid = syn.parents[-1][-1]
 
+        x = rad * math.cos(lat) * math.cos(lon)
+        y = rad * math.cos(lat) * math.sin(lon)
+        z = rad * math.sin(lat)
+        c = rad
 
+        p = Point()
+        p.ID = syn.synapse_id
+        p.pid = pid
+        p.x = x
+        p.y = y
+        p.z = z
+        p.rad = rad
+        p.lat = lat
+        p.lon = lon
+        points[p.ID] = p
 
-    x = rad * math.cos(lat) * math.cos(lon)
-    y = rad * math.cos(lat) * math.sin(lon)
-    z = rad * math.sin(lat)
-    c = 100-rad
-
-    p = Point()
-    p.ID = syn.synapse_id
-    p.pid = pid
-    p.x = x
-    p.y = y
-    p.z = z
-    points[p.ID] = p
-
-    xs.append(x)
-    ys.append(y)
-    zs.append(z)
-    colors.append(c)
-
-
+        xs.append(x)
+        ys.append(y)
+        zs.append(z)
+        colors.append(c)
 
 fig = plt.figure()
 ax = fig.add_subplot(projection='3d')
-ax.scatter(xs, ys, zs, c=colors, cmap='jet')
+a = max(np.ptp(xs), np.ptp(ys), np.ptp(zs))
+ax.set_box_aspect((np.ptp(xs), np.ptp(ys), np.ptp(zs)))
+ax.set_xlim3d(-a,a)
+ax.set_ylim3d(-a,a)
+ax.set_zlim3d(-a,a)
+for k,v in points.items():
+    ax.scatter(v.x, v.y, v.z, c=v.rad, cmap='jet')
+    ax.text(v.x, v.y, v.z, '%s' % (str(v.ID)), size=10, zorder=1 )
 # ax.scatter(xs_max, ys_max, zs_max, marker='o')
 
 for k,v in points.items():
-    if v.pid:
+    if v.pid!=None:
+
         parent = points[v.pid]
+        # if v.pid==-1:
+        #     print(v.ID, v.lat, v.lon, v.rad, v.x, v.y, v.z)    
         ax.plot3D([v.x, parent.x], [v.y, parent.y], [v.z, parent.z], 'gray')
 
 plt.show()

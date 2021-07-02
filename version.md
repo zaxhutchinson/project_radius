@@ -1,3 +1,6 @@
+**Version 0.08**
+- Lots of changes. Synaptic clustering using spherical geo/trig is working.
+
 **Version 0.07**
 - Visualization and debugging.
 

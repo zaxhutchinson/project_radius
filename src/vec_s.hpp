@@ -20,7 +20,8 @@
 #pragma once
 #include<cmath>
 #include"zxlb.hpp"
-#include"vec3.hpp"
+
+struct Vec3;
 
 struct VecS {
     double lat;
@@ -35,6 +36,9 @@ struct VecS {
     VecS& operator=(const VecS & v) = default;
     VecS& operator=(VecS && v) = default;
 
+
+    str to_string();
+
     double Lat();
     double Lon();
     double Rad();
@@ -47,6 +51,8 @@ struct VecS {
     void RandomizeLatLong(RNG & rng);
 
     double Distance(const VecS & v);
+    double DistanceStraightLineSqrd(const VecS & v);
+    double DistanceStraightLine(const VecS & v);
     double DistanceWithRadius(const VecS & v);
     double HeadingTo(const VecS & v);
     Vec3 VectorTo(const VecS & v);

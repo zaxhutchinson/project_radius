@@ -3,7 +3,6 @@
 #include<iostream>
 
 #include"zxlb.hpp"
-#include"log.hpp"
 #include"vec3.hpp"
 #include"data.hpp"
 #include"writer.hpp"
@@ -80,5 +79,6 @@ private:
         to each other.
     */
     void GetInput(i64 time);
+    void GetInputSimple(i64 time);
 
 };
