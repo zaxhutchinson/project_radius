@@ -129,8 +129,8 @@ PatternMaker BuildPattern001(RNG & rng) {
 
     double mu_good = 500.0;
     double std_good = 1.0;
-    double mu_bad = 0.0;
-    double std_bad = 50.0;
+    double mu_bad = 50.0;
+    double std_bad = 10.0;
     sizet base_amount = 10000;
 
     PatternTemplate pt0;

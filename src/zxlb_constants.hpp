@@ -5,7 +5,7 @@
 namespace zxlb {
 
     inline constexpr double MAJOR_VERSION {0.0};
-    inline constexpr double MINOR_VERSION {0.08};
+    inline constexpr double MINOR_VERSION {0.09};
 
     /* NEURON_SPIKE_TIME_WINDOW
         Determines how long spikes are saved and continue to affect neuronal
@@ -41,5 +41,5 @@ namespace zxlb {
         It represents the effect the total path length to an unconnected
         synapse has on calculating distance for Prim's Algorithm.
     */
-    inline constexpr double BF = 0.2;
+    inline constexpr double BF = 0.5;
 };

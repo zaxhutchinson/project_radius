@@ -19,6 +19,7 @@
 
 #pragma once
 #include<cmath>
+#include<iostream>
 #include"zxlb.hpp"
 
 struct Vec3;

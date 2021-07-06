@@ -31,7 +31,7 @@
             "neuron_templates" : {
                 "neuron1": {
                     "type": "Regular Spiking",
-                    "number": 1,
+                    "number": 10,
                     "baseline":0.0
                 }
             },
@@ -81,14 +81,14 @@
             "record_data_size" : 1000
         }
     },
-    "pattern_network_002" : {
+    "sin_cos_network" : {
         "input_layer" : {
             "is_input_layer" : true,
             "is_output_layer" : false,
             "neuron_templates" : {
                 "neuron1": {
                     "type":"Regular Spiking",
-                    "number": 16,
+                    "number": 100,
                     "baseline":50.0
                 }
             },
@@ -113,7 +113,7 @@
             "neuron_templates" : {
                 "neuron1": {
                     "type": "Regular Spiking",
-                    "number": 1,
+                    "number": 4,
                     "baseline":0.0
                 }
             },

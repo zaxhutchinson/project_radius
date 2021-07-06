@@ -8,9 +8,9 @@ import defs
 
 out = output.Output(defs.OUTPUT_PATH)
 
-NEURON_ID = 3
+NEURON_ID = 1
 LAYER_ID = 1
-SYN_IDS = [0,1,2,3]#list(range(0,16))
+SYN_IDS = list(range(0,16))#[0,1,2,3]#
 xs = {}
 ys = {}
 zs = {}
@@ -58,8 +58,8 @@ ax = fig.add_subplot(projection='3d')
 # ax.set_ylim3d(-a,a)
 # ax.set_zlim3d(-a,a)
 for k,v in xs.items():
-    ax.plot3D(xs[k], ys[k], zs[k])
-
+    ax.plot3D(xs[k], ys[k], zs[k], label=k)
+ax.legend()
 plt.show()
 
 

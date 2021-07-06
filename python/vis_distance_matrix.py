@@ -6,9 +6,12 @@ import numpy as np
 import output
 import defs
 
-out = output.Output(defs.OUTPUT_PATH)
+LAYER_ID = 1
+NEURON_ID = 8
 
-NEURON_ID = 3
+out = output.Output(defs.OUTPUT_PATH, lid=LAYER_ID, nid=NEURON_ID)
+
+
 
 xs = []
 ys = []

@@ -1,6 +1,9 @@
 #pragma once
 
 #include<iostream>
+#include<utility>
+#include<functional>
+#include<omp.h>
 
 #include"zxlb.hpp"
 #include"vec3.hpp"
@@ -45,6 +48,7 @@ struct Neuron {
     Neuron& operator=(Neuron && n) = default;
     //------------------------------------------------------------------------
 
+    //------------------------------------------------------------------------
     void Reset();
 
     i64 GetID();
@@ -69,6 +73,7 @@ struct Neuron {
     void CleanupData(Writer * writer);
 
     void BuildDendrite();
+    void BuildDendriteParallel();
 
     void PrintDendrite();
 

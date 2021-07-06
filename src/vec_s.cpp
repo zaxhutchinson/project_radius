@@ -41,10 +41,14 @@ double VecS::Distance(const VecS & v) {
     double alon = v.lon-lon;
     double alat = v.lat-lat;
 
-    double a = pow( sin(alat/2.0), 2.0 ) +
-        cos(lat) * cos(v.lat) *
-        pow(sin(alon/2.0), 2.0);
-    return  2.0 * atan2(sqrt(a), sqrt(1-a));
+    double a = std::pow( std::sin(alat/2.0), 2.0 ) +
+        std::cos(lat) * std::cos(v.lat) *
+        std::pow(std::sin(alon/2.0), 2.0);
+    // std::cout.precision(20);
+    // if(a > 1 || a < 0) std::cout << "BAD A: " << a << " " << std::sqrt(a) << " " << std::sqrt(1-a) << "    " << this->to_string() << std::endl;
+    if(a>1) a = 1; 
+    if(a<0) a = 0;
+    return  2.0 * std::atan2(std::sqrt(a), std::sqrt(1-a));
     
     
     // if(alat==0) {

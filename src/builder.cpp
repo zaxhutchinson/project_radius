@@ -136,3 +136,4 @@ uptr<Network> BuildNetwork(str network_id, RNG & rng) {
 
     return network;
 }
+

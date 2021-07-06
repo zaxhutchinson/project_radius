@@ -1,3 +1,9 @@
+**Version 0.09**
+- Parallelized (OpenMP) some of the more labor intensive updates. Created a parallel version of the BuildDendrites function.
+- Changed the Python visualization so the Output class will only load syns and neurons that are asked for.
+- Adds an InputGenerator class which can be used to generate input to a layer at each time step. Rather than the PatternMaker or MNIST which present only one signal for an entire example.
+- 
+
 **Version 0.08**
 - Lots of changes. Synaptic clustering using spherical geo/trig is working.
 

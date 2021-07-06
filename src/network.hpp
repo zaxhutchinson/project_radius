@@ -27,6 +27,7 @@ public:
     i64 AddLayer(Layer layer);
     Layer * GetLayer(i64 index);
     i64 GetOutputLayerIndex();
+    i64 GetInputLayerIndex();
 
     void SetInputs(vec<double> & inputs);
     void SetOutputs(vec<Connection*> & outputs);

@@ -6,10 +6,12 @@ import numpy as np
 import output
 import defs
 
-out = output.Output(defs.OUTPUT_PATH)
-
-NEURON_ID = 3
+NEURON_ID = 8
 LAYER_ID = 1
+
+out = output.Output(defs.OUTPUT_PATH, lid=LAYER_ID, nid=NEURON_ID)
+
+
 
 xs = []
 ys = []
@@ -45,6 +47,11 @@ for name,syn in out.synapses.items():
         y = rad * math.cos(lat) * math.sin(lon)
         z = rad * math.sin(lat)
         c = rad
+
+        if math.isinf(x) or math.isinf(y) or math.isinf(z):
+            print("NAN:",name, x,y,z)
+        if math.isnan(x) or math.isnan(y) or math.isnan(z):
+            print("INF:",name,x,y,z)
 
         p = Point()
         p.ID = syn.synapse_id

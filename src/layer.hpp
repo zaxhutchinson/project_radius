@@ -1,7 +1,10 @@
 #pragma once
 
+#include<omp.h>
+
 #include"zxlb.hpp"
 #include"neuron.hpp"
+#include"input_gen.hpp"
 
 class Layer {
 private:
@@ -10,8 +13,9 @@ private:
     vec<Neuron> neurons;
     bool is_input;
     bool is_output;
+    InputGenerator * input_generator;
 public:
-    Layer() = default;
+    Layer();
     Layer(const Layer & l) = delete;
     Layer(Layer && l) = default;
     Layer& operator=(const Layer & l) = delete;
@@ -27,6 +31,8 @@ public:
     void SetIsInput(bool b);
     void SetIsOutput(bool b);
     i64 GetLayerSize();
+
+    void AddInputGenerator(InputGenerator * ig);
 
     void AddNeuron(Neuron neuron);
     Neuron * GetNeuron(i64 index);

@@ -61,6 +61,7 @@ void Neuron::Reset() {
     }
 }
 
+
 i64 Neuron::GetID() {
     return id;
 }
@@ -103,42 +104,75 @@ void Neuron::SetRawInput(double amt) {
 
 void Neuron::PresynapticSpike(i64 time, i64 synapse_id, ConnectionMatrix & cm) {
 
-    double time_diff_self = static_cast<double>(
-        synapses[synapse_id].time_cur_spike - synapses[synapse_id].time_pre_spike
-    );
-
-    // Vec3 force;
     VecS direction = synapses[synapse_id].location;
     double partial_force = 0.0;
     double error = synapses[synapse_id].GetError();
 
+    double time_diff_self = static_cast<double>(
+        synapses[synapse_id].time_cur_spike - synapses[synapse_id].time_pre_spike
+    );
+
+    double force_self = (
+        (time_diff_self+zxlb::PRE_SELF_FORCE_TIME_WINDOW) /
+        zxlb::PRE_SELF_FORCE_TIME_WINDOW *
+        std::exp( - time_diff_self / zxlb::PRE_SELF_FORCE_TIME_WINDOW )
+    ) * error;
+
+
     for(i64 i = 0; i < static_cast<i64>(synapses.size()); i++) {
         if(i != synapse_id) {
             double time_diff_other = static_cast<double>(
-                time - synapses[synapse_id].time_cur_spike
+                time - synapses[i].time_cur_spike
             );
 
-            //double distance = synapses[synapse_id].location.Distance(synapses[i].location);
+            // If the difference between cur time (this presyn spike time) and
+            // the prev spike time of the other syn is greater than the
+            // window, skip
+            if(time_diff_other > zxlb::PRE_OTHER_FORCE_TIME_WINDOW) {
+                continue;
+            }
 
-            double force_self = (
-                (time_diff_self+zxlb::PRE_SELF_FORCE_TIME_WINDOW) /
-                zxlb::PRE_SELF_FORCE_TIME_WINDOW *
-                std::exp( - time_diff_self / zxlb::PRE_SELF_FORCE_TIME_WINDOW )
-            );
+            // What percent of the orbit are we aiming for?
+            double target_angular_distance = M_PI * (time_diff_other / zxlb::PRE_OTHER_FORCE_TIME_WINDOW);
+            double cur_distance = synapses[synapse_id].location.Distance(synapses[i].location);
+            double angular_delta = cur_distance-target_angular_distance;
 
-            double force_other = (
-                (time_diff_other + zxlb::PRE_OTHER_FORCE_TIME_WINDOW) /
-                zxlb::PRE_OTHER_FORCE_TIME_WINDOW *
-                std::exp( - time_diff_other / zxlb::PRE_OTHER_FORCE_TIME_WINDOW )
-            );
 
-            partial_force = (
-                (force_self * force_other)
-            ) * error;
+            // double force_other = (
+            //     (time_diff_other + zxlb::PRE_OTHER_FORCE_TIME_WINDOW) /
+            //     zxlb::PRE_OTHER_FORCE_TIME_WINDOW *
+            //     std::exp( - time_diff_other / zxlb::PRE_OTHER_FORCE_TIME_WINDOW )
+            // );
+
+            // partial_force = (
+            //     (force_self * force_other)
+            // ) * error;
+
+            partial_force = force_self * angular_delta;
+
+            //VecS temp_direction(direction);
+
 
             direction.Orbit(synapses[synapse_id].location.HeadingTo(synapses[i].location), partial_force);
-            // force += synapses[synapse_id].location.VectorTo(synapses[i].location) * 
-            //     partial_force;
+            
+            // if(std::isnan(direction.Lat()) || std::isnan(temp_direction.Lat()) || std::isnan(cur_distance)) {
+            // // if(angular_delta > M_PI || angular_delta < -M_PI) {
+            //     std::cout.precision(30);
+            //     std::cout << "NAN DETECTED:\n"
+            //         << "   IDS:                 " << synapse_id << "  " << i << std::endl 
+            //         << "   FROM:                " << synapses[synapse_id].location.to_string() << std::endl
+            //         << "   FROM:                " << synapses[synapse_id].location.Lat() << "," << synapses[synapse_id].location.Lon() << "," << synapses[synapse_id].location.Rad() << std::endl
+            //         << "   TO:                  " << synapses[i].location.to_string() << std::endl
+            //         << "   TO:                  " << synapses[i].location.Lat() << "," << synapses[i].location.Lon() << "," << synapses[i].location.Rad() << std::endl
+            //         << "   RECALC DIST:         " << synapses[synapse_id].location.Distance(synapses[i].location) << std::endl
+            //         << "   OLD DIRECTION:       " << temp_direction.to_string() << std::endl
+            //         << "   NEW DIRECTION:       " << direction.to_string() << std::endl
+            //         << "   TARGET_ANGULAR_DIST: " << target_angular_distance << std::endl
+            //         << "   CUR_DIST:            " << cur_distance << std::endl
+            //         << "   ANGULAR_DELTA:       " << angular_delta << std::endl
+            //         << "   PARTIAL FORCE:       " << partial_force << std::endl
+            //         << "   RADIUS:              " << direction.Rad() << std::endl;
+            // }
         }
     }
     synapses[synapse_id].location.Orbit(
@@ -169,6 +203,7 @@ void Neuron::PostsynapticSignal(i64 time, ConnectionMatrix & cm) {
 
     if(just_spiked) {
 
+        #pragma omp parallel for
         for(std::size_t i = 0; i < synapses.size(); i++) {
 
             double time_diff_synapse = static_cast<double>(
@@ -337,12 +372,22 @@ void Neuron::GetInputSimple(i64 time) {
 void Neuron::Update(i64 time, Writer * writer, i64 layer_id, ConnectionMatrix & cm) {
 
     // Update all the synapses
+    vec<sizet> syns_with_pre_spikes;
+    #pragma omp parallel for
     for(sizet i = 0; i < synapses.size(); i++) {
         // Update, and if the input source for this synapse
-        // produced a spike, then process it.
+        // produced a spike, then save index.
         if(synapses[i].Update(time, writer, cm)) {
-            PresynapticSpike(time, i, cm);
+            syns_with_pre_spikes.push_back(i);
         }
+    }
+
+    // Prespikes must be processed after all updates are finished
+    // to insure that all syns have the latest pre-spike times. Otherwise
+    // syns updated earlier in the vector won't see current prespikes of those
+    // further down the vector.
+    for(sizet i = 0; i < syns_with_pre_spikes.size(); i++) {
+        PresynapticSpike(time, i, cm);
     }
 
     //GetInput(time);
@@ -541,6 +586,97 @@ void Neuron::BuildDendrite() {
         connected.push_back(*min_uit);
 
         unconnected.erase(min_uit);
+
+
+    }
+
+}
+
+void Neuron::BuildDendriteParallel() {
+
+
+    //-------------------------------------
+    // Init lists.
+    vec<i64> unconnected;
+    vec<i64> connected = {-1};
+
+    //-------------------------------------
+    // Disconnect
+
+    // Disconnect the dendrites.
+    dendrites.clear();
+
+    // Disconnect all synapses.
+    // Complexity: Num Syns
+    for(sizet i = 0; i < synapses.size(); i++) {
+        synapses[i].parent = -1;
+        synapses[i].children.clear();
+        synapses[i].dendrite_path_length = 0.0;
+        unconnected.push_back(i);
+    }
+    // std::cout << "NEWBUILD\n";
+    while(!unconnected.empty()) {
+
+        sizet min_uit = 0;
+        sizet min_cit = 0;
+        // vec<i64>::iterator min_uit = unconnected.begin();
+        // vec<i64>::iterator min_cit = connected.begin();
+        double min_dist = std::numeric_limits<double>::max();
+
+        #pragma omp parallel for
+        for(
+            sizet uit = 0;
+            uit < unconnected.size();
+            uit++
+        ) {
+
+            for(
+                sizet cit = 0;
+                cit < connected.size();
+                cit++
+            ) {
+
+                double uc_dist = 0.0;
+
+                if(connected[cit]==-1) {
+                    uc_dist = synapses[uit].location.Rad();
+                    //uc_dist += zxlb::BF * uc_dist;
+
+                } else {
+                    uc_dist = synapses[cit].location.DistanceStraightLine(synapses[uit].location);
+                    uc_dist += zxlb::BF * synapses[cit].dendrite_path_length;
+                }
+
+                if(uc_dist < min_dist) {
+                    #pragma omp critical 
+                    {
+                        min_cit = cit;
+                        min_uit = uit;
+                        min_dist = uc_dist;
+                    }
+                }
+
+            }
+
+        }
+
+        if(min_cit==-1) {
+            dendrites.push_back(min_uit);
+            synapses[min_uit].parent = -1;
+            double min_path_len = synapses[min_uit].location.Rad();
+            synapses[min_uit].SetDendritePathLength(min_path_len);
+        } else {
+            synapses[min_cit].children.push_back(min_uit);
+            synapses[min_uit].parent = min_cit;
+            double min_path_len = synapses[min_cit].dendrite_path_length +
+                synapses[min_cit].location.DistanceStraightLine(synapses[min_uit].location);
+            synapses[min_uit].SetDendritePathLength(min_path_len);
+        }
+
+        // Update connected/unconnected lists.
+        connected.push_back(min_uit);
+
+        unconnected.erase(unconnected.begin()+min_uit);
 
 
     }

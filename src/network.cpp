@@ -70,6 +70,9 @@ Layer * Network::GetLayer(i64 index) {
 i64 Network::GetOutputLayerIndex() {
     return output_layer;
 }
+i64 Network::GetInputLayerIndex() {
+    return input_layer;
+}
 
 void Network::SetInputs(vec<double> & inputs) {
 

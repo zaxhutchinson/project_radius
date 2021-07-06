@@ -96,7 +96,7 @@ class Neuron:
         self.errors.append(errors)
 
 class Output:
-    def __init__(self, path, last=True):
+    def __init__(self, path, sid=None, nid=None, lid=None, last=True):
         self.path = path
         self.example_filenames = []
         self.neuron_filenames = []
@@ -109,9 +109,20 @@ class Output:
         for filename in os.scandir(path):
             if filename.is_file():
                 fn = filename.name
+                fnsplt = fn.split('_')
                 if fn[0]=='S':
+                    if lid and lid!=int(fnsplt[1]):
+                        continue
+                    if nid and nid!=int(fnsplt[2]):
+                        continue
+                    if sid and int(fnsplt[3]) not in sid:
+                        continue
                     self.synapse_filenames.append(fn)
                 elif fn[0]=='N':
+                    if lid and lid!=int(fnsplt[1]):
+                        continue
+                    if nid and nid!=int(fnsplt[2]):
+                        continue
                     self.neuron_filenames.append(fn)
                 elif fn[0]=='E':
                     self.example_filenames.append(fn)

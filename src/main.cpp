@@ -36,19 +36,23 @@ void RunPattern001(
     RNG & rng
 );
 
-void RunPattern002(
+void RunSinCos(
     Writer * writer,
     Network * network,
-    PatternMaker * pattern_maker,
     RNG & rng
 );
 
 int main(int argc, char**argv) {
+    // std::cout << std::sqrt(0) << std::endl;
+    // VecS v1( -1.22428754752690549523208574101,2.83163092469335131440288932936,89.6130481824433360316106700338);
+    // VecS v2( 1.22428754943845707892080554302,-0.309961738331212655062074645684,87.6133275637629225229829899035);
+    // // VecS v3(  -M_PI/4.0, M_PI/2.0, 100);
+    // // VecS v4(  M_PI/4.0, 0.0, 100);
 
-    // VecS v1(  0.0, 0.0, 100);
-    // VecS v2(  M_PI/4.0, -M_PI/2.0, 100);
-    // VecS v3(  -M_PI/4.0, M_PI/2.0, 100);
-    // VecS v4(  M_PI/4.0, 0.0, 100);
+    // std::cout << v2.Distance(v1) << std::endl;
+    // v1.Orbit(v1.HeadingTo(v2),v1.Distance(v2));
+    // std::cout << v1.Distance(v2) << std::endl;
+    // return 0;
 
     // // std::cout << v2.VectorTo(v1).to_string() << std::endl;
     // // double head = v2.HeadingTo(v1);
@@ -116,7 +120,7 @@ int main(int argc, char**argv) {
 
     //-------------------------------------------------------------------------
     // Process command line args.
-    str network_id = "pattern_network_001";
+    str network_id = "mnist_network_001";
 
     zxlog::Debug("MAIN: Processing cmd line args.");
     for(int i = 1; i < argc; i++) {
@@ -152,29 +156,38 @@ int main(int argc, char**argv) {
     //-------------------------------------------------------------------------
     // Run network
     // MNIST
-    // zxlog::Debug("MAIN: Loading MNIST data");
-    // std::string LABELS_FILENAME("mnist/train-labels-idx1-ubyte");
-    // std::string IMAGES_FILENAME("mnist/train-images-idx3-ubyte");
-    // MNISTReader mnist_reader;
-    // mnist_reader.LoadData(LABELS_FILENAME,IMAGES_FILENAME);
+    //zxlog::Debug("MAIN: Loading MNIST data");
+    std::string LABELS_FILENAME("mnist/train-labels-idx1-ubyte");
+    std::string IMAGES_FILENAME("mnist/train-images-idx3-ubyte");
+    MNISTReader mnist_reader;
+    mnist_reader.LoadData(LABELS_FILENAME,IMAGES_FILENAME);
 
-    // RunMNIST(
-    //     &writer,
-    //     network.get(),
-    //     mnist_reader,
-    //     rng
-    // );
-
-    // Pattern
-    zxlog::Debug("MAIN: Loading Pattern data");
-    PatternMaker pattern_maker = BuildPattern001(rng);
-    RunPattern001(
+    RunMNIST(
         &writer,
         network.get(),
-        &pattern_maker,
+        mnist_reader,
         rng
     );
 
+    //----------------------------------------------------------------------------
+    // Pattern 001
+    // zxlog::Debug("MAIN: Loading Pattern data");
+    // PatternMaker pattern_maker = BuildPattern001(rng);
+    // RunPattern001(
+    //     &writer,
+    //     network.get(),
+    //     &pattern_maker,
+    //     rng
+    // );
+
+
+    //----------------------------------------------------------------------------
+    // Sin Cos
+    // RunSinCos(
+    //     &writer,
+    //     network.get(),
+    //     rng
+    // );
 
     return 0;
 }
@@ -387,38 +400,57 @@ void RunPattern001(
 
 }
 
-void RunPattern002(
+void RunSinCos(
     Writer * writer,
     Network * network,
-    PatternMaker * pattern_maker,
     RNG & rng
 ) {
 
     zxlog::Debug("RunPatter() called.");
 
     // Label, Index of output neuron
-    vec<str> labels = pattern_maker->GetAllLabels();
-    umap<str, sizet> labels_with_indexes;
-    for(sizet i = 0; i < labels.size(); i++) {
-        labels_with_indexes.emplace(labels[i], i);
-    }
+    std::uniform_int_distribution<int> dist(0,3);
 
-    sizet num_iterations = 10000;
-    sizet iteration_size = pattern_maker->GetIterationSize();
+    sizet num_iterations = 1000;
+    sizet iteration_size = 1;
     i64 time_per_example = 1000;
-    sizet correct_choice = 0;
     i64 output_layer_index = network->GetOutputLayerIndex();
 
-    zxlog::Debug("Get PatternMaker data.");
-    vec<vec<Pattern>> data = pattern_maker->GetDataAsIteration(
-        labels,
-        num_iterations,
-        rng
-    );
+    // Build the input vector.
+    uptr<InputGenerator> sin_ig1 = std::make_unique<InputGenerator_Sine>();
+    uptr<InputGenerator> sin_ig2 = std::make_unique<InputGenerator_Sine>();
+    uptr<InputGenerator> sin_ig3 = std::make_unique<InputGenerator_Sine>();
+    uptr<InputGenerator> sin_ig4 = std::make_unique<InputGenerator_Sine>();
+    Layer * input_layer = network->GetLayer(network->GetInputLayerIndex());
+    i64 input_layer_size = input_layer->GetLayerSize();
+    std::normal_distribution<double> normDist(100.0,25.0);
+    for(i64 i = 0; i < input_layer_size; i++) {
+        if(i<input_layer_size/4) {
+            sin_ig1->pattern.push_back(500.0);
+            sin_ig1->seed.push_back(0.0);
+        } else {
+            sin_ig1->pattern.push_back(500.0);
+            sin_ig1->seed.push_back(0.0);
+        }
+        sin_ig2->pattern.push_back(500.0);
+        sin_ig3->pattern.push_back(500.0);
+        sin_ig4->pattern.push_back(500.0);
+
+        
+        sin_ig2->seed.push_back(M_PI/2.0);
+        sin_ig3->seed.push_back(M_PI);
+        sin_ig4->seed.push_back(3.0*(M_PI/2.0));
+
+    }
 
     //-------------------------------------------------------------------------
     // Build the rates vector. Default to incorrect rates.
-    vec<double> rates = {config::INCORRECT_EXPECTED};
+    vec<double> rates = {
+        config::INCORRECT_EXPECTED, 
+        config::INCORRECT_EXPECTED,
+        config::INCORRECT_EXPECTED, 
+        config::INCORRECT_EXPECTED
+    };
 
     //-------------------------------------------------------------------------
     // Start the run
@@ -433,15 +465,33 @@ void RunPattern002(
             zxlog::Debug("   Image " + std::to_string(k));
 
             // Get the image
-            Pattern & d = data[i][k];
+            int pattern = dist(rng);
 
-            // Set the inputs to the pixel data
-            network->SetInputs(d.data);
-
-            // Update the error rates before and after swapping
-            // to the new correct choice
-            if(d.label=="4") rates[0] = config::INCORRECT_EXPECTED;
-            else rates[0] = config::CORRECT_EXPECTED;
+            if(pattern==0) {
+                input_layer->AddInputGenerator(sin_ig1.get());
+                rates[0] = config::CORRECT_EXPECTED;
+                rates[1] = config::INCORRECT_EXPECTED;
+                rates[2] = config::INCORRECT_EXPECTED;
+                rates[3] = config::INCORRECT_EXPECTED;
+            } else if(pattern==1) {
+                input_layer->AddInputGenerator(sin_ig2.get());
+                rates[0] = config::INCORRECT_EXPECTED;
+                rates[1] = config::CORRECT_EXPECTED;
+                rates[2] = config::INCORRECT_EXPECTED;
+                rates[3] = config::INCORRECT_EXPECTED;
+            } else if(pattern==2) {
+                input_layer->AddInputGenerator(sin_ig3.get());
+                rates[0] = config::INCORRECT_EXPECTED;
+                rates[1] = config::INCORRECT_EXPECTED;
+                rates[2] = config::CORRECT_EXPECTED;
+                rates[3] = config::INCORRECT_EXPECTED;
+            } else if(pattern==3) {
+                input_layer->AddInputGenerator(sin_ig4.get());
+                rates[0] = config::INCORRECT_EXPECTED;
+                rates[1] = config::INCORRECT_EXPECTED;
+                rates[2] = config::INCORRECT_EXPECTED;
+                rates[3] = config::CORRECT_EXPECTED;
+            }
 
 
             network->UpdateLayerErrorValues(
@@ -458,12 +508,12 @@ void RunPattern002(
             }
 
             vec<double> error_rates = network->GetErrorRates(output_layer_index);
-            std::cout << "/== Iteration " << i << "  Image " << correct_choice << ":" << d.label << " ==============================//\n";
+            std::cout << "/== Iteration " << i << "  Image " << pattern << " ==============================//\n";
             for(sizet m = 0; m < error_rates.size(); m++) {
                 std::cout << m << ":" << error_rates[m] << std::endl;
             }
             
-            writer->AddExampleData(std::make_unique<ExampleData>(i, k, d.label));
+            writer->AddExampleData(std::make_unique<ExampleData>(i, k, std::to_string(pattern)));
 
             // network->SaveData(time);
             // network->WriteData(writer);

@@ -1,3 +1,16 @@
+**July 3-6, 2021**
+*Version 0.09 work*
+
+* Added an InputGenerator class which allows for (at present) the generation of simple input patterns which vary by time. I hoped to use this to discriminate by temporally varying patterns. For example, sin v. cos input. It's a bit clunky, but I think the structure is on the right path. With some expansion it could be used to present time-varying, predetermined patterns (e.g. spike trains).
+* Added some parallelization using OpenMP. Very necessary. The full MNIST with 794 neurons and 7840 synapses just runs too slowly without. With, it is quite tolerable.
+* I think the next step is to produce a paper on the synapse clustering. If I can mimick an input spike train to a neuron and then use this to cluster synapses which spike together, that would be something. Then I can do some analysis comparing the spike trains and the location of the synapses and how the dendrite connects them. Thumbs up.
+
+**July 2, 2021**
+*Version 0.09 work*
+
+* Found a potential error in the presyn movement calculations. Looks like I was using synapse_id instead of i to get the other_time_diff.
+* Implemented the orbital distance-time movement discussed in the previous entry. Synapses of a similar pattern move either into the same space or to an antipodal space. Once the synapses congregate into one of these two locations, they seem to lock orbits. Either they hover or actually sync in opposite orbits. Not sure why. It seems one would move in some direction and then the next would move toward in the oblique direction. But they don't. Depends on starting location. 
+
 **July 2, 2021**
 *Version 0.08 work*
 
