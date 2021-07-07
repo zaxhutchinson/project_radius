@@ -36,7 +36,12 @@ void RunPattern001(
     RNG & rng
 );
 
-void RunSinCos(
+void RunPoisson001(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+);
+void RunPoisson002(
     Writer * writer,
     Network * network,
     RNG & rng
@@ -120,7 +125,7 @@ int main(int argc, char**argv) {
 
     //-------------------------------------------------------------------------
     // Process command line args.
-    str network_id = "mnist_network_001";
+    str network_id = "poisson_net_002";
 
     zxlog::Debug("MAIN: Processing cmd line args.");
     for(int i = 1; i < argc; i++) {
@@ -157,17 +162,17 @@ int main(int argc, char**argv) {
     // Run network
     // MNIST
     //zxlog::Debug("MAIN: Loading MNIST data");
-    std::string LABELS_FILENAME("mnist/train-labels-idx1-ubyte");
-    std::string IMAGES_FILENAME("mnist/train-images-idx3-ubyte");
-    MNISTReader mnist_reader;
-    mnist_reader.LoadData(LABELS_FILENAME,IMAGES_FILENAME);
+    // std::string LABELS_FILENAME("mnist/train-labels-idx1-ubyte");
+    // std::string IMAGES_FILENAME("mnist/train-images-idx3-ubyte");
+    // MNISTReader mnist_reader;
+    // mnist_reader.LoadData(LABELS_FILENAME,IMAGES_FILENAME);
 
-    RunMNIST(
-        &writer,
-        network.get(),
-        mnist_reader,
-        rng
-    );
+    // RunMNIST(
+    //     &writer,
+    //     network.get(),
+    //     mnist_reader,
+    //     rng
+    // );
 
     //----------------------------------------------------------------------------
     // Pattern 001
@@ -182,12 +187,12 @@ int main(int argc, char**argv) {
 
 
     //----------------------------------------------------------------------------
-    // Sin Cos
-    // RunSinCos(
-    //     &writer,
-    //     network.get(),
-    //     rng
-    // );
+    // Poisson Spike Trains
+    RunPoisson002(
+        &writer,
+        network.get(),
+        rng
+    );
 
     return 0;
 }
@@ -270,7 +275,8 @@ void RunMNIST(
             for(; time <= time_per_example; time++) {
                 network->Update(
                     time,
-                    writer
+                    writer,
+                    rng
                 );
             }
 
@@ -370,7 +376,8 @@ void RunPattern001(
             for(; time <= time_per_example; time++) {
                 network->Update(
                     time,
-                    writer
+                    writer,
+                    rng
                 );
             }
 
@@ -400,7 +407,7 @@ void RunPattern001(
 
 }
 
-void RunSinCos(
+void RunPoisson001(
     Writer * writer,
     Network * network,
     RNG & rng
@@ -409,48 +416,50 @@ void RunSinCos(
     zxlog::Debug("RunPatter() called.");
 
     // Label, Index of output neuron
-    std::uniform_int_distribution<int> dist(0,3);
+    std::uniform_int_distribution<int> dist(0,1);
 
-    sizet num_iterations = 1000;
-    sizet iteration_size = 1;
+    sizet num_iterations = 100;
+    sizet iteration_size = 2;
     i64 time_per_example = 1000;
     i64 output_layer_index = network->GetOutputLayerIndex();
 
     // Build the input vector.
-    uptr<InputGenerator> sin_ig1 = std::make_unique<InputGenerator_Sine>();
-    uptr<InputGenerator> sin_ig2 = std::make_unique<InputGenerator_Sine>();
-    uptr<InputGenerator> sin_ig3 = std::make_unique<InputGenerator_Sine>();
-    uptr<InputGenerator> sin_ig4 = std::make_unique<InputGenerator_Sine>();
+    uptr<InputGenerator_Poisson> ig1 = std::make_unique<InputGenerator_Poisson>();
+    uptr<InputGenerator_Poisson> ig2 = std::make_unique<InputGenerator_Poisson>();
     Layer * input_layer = network->GetLayer(network->GetInputLayerIndex());
     i64 input_layer_size = input_layer->GetLayerSize();
-    std::normal_distribution<double> normDist(100.0,25.0);
     for(i64 i = 0; i < input_layer_size; i++) {
-        if(i<input_layer_size/4) {
-            sin_ig1->pattern.push_back(500.0);
-            sin_ig1->seed.push_back(0.0);
+
+        ig1->decay.push_back(std::exp(-1.0/10));
+        ig1->dist=std::uniform_real_distribution<double>(0.0,1.0);
+        ig1->strength.push_back(500.0);
+        ig1->signal.push_back(0.0);
+
+        ig2->decay.push_back(std::exp(-1.0/10));
+        ig2->dist = std::uniform_real_distribution<double>(0.0,1.0);
+        ig2->strength.push_back(500.0);
+        ig2->signal.push_back(0.0);
+
+        if(i<20) {
+            ig1->rate.push_back(0.2);
         } else {
-            sin_ig1->pattern.push_back(500.0);
-            sin_ig1->seed.push_back(0.0);
+            ig1->rate.push_back(0.01);
         }
-        sin_ig2->pattern.push_back(500.0);
-        sin_ig3->pattern.push_back(500.0);
-        sin_ig4->pattern.push_back(500.0);
-
         
-        sin_ig2->seed.push_back(M_PI/2.0);
-        sin_ig3->seed.push_back(M_PI);
-        sin_ig4->seed.push_back(3.0*(M_PI/2.0));
-
+        if(i>79) {
+            ig2->rate.push_back(0.2);
+        } else {
+            ig2->rate.push_back(0.01);
+        }
     }
 
     //-------------------------------------------------------------------------
     // Build the rates vector. Default to incorrect rates.
     vec<double> rates = {
         config::INCORRECT_EXPECTED, 
-        config::INCORRECT_EXPECTED,
-        config::INCORRECT_EXPECTED, 
         config::INCORRECT_EXPECTED
     };
+    vec<sizet> patterns = {0, 1};
 
     //-------------------------------------------------------------------------
     // Start the run
@@ -461,36 +470,22 @@ void RunSinCos(
     for(sizet i = 0; i < num_iterations; i++) {
         zxlog::Debug("Iteration " + std::to_string(i));
 
+        std::shuffle(patterns.begin(), patterns.end(), rng);
+
         for(sizet k = 0; k < iteration_size; k++) {
             zxlog::Debug("   Image " + std::to_string(k));
 
             // Get the image
-            int pattern = dist(rng);
+            sizet pattern = patterns[k];
 
             if(pattern==0) {
-                input_layer->AddInputGenerator(sin_ig1.get());
+                input_layer->AddInputGenerator(ig1.get());
                 rates[0] = config::CORRECT_EXPECTED;
                 rates[1] = config::INCORRECT_EXPECTED;
-                rates[2] = config::INCORRECT_EXPECTED;
-                rates[3] = config::INCORRECT_EXPECTED;
             } else if(pattern==1) {
-                input_layer->AddInputGenerator(sin_ig2.get());
+                input_layer->AddInputGenerator(ig2.get());
                 rates[0] = config::INCORRECT_EXPECTED;
                 rates[1] = config::CORRECT_EXPECTED;
-                rates[2] = config::INCORRECT_EXPECTED;
-                rates[3] = config::INCORRECT_EXPECTED;
-            } else if(pattern==2) {
-                input_layer->AddInputGenerator(sin_ig3.get());
-                rates[0] = config::INCORRECT_EXPECTED;
-                rates[1] = config::INCORRECT_EXPECTED;
-                rates[2] = config::CORRECT_EXPECTED;
-                rates[3] = config::INCORRECT_EXPECTED;
-            } else if(pattern==3) {
-                input_layer->AddInputGenerator(sin_ig4.get());
-                rates[0] = config::INCORRECT_EXPECTED;
-                rates[1] = config::INCORRECT_EXPECTED;
-                rates[2] = config::INCORRECT_EXPECTED;
-                rates[3] = config::CORRECT_EXPECTED;
             }
 
 
@@ -503,7 +498,8 @@ void RunSinCos(
             for(; time <= time_per_example; time++) {
                 network->Update(
                     time,
-                    writer
+                    writer,
+                    rng
                 );
             }
 
@@ -534,3 +530,132 @@ void RunSinCos(
 }
 
 
+void RunPoisson002(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+) {
+
+    zxlog::Debug("RunPatter() called.");
+
+    // Label, Index of output neuron
+    vec<sizet> patterns = {0, 1, 2};
+
+    sizet num_iterations = 1000;
+    sizet iteration_size = patterns.size();
+    i64 time_per_example = 1000;
+    i64 output_layer_index = network->GetOutputLayerIndex();
+
+    // Build the input vector.
+    uptr<InputGenerator_Poisson> ig1 = std::make_unique<InputGenerator_Poisson>();
+    uptr<InputGenerator_Poisson> ig2 = std::make_unique<InputGenerator_Poisson>();
+    uptr<InputGenerator_Poisson> ig3 = std::make_unique<InputGenerator_Poisson>();
+    Layer * input_layer = network->GetLayer(network->GetInputLayerIndex());
+    i64 input_layer_size = input_layer->GetLayerSize();
+    std::cout << input_layer_size << std::endl;
+    for(i64 i = 0; i < input_layer_size; i++) {
+
+        ig1->decay.push_back(std::exp(-1.0/10));
+        ig1->dist=std::uniform_real_distribution<double>(0.0,1.0);
+        ig1->strength.push_back(500.0);
+        ig1->signal.push_back(0.0);
+
+        ig2->decay.push_back(std::exp(-1.0/10));
+        ig2->dist = std::uniform_real_distribution<double>(0.0,1.0);
+        ig2->strength.push_back(500.0);
+        ig2->signal.push_back(0.0);
+
+        ig3->decay.push_back(std::exp(-1.0/10));
+        ig3->dist = std::uniform_real_distribution<double>(0.0,1.0);
+        ig3->strength.push_back(500.0);
+        ig3->signal.push_back(0.0);
+        ig3->rate.push_back(0.1);
+
+        if(i<55) {
+            ig1->rate.push_back(0.1);
+        } else {
+            ig1->rate.push_back(0.0);
+        }
+        
+        if(i>=45) {
+            ig2->rate.push_back(0.1);
+        } else {
+            ig2->rate.push_back(0.0);
+        }
+    }
+
+    //-------------------------------------------------------------------------
+    // Build the rates vector. Default to incorrect rates.
+    vec<double> rates = {
+        config::INCORRECT_EXPECTED
+    };
+    
+
+    //-------------------------------------------------------------------------
+    // Start the run
+    network->RebuildDendrites();
+
+    writer->StartRecording();
+    
+    for(sizet i = 0; i < num_iterations; i++) {
+        zxlog::Debug("Iteration " + std::to_string(i));
+
+        std::shuffle(patterns.begin(), patterns.end(), rng);
+
+        for(sizet k = 0; k < iteration_size; k++) {
+            zxlog::Debug("   Image " + std::to_string(k));
+
+            // Get the image
+            sizet pattern = patterns[k];
+
+            if(pattern==0) {
+                input_layer->AddInputGenerator(ig1.get());
+                rates[0] = config::CORRECT_EXPECTED;
+            } else if(pattern==1) {
+                input_layer->AddInputGenerator(ig2.get());
+                rates[0] = config::CORRECT_EXPECTED;
+            } else if(pattern==2) {
+                input_layer->AddInputGenerator(ig3.get());
+                rates[0] = config::INCORRECT_EXPECTED;
+            }
+
+
+            network->UpdateLayerErrorValues(
+                rates, output_layer_index
+            );
+
+
+            i64 time = 1;
+            for(; time <= time_per_example; time++) {
+                network->Update(
+                    time,
+                    writer,
+                    rng
+                );
+            }
+
+            vec<double> error_rates = network->GetErrorRates(output_layer_index);
+            std::cout << "/== Iteration " << i << "  Image " << pattern << " ==============================//\n";
+            for(sizet m = 0; m < error_rates.size(); m++) {
+                std::cout << m << ":" << error_rates[m] << std::endl;
+            }
+            
+            writer->AddExampleData(std::make_unique<ExampleData>(i, k, std::to_string(pattern)));
+
+            // network->SaveData(time);
+            // network->WriteData(writer);
+
+            network->Reset();
+            
+        }
+        network->RebuildDendrites();
+        network->SaveData(-1);
+        network->WriteData(writer);
+        
+    }
+
+    network->CleanUpData(writer);
+
+    writer->StopRecording();
+
+}

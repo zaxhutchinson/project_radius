@@ -36,7 +36,7 @@ public:
 
     void AddNeuron(Neuron neuron);
     Neuron * GetNeuron(i64 index);
-    void Update(i64 time, Writer * writer, ConnectionMatrix & cm);
+    void Update(i64 time, Writer * writer, ConnectionMatrix & cm, RNG & rng);
 
     void SetInputs(vec<double> & inputs);
 

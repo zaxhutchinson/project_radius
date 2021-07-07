@@ -1,3 +1,7 @@
+**July 7, 2021**
+*Version 0.10 work*
+* Added a Poisson-based spike train generator and have tested a single neuron exposed to two overlapping patterns. The algorithm(s) nicely separate the two patterns and the overlap inputs move into a space between the two. Pushing so that I have a copy of this that works.
+
 **July 3-6, 2021**
 *Version 0.09 work*
 

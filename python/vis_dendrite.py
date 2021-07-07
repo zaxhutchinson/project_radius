@@ -6,7 +6,7 @@ import numpy as np
 import output
 import defs
 
-NEURON_ID = 8
+NEURON_ID = 0
 LAYER_ID = 1
 
 out = output.Output(defs.OUTPUT_PATH, lid=LAYER_ID, nid=NEURON_ID)

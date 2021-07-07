@@ -68,11 +68,11 @@ Neuron * Layer::GetNeuron(i64 index) {
     }
 }
 
-void Layer::Update(i64 time, Writer * writer, ConnectionMatrix & cm) {
+void Layer::Update(i64 time, Writer * writer, ConnectionMatrix & cm, RNG & rng) {
     if(input_generator != nullptr) {
-        #pragma omp parallel for
+        //#pragma omp parallel for
         for(sizet i = 0; i < neurons.size(); i++) {
-            neurons[i].SetRawInput(input_generator->GetInput(i, time));
+            neurons[i].SetRawInput(input_generator->GetInput(i, time, rng));
             neurons[i].Update(time, writer, id, cm);
             neurons[i].PostsynapticSignal(time, cm);
         }

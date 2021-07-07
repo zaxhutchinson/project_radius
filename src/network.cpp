@@ -93,10 +93,10 @@ void Network::SetOutputs(vec<Connection*> & outputs) {
     }
 }
 
-void Network::Update(i64 time, Writer * writer) {
+void Network::Update(i64 time, Writer * writer, RNG & rng) {
 
     for(sizet i = 0; i < layers.size(); i++) {
-        layers[i].Update(time, writer, connection_matrix);
+        layers[i].Update(time, writer, connection_matrix, rng);
     }
 
 }

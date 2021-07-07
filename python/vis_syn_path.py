@@ -8,9 +8,9 @@ import defs
 
 out = output.Output(defs.OUTPUT_PATH)
 
-NEURON_ID = 1
+NEURON_ID = 0
 LAYER_ID = 1
-SYN_IDS = list(range(0,16))#[0,1,2,3]#
+SYN_IDS = list(range(0,5))+list(range(95,100))
 xs = {}
 ys = {}
 zs = {}

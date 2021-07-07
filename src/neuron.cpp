@@ -387,7 +387,7 @@ void Neuron::Update(i64 time, Writer * writer, i64 layer_id, ConnectionMatrix & 
     // syns updated earlier in the vector won't see current prespikes of those
     // further down the vector.
     for(sizet i = 0; i < syns_with_pre_spikes.size(); i++) {
-        PresynapticSpike(time, i, cm);
+        PresynapticSpike(time, syns_with_pre_spikes[i], cm);
     }
 
     //GetInput(time);
@@ -617,8 +617,8 @@ void Neuron::BuildDendriteParallel() {
     // std::cout << "NEWBUILD\n";
     while(!unconnected.empty()) {
 
-        sizet min_uit = 0;
-        sizet min_cit = 0;
+        i64 min_uit = 0;
+        i64 min_cit = 0;
         // vec<i64>::iterator min_uit = unconnected.begin();
         // vec<i64>::iterator min_cit = connected.begin();
         double min_dist = std::numeric_limits<double>::max();

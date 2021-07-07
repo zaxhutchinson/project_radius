@@ -6,8 +6,10 @@ import numpy as np
 import output
 import defs
 
+
+NEURON_ID = 0
 LAYER_ID = 1
-NEURON_ID = 8
+
 
 out = output.Output(defs.OUTPUT_PATH, lid=LAYER_ID, nid=NEURON_ID)
 
@@ -80,8 +82,62 @@ for k1,v1 in points.items():
 
         dist_matrix[k1][k2] = dist
 
+plt.title("Straight-line distance")
 plt.imshow(dist_matrix, cmap='jet', aspect='auto', interpolation='nearest')
 plt.show()
+
+###############################################################################
+# SYNAPSE to SYNAPSE angular distance matrix
+#   Displays the average distance of each synapse to all other synapses.
+#   Arranged by pixel location in the MNIST image.
+
+dist_matrix = np.zeros([len(points)-1,len(points)-1])
+# avg_dists = np.zeros([784])
+
+for k1,v1 in points.items():
+    if k1==-1:
+        continue
+    
+    for k2, v2 in points.items():
+        if k2==-1:
+            continue
+
+        alon = v2.lon - v1.lon
+        alat = v2.lat - v1.lat
+        a = math.pow( math.sin(alat/2.0), 2.0 ) + \
+            math.cos(v1.lat) * math.cos(v2.lat) * \
+            math.pow( math.sin(alon/2.0), 2.0 )
+        if a > 1:
+            a = 1.0
+        if a < 0:
+            a = 0.0
+        
+        ang_dist = 2.0 * math.atan2(math.sqrt(a), math.sqrt(1.0-a))
+
+        sl_dist = math.sqrt(
+            (v2.x-v1.x)**2.0 +
+            (v2.y-v1.y)**2.0 +
+            (v2.z-v1.z)**2.0
+        )
+
+        
+        dist_matrix[k1][k2] = ang_dist# * abs(v2.rad-v1.rad)
+    
+
+# for i in range(len(avg_dists)):
+#     dist_matrix[i//28][i%28] = avg_dists[i]
+
+
+plt.title("Angular distance")
+plt.imshow(dist_matrix, cmap='jet', aspect='auto', interpolation='nearest')
+plt.show()
+
+
+
+
+
+
+
 
 
 # Note: The soma has a id (or k) of -1 and synapses that connect to the soma

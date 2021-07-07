@@ -32,7 +32,7 @@ public:
     void SetInputs(vec<double> & inputs);
     void SetOutputs(vec<Connection*> & outputs);
 
-    void Update(i64 time, Writer * writer);
+    void Update(i64 time, Writer * writer, RNG & rng);
 
     void UpdateLayerErrorValues(
         vec<double> & rates,
