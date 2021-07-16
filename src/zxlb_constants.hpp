@@ -5,7 +5,7 @@
 namespace zxlb {
 
     inline constexpr double MAJOR_VERSION {0.0};
-    inline constexpr double MINOR_VERSION {0.10};
+    inline constexpr double MINOR_VERSION {0.11};
 
     /* NEURON_SPIKE_TIME_WINDOW
         Determines how long spikes are saved and continue to affect neuronal
@@ -22,11 +22,11 @@ namespace zxlb {
     inline constexpr int64_t NEURON_SPIKE_TIME_WINDOW { 30 };
 
 
-    inline constexpr double PRE_SELF_FORCE_TIME_WINDOW { 30.0 };
-    inline constexpr double PRE_OTHER_FORCE_TIME_WINDOW { 30.0 };
+    inline constexpr double PRE_SELF_FORCE_TIME_WINDOW { 100.0 };
+    inline constexpr double PRE_OTHER_FORCE_TIME_WINDOW { 100.0 };
 
-    inline constexpr double POST_SYNAPSE_FORCE_TIME_WINDOW { 30.0 }; // UNUSED
-    inline constexpr double POST_SOMA_FORCE_TIME_WINDOW { 30.0 };
+    inline constexpr double POST_SYNAPSE_FORCE_TIME_WINDOW { 100.0 }; // UNUSED
+    inline constexpr double POST_SOMA_FORCE_TIME_WINDOW { 100.0 };
 
     inline constexpr double LEARNING_TIME_WINDOW { 30.0 };
 

@@ -64,10 +64,4 @@ static void TEST(Fun&& f, std::string name, Args&&... args) {
     }
 }
 
-static void TEST_SUMMARY() {
-    std::cout << "==========================================================\n";
-    std::cout << "TOTAL TESTS: " << test_num << std::endl;
-    std::cout << "  PASSED: " << tests_passed << std::endl;
-    std::cout << "  FAILED: " << tests_failed << std::endl;
-    std::cout << "==========================================================\n";
-}
+void TEST_SUMMARY();

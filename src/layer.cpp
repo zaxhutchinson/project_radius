@@ -50,6 +50,7 @@ i64 Layer::GetLayerSize() {
 }
 
 void Layer::AddInputGenerator(InputGenerator * ig) {
+    // std::cout << dynamic_cast<InputGenerator_Poisson*>(ig)->id << std::endl;
     input_generator = ig;
 }
 
@@ -73,14 +74,16 @@ void Layer::Update(i64 time, Writer * writer, ConnectionMatrix & cm, RNG & rng) 
         //#pragma omp parallel for
         for(sizet i = 0; i < neurons.size(); i++) {
             neurons[i].SetRawInput(input_generator->GetInput(i, time, rng));
-            neurons[i].Update(time, writer, id, cm);
-            neurons[i].PostsynapticSignal(time, cm);
+            if(neurons[i].Update(time, writer, id, cm)) {
+                neurons[i].PostsynapticSignal(time, cm);
+            }
         }
     } else {
-        #pragma omp parallel for
+        // #pragma omp parallel for
         for(sizet i = 0; i < neurons.size(); i++) {
-            neurons[i].Update(time, writer, id, cm);
-            neurons[i].PostsynapticSignal(time, cm);
+            if(neurons[i].Update(time, writer, id, cm)) {
+                neurons[i].PostsynapticSignal(time, cm);
+            }
         }
     }
 }

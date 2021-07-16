@@ -22,11 +22,14 @@ void VecS::Lon(double _lon) { lon = _lon; }
 void VecS::Rad(double _rad) { rad = _rad; }
 
 void VecS::RandomizeLatLong(RNG & rng) {
-    std::uniform_real_distribution<double> dist(
+    std::uniform_real_distribution<double> lonDist(
         M_PI, -M_PI
     );
-    lat = dist(rng)/2.0;
-    lon = dist(rng);
+    std::uniform_real_distribution<double> latDist(
+        0.0,1.0
+    );
+    lat = std::acos(2.0*latDist(rng)-1.0)-M_PI/2.0;
+    lon = lonDist(rng);
 }
 
 void VecS::ChangeRad(double amt) {
@@ -44,48 +47,47 @@ double VecS::Distance(const VecS & v) {
     double a = std::pow( std::sin(alat/2.0), 2.0 ) +
         std::cos(lat) * std::cos(v.lat) *
         std::pow(std::sin(alon/2.0), 2.0);
-    // std::cout.precision(20);
-    // if(a > 1 || a < 0) std::cout << "BAD A: " << a << " " << std::sqrt(a) << " " << std::sqrt(1-a) << "    " << this->to_string() << std::endl;
     if(a>1) a = 1; 
     if(a<0) a = 0;
     return  2.0 * std::atan2(std::sqrt(a), std::sqrt(1-a));
-    
-    
-    // if(alat==0) {
-    //     alon = fmod(alon+2.0*M_PI,M_PI);
-    //     return (alon < M_PI-alon) ? alon : M_PI - alon;
-    // }; 
-
-
-    // 1
-    // return acos(
-    //     sin(lat) * sin(v.lat) + cos(lat) * cos(v.lat) * cos(alon)
-    // );
-
-    // Haversine
-    // return 2.0 * asin( 
-    //     sqrt (
-    //         pow(sin(alat/2.0),2.0) +
-    //         cos(lat) * cos(v.lat) * pow(sin(alon/2.0),2.0)
-    //     )
-    // );
-
-    // Vincenty - can't make it work
-    // double top = sqrt(
-    //     pow(
-    //         cos(v.lat) * sin(alon),
-    //         2.0
-    //     ) +
-    //     pow(
-    //         cos(lat) * sin(v.lat) - sin(lat) * cos(v.lat) * cos(alon),
-    //         2.0
-    //     )
-    // );
-
-    // double bot = sin(lat) * sin(v.lat) + cos(lat) * cos(v.lat) * cos(alon);
-
-    // return atan(top / bot);
 }
+
+// double VecS::Distance2(const VecS & v) {
+//     // if(alat==0) {
+//     //     alon = fmod(alon+2.0*M_PI,M_PI);
+//     //     return (alon < M_PI-alon) ? alon : M_PI - alon;
+//     // }; 
+
+
+//     // 1
+//     // return acos(
+//     //     sin(lat) * sin(v.lat) + cos(lat) * cos(v.lat) * cos(alon)
+//     // );
+
+//     // Haversine
+//     return 2.0 * std::asin( 
+//         std::sqrt (
+//             std::pow(std::sin(lat-v.lat/2.0),2.0) +
+//             std::cos(lat) * std::cos(v.lat) * std::pow(std::sin(lon-v.lon/2.0),2.0)
+//         )
+//     );
+
+//     // Vincenty - can't make it work
+//     // double top = sqrt(
+//     //     pow(
+//     //         cos(v.lat) * sin(alon),
+//     //         2.0
+//     //     ) +
+//     //     pow(
+//     //         cos(lat) * sin(v.lat) - sin(lat) * cos(v.lat) * cos(alon),
+//     //         2.0
+//     //     )
+//     // );
+
+//     // double bot = sin(lat) * sin(v.lat) + cos(lat) * cos(v.lat) * cos(alon);
+
+//     // return atan(top / bot);
+// }
 
 double VecS::DistanceStraightLineSqrd(const VecS & v) {
     Vec3 v3_this(

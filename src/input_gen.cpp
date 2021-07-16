@@ -4,6 +4,7 @@
 double InputGenerator::GetInput(sizet index, i64 time, RNG & rng) {
     return pattern[index];
 }
+void InputGenerator::Reset() {}
 
 
 
@@ -22,4 +23,9 @@ double InputGenerator_Poisson::GetInput(sizet index, i64 time, RNG & rng) {
         signal[index] = signal[index] * decay[index];
     }
     return signal[index];
+}
+void InputGenerator_Poisson::Reset() {
+    for(sizet i = 0; i < signal.size(); i++) {
+        signal[i] = 0.0;
+    }
 }

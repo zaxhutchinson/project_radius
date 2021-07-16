@@ -1,7 +1,11 @@
 import math
+import copy
 
 import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+
 import numpy as np
+from numpy.linalg import matrix_power
 
 import output
 import defs
@@ -82,8 +86,14 @@ for k1,v1 in points.items():
 
         dist_matrix[k1][k2] = dist
 
+ax = plt.subplot()
 plt.title("Straight-line distance")
-plt.imshow(dist_matrix, cmap='jet', aspect='auto', interpolation='nearest')
+plt.xlabel("Neuron")
+plt.ylabel("Neuron")
+im = ax.imshow(dist_matrix, cmap='jet', aspect='auto', interpolation='nearest')
+divider = make_axes_locatable(ax)
+cax = divider.append_axes("right", size="5%", pad=0.05)
+plt.colorbar(im, cax=cax)
 plt.show()
 
 ###############################################################################
@@ -127,19 +137,18 @@ for k1,v1 in points.items():
 # for i in range(len(avg_dists)):
 #     dist_matrix[i//28][i%28] = avg_dists[i]
 
-
+ax = plt.subplot()
 plt.title("Angular distance")
-plt.imshow(dist_matrix, cmap='jet', aspect='auto', interpolation='nearest')
+plt.xlabel("Neuron")
+plt.ylabel("Neuron")
+im = ax.imshow(dist_matrix, cmap='jet', aspect='auto', interpolation='nearest')
+divider = make_axes_locatable(ax)
+cax = divider.append_axes("right", size="5%", pad=0.05)
+plt.colorbar(im, cax=cax)
 plt.show()
 
 
-
-
-
-
-
-
-
+##############################################################################
 # Note: The soma has a id (or k) of -1 and synapses that connect to the soma
 #   have a pid of -1. So in this graph the else will indicate the somatic conns
 #   in the last column due to Python's negative index wrapping.
@@ -149,25 +158,73 @@ for k, v in points.items():
         pass
     else:
         conn_matrix[k][v.pid] = 0.5
+
+plt.title("Connectivity (Parent-Child Relationship)")
+plt.xlabel("Parent")
+plt.ylabel("Child")
 plt.imshow(conn_matrix, cmap='binary', aspect='auto', interpolation='nearest')
 plt.show()
 
+##############################################################################
+edges = np.zeros([len(points),len(points)])
+dist = np.ones([len(points),len(points)])
+Next = np.empty([len(points),len(points)])
+for x in range(len(points)):
+    for y in range(len(points)):
+        Next[x][y]=None
+        dist[x][y] = np.inf
 
-# fig = plt.figure()
-# ax = fig.add_subplot(projection='3d')
-# for i in range(len(xs)):
-#     ax.scatter(xs[i], ys[i], zs[i], c=colors[i], cmap='jet')
-#     ax.text(xs[i], ys[i], zs[i], '%s' % (str(i)), size=10, zorder=1 )
-# # ax.scatter(xs_max, ys_max, zs_max, marker='o')
+for k,v in points.items():
+    if v.pid != None:
+        edges[k][v.pid] = 1
+        edges[v.pid][k] = 1
 
-# for k,v in points.items():
-#     if v.pid!=None:
+for x in range(len(points)):
+    for y in range(len(points)):
+        if edges[x][y] > 0:
+            try:
+                dist[x][y] = edges[x][y]
+                Next[x][y] = y
+            except IndexError:
+                print(x, y)
+                print(len(dist[x]), len(edges[x]))
 
-#         parent = points[v.pid]
-#         # if v.pid==-1:
-#         #     print(v.ID, v.lat, v.lon, v.rad, v.x, v.y, v.z)    
-#         ax.plot3D([v.x, parent.x], [v.y, parent.y], [v.z, parent.z], 'gray')
+for x in range(len(points)):
+    dist[x][x] = 0
+    Next[x][x] = x
+
+for k in range(len(points)):
+    for i in range(len(points)):
+        for j in range(len(points)):
+            if dist[i][j] > dist[i][k] + dist[k][j]:
+                dist[i][j] = dist[i][k] + dist[k][j]
+                Next[i][j] = Next[i][k]
+
+ax = plt.subplot()
+
+im = ax.imshow(dist, cmap='jet', aspect='auto', interpolation='nearest')
+plt.title("Dendritic (Network) Distance")
+plt.xlabel("Neuron")
+plt.ylabel("Neuron")
+divider = make_axes_locatable(ax)
+cax = divider.append_axes("right", size="5%", pad=0.05)
+plt.colorbar(im, cax=cax)
+plt.show()
 
 
+#############################################################################3
+# For the two pattern example
+# pattern1 = dist[0:55,0:55]
+# pattern2 = dist[45:,45:]
+# overlap = dist[45:55,45:55]
+# btw = dist[0:55,45:]
 
+# pattern1_avg_dist = np.mean(pattern1)
+# pattern2_avg_dist = np.mean(pattern2)
+# overlap_avg_dist = np.mean(overlap)
+# btw_avg_dist = np.mean(btw)
 
+# print("Pattern1 Dendritic Distance: ", pattern1_avg_dist)
+# print("Pattern2 Dendritic Distance: ", pattern2_avg_dist)
+# print("Overlap Dendritic Distance:  ", overlap_avg_dist)
+# print("Between Dendritic Distance:  ", btw_avg_dist)

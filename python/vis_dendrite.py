@@ -89,6 +89,7 @@ for k,v in points.items():
         #     print(v.ID, v.lat, v.lon, v.rad, v.x, v.y, v.z)    
         ax.plot3D([v.x, parent.x], [v.y, parent.y], [v.z, parent.z], 'gray')
 
+plt.title("Synaptic Locations and Dendritic Connections")
 plt.show()
 
 

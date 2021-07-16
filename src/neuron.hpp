@@ -65,7 +65,7 @@ struct Neuron {
     void PostsynapticSignal(i64 time, ConnectionMatrix & cm);
     void bAP(i64 time, i64 synapse_id, double amt);
    
-    void Update(i64 time, Writer * writer, i64 layer_id, ConnectionMatrix & cm);
+    bool Update(i64 time, Writer * writer, i64 layer_id, ConnectionMatrix & cm);
     void InitWriteData();
     void ResetWriteData();
     void SaveData(i64 time, ConnectionMatrix & cm);

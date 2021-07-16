@@ -1,3 +1,9 @@
+**Version 0.11**
+- Changes Radial movement algorithm to use time-cur_spike as the basis for synaptic activity rather than cur_spike-pre_spike.
+- Fixed a bug in the random distribution of synpases over a sphere.
+- Moved all simulation run functions into run.hpp/cpp.
+- Fixed a bug in the InputGenerator. Signal values were not being reset from previous runs.
+
 **Version 0.10**
 - Adds an InputGenerator that can produce spike trains using a Poisson distribution.
 

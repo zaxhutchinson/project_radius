@@ -150,28 +150,28 @@ void Neuron::PresynapticSpike(i64 time, i64 synapse_id, ConnectionMatrix & cm) {
 
             partial_force = force_self * angular_delta;
 
-            //VecS temp_direction(direction);
+            // VecS temp_direction(direction);
 
-
+            //std::cout << synapse_id << "  "<< synapses[synapse_id].location.HeadingTo(synapses[i].location) << "  " << partial_force << std::endl;
             direction.Orbit(synapses[synapse_id].location.HeadingTo(synapses[i].location), partial_force);
             
             // if(std::isnan(direction.Lat()) || std::isnan(temp_direction.Lat()) || std::isnan(cur_distance)) {
             // // if(angular_delta > M_PI || angular_delta < -M_PI) {
             //     std::cout.precision(30);
-            //     std::cout << "NAN DETECTED:\n"
-            //         << "   IDS:                 " << synapse_id << "  " << i << std::endl 
-            //         << "   FROM:                " << synapses[synapse_id].location.to_string() << std::endl
-            //         << "   FROM:                " << synapses[synapse_id].location.Lat() << "," << synapses[synapse_id].location.Lon() << "," << synapses[synapse_id].location.Rad() << std::endl
-            //         << "   TO:                  " << synapses[i].location.to_string() << std::endl
-            //         << "   TO:                  " << synapses[i].location.Lat() << "," << synapses[i].location.Lon() << "," << synapses[i].location.Rad() << std::endl
-            //         << "   RECALC DIST:         " << synapses[synapse_id].location.Distance(synapses[i].location) << std::endl
-            //         << "   OLD DIRECTION:       " << temp_direction.to_string() << std::endl
-            //         << "   NEW DIRECTION:       " << direction.to_string() << std::endl
-            //         << "   TARGET_ANGULAR_DIST: " << target_angular_distance << std::endl
-            //         << "   CUR_DIST:            " << cur_distance << std::endl
-            //         << "   ANGULAR_DELTA:       " << angular_delta << std::endl
-            //         << "   PARTIAL FORCE:       " << partial_force << std::endl
-            //         << "   RADIUS:              " << direction.Rad() << std::endl;
+                // std::cout << "NAN DETECTED:\n"
+                //     << "   IDS:                 " << synapse_id << "  " << i << std::endl 
+                //     << "   FROM:                " << synapses[synapse_id].location.to_string() << std::endl
+                //     << "   FROM:                " << synapses[synapse_id].location.Lat() << "," << synapses[synapse_id].location.Lon() << "," << synapses[synapse_id].location.Rad() << std::endl
+                //     << "   TO:                  " << synapses[i].location.to_string() << std::endl
+                //     << "   TO:                  " << synapses[i].location.Lat() << "," << synapses[i].location.Lon() << "," << synapses[i].location.Rad() << std::endl
+                //     << "   RECALC DIST:         " << synapses[synapse_id].location.Distance(synapses[i].location) << std::endl
+                //     << "   OLD DIRECTION:       " << temp_direction.to_string() << std::endl
+                //     << "   NEW DIRECTION:       " << direction.to_string() << std::endl
+                //     << "   TARGET_ANGULAR_DIST: " << target_angular_distance << std::endl
+                //     << "   CUR_DIST:            " << cur_distance << std::endl
+                //     << "   ANGULAR_DELTA:       " << angular_delta << std::endl
+                //     << "   PARTIAL FORCE:       " << partial_force << std::endl
+                //     << "   RADIUS:              " << direction.Rad() << std::endl;
             // }
         }
     }
@@ -179,7 +179,10 @@ void Neuron::PresynapticSpike(i64 time, i64 synapse_id, ConnectionMatrix & cm) {
         synapses[synapse_id].location.HeadingTo(direction),
         synapses[synapse_id].location.Distance(direction) * zxlb::LEARNING_RATE
     );
-
+    // if(synapse_id==0)
+    // std::cout << synapses[synapse_id].location.HeadingTo(direction) << "  "
+    //     << synapses[synapse_id].location.Distance(direction) << "  "
+    //     << synapses[synapse_id].location.to_string() << std::endl;
 
 
     // force /= static_cast<double>(synapses.size()-1);
@@ -201,46 +204,59 @@ void Neuron::PresynapticSpike(i64 time, i64 synapse_id, ConnectionMatrix & cm) {
 
 void Neuron::PostsynapticSignal(i64 time, ConnectionMatrix & cm) {
 
-    if(just_spiked) {
+    
 
-        #pragma omp parallel for
-        for(std::size_t i = 0; i < synapses.size(); i++) {
+    #pragma omp parallel for
+    for(std::size_t i = 0; i < synapses.size(); i++) {
 
-            double time_diff_synapse = static_cast<double>(
-                synapses[i].time_cur_spike - synapses[i].time_pre_spike
-            );
+        // double time_diff_synapse = static_cast<double>(
+        //     synapses[i].time_cur_spike - synapses[i].time_pre_spike
+        // );
+        double time_diff = static_cast<double>(
+            time_cur_spike - synapses[i].time_cur_spike
+        );
 
-            double time_diff_soma = static_cast<double>(
-                time_cur_spike - synapses[i].time_cur_spike
-            );
 
-            double distance = time_diff_synapse - synapses[i].location.Rad();
+        // THIS IS THE WORKING VERSION of time_diff_soma
+        // double time_diff_soma = static_cast<double>(
+        //     time_cur_spike - synapses[i].time_cur_spike
+        // );
 
-            // double force_synapse = (
-            //     (time_diff_synapse + zxlb::POST_SYNAPSE_FORCE_TIME_WINDOW) /
-            //     zxlb::POST_SYNAPSE_FORCE_TIME_WINDOW *
-            //     std::exp( - time_diff_synapse / zxlb::POST_SYNAPSE_FORCE_TIME_WINDOW)
-            // );
 
-            double force = (
-                    (time_diff_soma + zxlb::POST_SOMA_FORCE_TIME_WINDOW) /
-                    zxlb::POST_SOMA_FORCE_TIME_WINDOW *
-                    std::exp( - time_diff_soma / zxlb::POST_SOMA_FORCE_TIME_WINDOW)
-                ) * 
-                std::tanh(distance) * 
-                cm[layer_id][id].GetErrorRateReLU() *
-                zxlb::LEARNING_RATE;
+        // THIS IS THE NOT WORKING VERSION
+        // THIS seems to me to be the correct way to calculate the
+        //  time_diff_soma; however, it destroys the clustering
+        //  of synapses around a pattern. I'm not sure why.
+        //  I thought it might have caused the learning rate to be too large
+        //  small, but I'm not sure.
+        // NOTE: I have tried to increase the learning rate, but unless it
+        //  is very large, the problem persists.
+        // double time_diff_soma = static_cast<double>(
+        //     time_cur_spike - time_pre_spike
+        // );
 
-            synapses[i].location.ChangeRad( force );
+        double distance = time_diff - synapses[i].location.Rad();
+        
 
-        }
+        double force = (
+                (time_diff + zxlb::POST_SOMA_FORCE_TIME_WINDOW) /
+                zxlb::POST_SOMA_FORCE_TIME_WINDOW *
+                std::exp( - time_diff / zxlb::POST_SOMA_FORCE_TIME_WINDOW)
+            ) * 
+            std::tanh(distance) * 
+            cm[layer_id][id].GetErrorRateReLU() *
+            zxlb::LEARNING_RATE;
 
-        // UNCOMMENT TO ADD STRENGTH CHANGES
-        // for(std::size_t i = 0; i < dendrites.size(); i++) {
-        //     bAP(time, dendrites[i], output);
-        // }
+        synapses[i].location.ChangeRad( force );
 
     }
+
+    // UNCOMMENT TO ADD STRENGTH CHANGES
+    // for(std::size_t i = 0; i < dendrites.size(); i++) {
+    //     bAP(time, dendrites[i], output);
+    // }
+
+
 
 
     
@@ -369,11 +385,11 @@ void Neuron::GetInputSimple(i64 time) {
     }
 }
 
-void Neuron::Update(i64 time, Writer * writer, i64 layer_id, ConnectionMatrix & cm) {
+bool Neuron::Update(i64 time, Writer * writer, i64 layer_id, ConnectionMatrix & cm) {
 
     // Update all the synapses
     vec<sizet> syns_with_pre_spikes;
-    #pragma omp parallel for
+    // #pragma omp parallel for
     for(sizet i = 0; i < synapses.size(); i++) {
         // Update, and if the input source for this synapse
         // produced a spike, then save index.
@@ -437,7 +453,7 @@ void Neuron::Update(i64 time, Writer * writer, i64 layer_id, ConnectionMatrix & 
             it++;
         }
     }
-    if(output < 0) std::cout << output << std::endl;
+    
 
     output = std::tanh(output);
 
@@ -445,7 +461,7 @@ void Neuron::Update(i64 time, Writer * writer, i64 layer_id, ConnectionMatrix & 
     cm[layer_id][id].Update(just_spiked, output);
 
     //SaveData(time, cm);
-
+    return just_spiked;
 }
 
 void Neuron::InitWriteData() {
@@ -692,7 +708,6 @@ void Neuron::PrintDendrite() {
     for(sizet i = 0; i < dendrites.size(); i++) {
         open.push_back(dendrites[i]);
     }
-    i64 count = 1;
     while(!open.empty()) {
 
         sid = open.back();
@@ -704,7 +719,7 @@ void Neuron::PrintDendrite() {
 
         Synapse * syn = GetSynapse(sid);
 
-        std::cout << count++ << " " << sid << " " << syn->location.Rad() << std::endl;
+        
 
         vec<i64> * children = syn->GetChildren();
         // if(!children->empty()) level++;

@@ -1,3 +1,21 @@
+**July 15, 2021**
+*Version 0.11 work*
+* I have been struggling to find the reason synapse locations drift into polar clusters. After much gnashing of teeth and doubting of reality and testing of code I have discovered that too much incorrect input (negative error rate) causes this. I am fairly sure that synapses move away from each other and, depending on their initial distribution over the sphere, congregate in opposing hemispheres. When brought together by positive error rates, this solidifies the poles further. This seems to be also the reason why the clusters, once they come together, rotate in the same direction. This depends on the update order. I'm not 100% on how it works, but testing small numbers of synapses (2) produces the same results.
+* Therefore, I have drastically lowered the amount of mask instances in the spike train tests. And lowered their spike rate. I suspect, if the errror is too small, pattern clusters will congregate where they may. Separation of clusters will depend largely on initial location. I need just enough to cause patterns to drift away from each other. 
+* The impact of repelling signals on location is different for Spherical geometry than open Cartesian coords. Is this because the angular positions are bounded? A point in 3d coords can simple rocket off out into space to move "away" from all the other points. But a point bound to move over a sphere.
+* 0.1 correct to 0.01 incorrect seems to be too low. Currently trying 0.1 to 0.05.
+* Turns out that I was moving in the wrong direction. 0.01 seems too high. Lowering to 0.005 improved things a lot. It is likely that my learning rate is too high and should be lowered by a factor or two. The Pois004 4 distinct pattern comes out nicely. All synapses cluster together in separate quardrants (roughly) and connect to the soma along distinct dendrites. In this respect, keeping a certain angular distance ensures this dendritic separation.
+
+**July 14, 2021**
+*Version 0.11 work*
+* Found a really dumb bug. I've been generating random latitudes (phi) using -PI to PI, but this clusters everything near the poles. This is probably why I'm seeing syns move toward the poles rather than across the equator. Fixed (supposedly) to acos(2.0 * rand(0,1) - 1) from this site: https://www.bogotobogo.com/Algorithms/uniform_distribution_sphere.php. This occurred to me a while back and I'm not sure why I didn't follow up on it.
+* The above is wrong, too, for my lat-lon method. It would work if Phi were a measure from the pole down. Must subtract pi/2 to shift the range from -pi/2 to pi/2. 
+
+**July 9-13, 2021**
+*Version 0.11 work*
+* I've started a write up of the current work. Today I made a small change to the radial movement code. I found that I've been basing synapstic pre-activity on cur_spike-pre_spike. This, I think, I wrong. It would allow for radial movement if a synapse experienced two temporally near inputs a long time ago. Or even just once...and then any time the downstream neuron spikes, it will cause movement. I changed it to time-cur_spike. This should capture how recently the upstream neuron attached to a synapse spiked in relation to the post_synaptic activity.
+* With the change above, the time_diff_synapse and time_diff_soma in the postsynapstic function were identical. Rethinking the soma part, I changed it to document the activity of the soma using cur and pre spike times. The more active the neuron is, the more likely a change. Run again. I doubt this will have a huge impact, but we'll see.
+
 **July 7, 2021**
 *Version 0.10 work*
 * Added a Poisson-based spike train generator and have tested a single neuron exposed to two overlapping patterns. The algorithm(s) nicely separate the two patterns and the overlap inputs move into a space between the two. Pushing so that I have a copy of this that works.

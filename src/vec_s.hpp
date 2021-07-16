@@ -52,6 +52,7 @@ struct VecS {
     void RandomizeLatLong(RNG & rng);
 
     double Distance(const VecS & v);
+    // double Distance2(const VecS & v); DON"T USE
     double DistanceStraightLineSqrd(const VecS & v);
     double DistanceStraightLine(const VecS & v);
     double DistanceWithRadius(const VecS & v);
