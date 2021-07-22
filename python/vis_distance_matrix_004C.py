@@ -17,6 +17,17 @@ LAYER_ID = 1
 
 out = output.Output(defs.OUTPUT_PATH, lid=LAYER_ID, nid=NEURON_ID)
 
+#004C
+order = [
+    0, 7, 14, 21, 28,
+    1, 8, 15, 22, 29,
+    2, 9, 16, 23, 30,
+    3, 10, 17, 24, 31,
+    4, 11, 18, 25, 32,
+    5, 12, 19, 26, 33,
+    6, 13, 20, 27, 34,
+    -1
+]
 
 
 xs = []
@@ -84,13 +95,20 @@ for k1,v1 in points.items():
             (v2.z-v1.z)**2.0
         )
 
-        dist_matrix[k1][k2] = dist
+        i1 = order.index(k1)
+        i2 = order.index(k2)
+
+        dist_matrix[i1][i2] = dist
 
 ax = plt.subplot()
+ax.set_xticks([2,7,12,17,22,27,32])
+ax.set_xticklabels([1,2,3,4,5,6,7])
+ax.set_yticks([2,7,12,17,22,27,32])
+ax.set_yticklabels([1,2,3,4,5,6,7])
 plt.title("Straight-line distance")
-plt.xlabel("Synapse")
-plt.ylabel("Synapse")
-im = ax.imshow(dist_matrix, cmap='jet', aspect='auto', interpolation='nearest')
+plt.xlabel("Pattern")
+plt.ylabel("Pattern")
+im = ax.imshow(dist_matrix, cmap='jet', aspect='auto', interpolation='nearest',origin='lower')
 divider = make_axes_locatable(ax)
 cax = divider.append_axes("right", size="5%", pad=0.05)
 plt.colorbar(im, cax=cax)
@@ -126,18 +144,24 @@ for k1,v1 in points.items():
 
 
 
-        
-        dist_matrix[k1][k2] = ang_dist# * abs(v2.rad-v1.rad)
+        i1 = order.index(k1)
+        i2 = order.index(k2)
+
+        dist_matrix[i1][i2] = ang_dist
     
 
 # for i in range(len(avg_dists)):
 #     dist_matrix[i//28][i%28] = avg_dists[i]
 
 ax = plt.subplot()
-plt.title("Angular distance")
-plt.xlabel("Synapse")
-plt.ylabel("Synapse")
-im = ax.imshow(dist_matrix, cmap='jet', aspect='auto', interpolation='nearest')
+ax.set_xticks([2,7,12,17,22,27,32])
+ax.set_xticklabels([1,2,3,4,5,6,7])
+ax.set_yticks([2,7,12,17,22,27,32])
+ax.set_yticklabels([1,2,3,4,5,6,7])
+plt.title("Angular Distance (in radians)")
+plt.xlabel("Pattern")
+plt.ylabel("Pattern")
+im = ax.imshow(dist_matrix, cmap='jet', aspect='auto', interpolation='nearest',origin='lower')
 divider = make_axes_locatable(ax)
 cax = divider.append_axes("right", size="5%", pad=0.05)
 plt.colorbar(im, cax=cax)
@@ -158,7 +182,7 @@ for k, v in points.items():
 plt.title("Connectivity (Parent-Child Relationship)")
 plt.xlabel("Parent")
 plt.ylabel("Child")
-plt.imshow(conn_matrix, cmap='binary', aspect='auto', interpolation='nearest')
+plt.imshow(conn_matrix, cmap='binary', aspect='auto', interpolation='nearest',origin='lower')
 plt.show()
 
 ##############################################################################
@@ -184,8 +208,10 @@ for x in range(len(points)):
 
 for k,v in points.items():
     if v.pid != None:
-        edges[k][v.pid] = 1
-        edges[v.pid][k] = 1
+        i1 = order.index(k)
+        i2 = order.index(v.pid)
+        edges[i1][i2] = 1
+        edges[i2][i1] = 1
 
 for x in range(len(points)):
     for y in range(len(points)):
@@ -210,10 +236,14 @@ for k in range(len(points)):
 
 ax = plt.subplot()
 
-im = ax.imshow(dist, cmap='jet', aspect='auto', interpolation='nearest')
+ax.set_xticks([2,7,12,17,22,27,32])
+ax.set_xticklabels([1,2,3,4,5,6,7])
+ax.set_yticks([2,7,12,17,22,27,32])
+ax.set_yticklabels([1,2,3,4,5,6,7])
+im = ax.imshow(dist, cmap='jet', aspect='auto', interpolation='nearest',origin='lower')
 plt.title("Dendritic (Network) Distance")
-plt.xlabel("Synapse")
-plt.ylabel("Synapse")
+plt.xlabel("Pattern")
+plt.ylabel("Pattern")
 divider = make_axes_locatable(ax)
 cax = divider.append_axes("right", size="5%", pad=0.05)
 plt.colorbar(im, cax=cax)
@@ -224,11 +254,14 @@ plt.show()
 # Radial Distances
 radial_dist = np.zeros([len(points)-1])
 synapse_list = np.zeros([len(points)-1])
-# colors = ['blue']*10+['red']*10+['purple']*10+['green']*10 #004D
-colors = ['red','blue','purple','green','orange','grey','yellow']*5 #004C
+colors = ['blue']*5+['red']*5+['purple']*5+['green']*5+['orange']*5+['yellow']*5+['gray']*5 #004D
+#colors = ['red','blue','purple','green','orange','grey','yellow']*5 #004C
 for k,v in points.items():
-    synapse_list[k] = k
-    radial_dist[k] = v.rad
+    if k==-1:
+        continue
+    i = order.index(k)
+    synapse_list[i] = k
+    radial_dist[i] = v.rad
 
 plt.title("Radial Distances")
 plt.xlabel("Synapse ID")

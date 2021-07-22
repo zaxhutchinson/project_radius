@@ -8,6 +8,7 @@ import defs
 
 NEURON_ID = 0
 LAYER_ID = 1
+SIDS = list(range(40))
 
 out = output.Output(defs.OUTPUT_PATH, lid=LAYER_ID, nid=NEURON_ID)
 
@@ -37,7 +38,7 @@ soma.ID = -1
 points = {-1:soma}
 
 for name,syn in out.synapses.items():
-    if syn.neuron_id == NEURON_ID and syn.layer_id == LAYER_ID:
+    if syn.neuron_id == NEURON_ID and syn.layer_id == LAYER_ID and syn.synapse_id in SIDS:
         lat = syn.lats[-1][-1]
         lon = syn.lons[-1][-1]
         rad = syn.rads[-1][-1]

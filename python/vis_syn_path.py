@@ -10,12 +10,19 @@ out = output.Output(defs.OUTPUT_PATH)
 
 NEURON_ID = 0
 LAYER_ID = 1
-SYN_IDS = list(range(10,30))
+
+#004C
+SYN_IDS = list(range(0,35))
+colors = ['red','blue','purple','green','orange','gray','yellow']*5
+
+#004D
+# SYN_IDS = list(range(0,40))
+# colors = ['red']*10+['blue']*10+['purple']*10+['green']*10
+
 xs = {}
 ys = {}
 zs = {}
 
-colors = []
 
 class Point:
     ID = None
@@ -58,7 +65,7 @@ ax = fig.add_subplot(projection='3d')
 # ax.set_ylim3d(-a,a)
 # ax.set_zlim3d(-a,a)
 for k,v in xs.items():
-    ax.plot3D(xs[k], ys[k], zs[k], label=k)
+    ax.plot3D(xs[k], ys[k], zs[k], label=k, c=colors[k])
 ax.legend()
 plt.show()
 

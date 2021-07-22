@@ -26,6 +26,7 @@ struct Neuron {
     lst<i64> spike_times_live;
     vec<i64> spike_times_data;
     vec<Synapse> synapses;
+    vec<sizet> synapse_indexes;
     vec<i64> dendrites;
     double baseline;
     double raw_input;

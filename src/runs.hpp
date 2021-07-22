@@ -92,3 +92,30 @@ void RunPoisson004_B(
     Network * network,
     RNG & rng
 );
+
+/******************************************************************************
+ * Spike Trains 004_C
+ * 4 patterns 10 inputs each. Four overlap (2 next, 2 prev)
+ * 100hz on, 0hz off.
+ * 5hz random mask pattern.
+ * The shared inputs between patters 1 and 4 and between 2 and 3 are stronger
+ * than those between 1 and 2 or 3 and 4.
+ *****************************************************************************/
+void RunPoisson004_C(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+);
+
+/******************************************************************************
+ * Spike Trains 004_D
+ * 4 patterns 10 inputs each. Four overlap (2 next, 2 prev)
+ * 100hz on, 0hz off.
+ * 5hz random mask pattern.
+ * Test subpatterns within patterns. 
+ *****************************************************************************/
+void RunPoisson004_D(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+);

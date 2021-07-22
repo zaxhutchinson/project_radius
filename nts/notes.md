@@ -1,3 +1,14 @@
+**July 20, 2021**
+*Version 0.12 work*
+* Working on the meta-pattern run: 004C. Depends on the input and the complexity. Haven't tried a lot of stuff yet. Concerned about the orbiting. I'm not sure why it happens. I have a few theories, but it's been there since the beginning. I would like see a stabilization of synpase locations, but they fall into these orbits. The relative positions within a pattern stabilize, but the dendrite building depends on the relationship of patterns themselves.
+* To this end, I have experimented with no masks, but that doesn't help. I'm not considering that it might be the update order. It's invariant. I am now mixing the synapses associated with each pattern so that a single pattern won't update before all the rest. If this mitigates it, (or doesn't help at all), I'm going to try scrambling the synapse update order each iteration (run?).
+* Changing the update order across patterns did the trick for 004C. This leads me to believe it should randomize update order for each iteration.
+
+
+**July 16-17, 2021**
+*Version 0.12 work*
+* Ran a version of POIS004_B (C) which sends a 10hz input to off-synapses for each pattern. This did not impact the tendency of patterns to cluster. Pretty much identical outcome.
+
 **July 15, 2021**
 *Version 0.11 work*
 * I have been struggling to find the reason synapse locations drift into polar clusters. After much gnashing of teeth and doubting of reality and testing of code I have discovered that too much incorrect input (negative error rate) causes this. I am fairly sure that synapses move away from each other and, depending on their initial distribution over the sphere, congregate in opposing hemispheres. When brought together by positive error rates, this solidifies the poles further. This seems to be also the reason why the clusters, once they come together, rotate in the same direction. This depends on the update order. I'm not 100% on how it works, but testing small numbers of synapses (2) produces the same results.

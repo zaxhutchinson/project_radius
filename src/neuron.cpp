@@ -52,6 +52,8 @@ void Neuron::Reset() {
 
     spike_times_live.clear();
 
+    // std::shuffle(synapse_indexes.begin(), synapse_indexes.end(), rng);
+
     for(
         vec<Synapse>::iterator it = synapses.begin();
         it != synapses.end();
@@ -59,6 +61,8 @@ void Neuron::Reset() {
     ) {
         it->Reset();
     }
+
+    
 }
 
 
@@ -76,6 +80,7 @@ i64 Neuron::AddSynapse(Synapse synapse) {
     // Set the synapse's ID to the index it will
     // occupy in the vector.
     i64 synapse_id = static_cast<i64>(synapses.size());
+    synapse_indexes.push_back(synapses.size());
     synapse.SetID(synapse_id);
     synapse.record_data = record_data;
     synapse.record_data_size = record_data_size;

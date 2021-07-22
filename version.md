@@ -1,3 +1,6 @@
+**Version 0.12**
+- No significant core changes. Work on 0.12 focused on longer runs of more complex patterns.
+
 **Version 0.11**
 - Changes Radial movement algorithm to use time-cur_spike as the basis for synaptic activity rather than cur_spike-pre_spike.
 - Fixed a bug in the random distribution of synpases over a sphere.

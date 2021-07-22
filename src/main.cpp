@@ -125,7 +125,7 @@ int main(int argc, char**argv) {
 
     //-------------------------------------------------------------------------
     // Process command line args.
-    str network_id = "poisson_net_004";
+    str network_id = "poisson_net_004C";
 
     zxlog::Debug("MAIN: Processing cmd line args.");
     for(int i = 1; i < argc; i++) {
@@ -188,7 +188,7 @@ int main(int argc, char**argv) {
 
     //----------------------------------------------------------------------------
     // Poisson Spike Trains
-    RunPoisson004_B(
+    RunPoisson004_C(
         &writer,
         network.get(),
         rng
