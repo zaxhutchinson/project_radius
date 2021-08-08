@@ -14,6 +14,7 @@
 #include"network_template.hpp"
 #include"builder.hpp"
 #include"pattern_maker.hpp"
+#include"exp_beacon.hpp"
 
 
 /******************************************************************************
@@ -115,6 +116,17 @@ void RunPoisson004_C(
  * Test subpatterns within patterns. 
  *****************************************************************************/
 void RunPoisson004_D(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+);
+
+/******************************************************************************
+ * Exp iBeacon
+ * 59 input neurons corresponding to the:
+ *  20 rows, 26 columns and 13 iBeacons.
+ *****************************************************************************/
+void RunExpBeacon(
     Writer * writer,
     Network * network,
     RNG & rng

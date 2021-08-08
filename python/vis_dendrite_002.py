@@ -5,6 +5,7 @@ import numpy as np
 
 import output
 import defs
+import helpers
 
 NEURON_ID = 0
 LAYER_ID = 1
@@ -19,6 +20,11 @@ ys = []
 zs = []
 
 colors = []
+
+# OO2 YY
+colors=['purple']*10+['red','blue']*45
+
+
 
 points = []
 
@@ -78,18 +84,19 @@ ax.set_xlim3d(-a,a)
 ax.set_ylim3d(-a,a)
 ax.set_zlim3d(-a,a)
 for k,v in points.items():
-    ax.scatter(v.x, v.y, v.z, c=v.rad, cmap='jet')
-    ax.text(v.x, v.y, v.z, '%s' % (str(v.ID)), size=10, zorder=1 )
-# ax.scatter(xs_max, ys_max, zs_max, marker='o')
+    ax.scatter(v.x, v.y, v.z, c=colors[k])
+    #ax.text(v.x, v.y, v.z, '%s' % (str(v.ID)), size=10, zorder=1 )
 
-for k,v in points.items():
-    if v.pid!=None:
 
-        parent = points[v.pid]
-        # if v.pid==-1:
-        #     print(v.ID, v.lat, v.lon, v.rad, v.x, v.y, v.z)    
-        ax.plot3D([v.x, parent.x], [v.y, parent.y], [v.z, parent.z], 'gray')
+# UNCOMMENT FOR THE DEN TREE
+# for k,v in points.items():
+#     if v.pid!=None:
 
+#         parent = points[v.pid]  
+#         ax.plot3D([v.x, parent.x], [v.y, parent.y], [v.z, parent.z], 'gray')
+
+ax.set_box_aspect([1,1,1])
+helpers.set_axes_equal(ax)
 plt.title("Synaptic Locations and Dendritic Connections")
 plt.show()
 

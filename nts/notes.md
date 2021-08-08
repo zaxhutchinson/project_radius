@@ -1,3 +1,18 @@
+**July 29, 2021**
+*Version 0.13 work*
+* Fixed a very big, stupid error in the code. This was the reason that the random version wasn't working. And I suspect it has caused the unreliability and looseness of clustering. In the Presyn Update, the direction of movement for the copied VecS wasn't using the heading of the copy to the dest VecS, but the heading from the original location to the dest VecS. This means, after the first movement, all other headings were off...perhaps by a lot. Not sure how I missed that one. I guess when coding I was considering only the i=0 case, when the copied VecS==original VecS.
+* I have also discovered the cause of orbiting patterns. For example, in 002, if they share the first 10 inputs, the patterns will orbit. I'm not sure exactly why, but I'm guessing these shared inputs pull the patterns around. The shared move closer to one and then the other moves closer to the shared and then the mask pushes them apart. Something in this pull and push causes a rather perfect orbit. To understand this, I might have to track the centroid of each pattern and how it moves. I didn't expect to see orbits since the order that patterns are shown is random and synapse update is randomized. I would think that they'd wobble about.
+* So, I've looked at the orbits in detail. It looks like the orbit is caused by the fact that the shared inputs are by chance closer to one of the patterns than the other. I may be able to minimize the orbit by lowering the mask strength. Hmmm.
+
+**July 27, 2021**
+*Version 0.13 work*
+* Added the ability to randomize the update order or neurons within layers and synapses within neurons. This is accomplished by keeping a vec of indices within each layer and neuron. For the first version of this, the index vector is shuffled after each iteration.
+* The first runs using randomization screwed things up. I've glanced back through the code and I suspect I missed something. So, for now, I've disabled it.
+
+**July 22-23, 2021**
+*Version 0.13 work*
+* Started adding support the iBeacon experiment.
+
 **July 20, 2021**
 *Version 0.12 work*
 * Working on the meta-pattern run: 004C. Depends on the input and the complexity. Haven't tried a lot of stuff yet. Concerned about the orbiting. I'm not sure why it happens. I have a few theories, but it's been there since the beginning. I would like see a stabilization of synpase locations, but they fall into these orbits. The relative positions within a pattern stabilize, but the dendrite building depends on the relationship of patterns themselves.

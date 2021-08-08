@@ -11,12 +11,37 @@ import output
 import defs
 
 
+
 NEURON_ID = 0
 LAYER_ID = 1
-
+OVERLAP = True
 
 out = output.Output(defs.OUTPUT_PATH, lid=LAYER_ID, nid=NEURON_ID)
 
+#002
+order = []
+
+# Overlap Version
+if OVERLAP:
+    for i in range(10):
+        order.append(i)
+    for i in range(10,100):
+        if i%2==0:
+            order.append(i)
+    for i in range(10,100):
+        if i%2==1:
+            order.append(i)
+
+# Non-overlap Version
+else:
+    for i in range(100):
+        if i%2==0:
+            order.append(i)
+    for i in range(100):
+        if i%2==1:
+            order.append(i)
+
+order.append(-1)
 
 xs = []
 ys = []
@@ -83,13 +108,22 @@ for k1,v1 in points.items():
             (v2.z-v1.z)**2.0
         )
 
-        dist_matrix[k1][k2] = dist
+        i1 = order.index(k1)
+        i2 = order.index(k2)
+
+        dist_matrix[i1][i2] = dist
 
 ax = plt.subplot()
-# ax.set_xticks([2,7,12,17,22,27,32])
-# ax.set_xticklabels([1,2,3,4,5,6,7])
-# ax.set_yticks([2,7,12,17,22,27,32])
-# ax.set_yticklabels([1,2,3,4,5,6,7])
+if OVERLAP:
+    ax.set_xticks([5,32,77])
+    ax.set_xticklabels(['AB','A','B'])
+    ax.set_yticks([5,32,77])
+    ax.set_yticklabels(['AB','A','B'])
+else:
+    ax.set_xticks([25,75])
+    ax.set_xticklabels(['A','B'])
+    ax.set_yticks([25,75])
+    ax.set_yticklabels(['A','B'])
 plt.title("Straight-line distance")
 plt.xlabel("Pattern")
 plt.ylabel("Pattern")
@@ -127,17 +161,28 @@ for k1,v1 in points.items():
         
         ang_dist = 2.0 * math.atan2(math.sqrt(a), math.sqrt(1.0-a))
 
-        dist_matrix[k1][k2] = ang_dist
+
+
+        i1 = order.index(k1)
+        i2 = order.index(k2)
+
+        dist_matrix[i1][i2] = ang_dist
     
 
 # for i in range(len(avg_dists)):
 #     dist_matrix[i//28][i%28] = avg_dists[i]
 
 ax = plt.subplot()
-# ax.set_xticks([2,7,12,17,22,27,32])
-# ax.set_xticklabels([1,2,3,4,5,6,7])
-# ax.set_yticks([2,7,12,17,22,27,32])
-# ax.set_yticklabels([1,2,3,4,5,6,7])
+if OVERLAP:
+    ax.set_xticks([5,32,77])
+    ax.set_xticklabels(['AB','A','B'])
+    ax.set_yticks([5,32,77])
+    ax.set_yticklabels(['AB','A','B'])
+else:
+    ax.set_xticks([25,75])
+    ax.set_xticklabels(['A','B'])
+    ax.set_yticks([25,75])
+    ax.set_yticklabels(['A','B'])
 plt.title("Angular Distance (in radians)")
 plt.xlabel("Pattern")
 plt.ylabel("Pattern")
@@ -157,12 +202,25 @@ for k, v in points.items():
     if k == -1:
         pass
     else:
-        conn_matrix[k][v.pid] = 0.5
+        i1 = order.index(k)
+        i2 = order.index(v.pid)
+        conn_matrix[i1][i2] = 0.5
 
+ax = plt.subplot()
 plt.title("Connectivity (Parent-Child Relationship)")
+if OVERLAP:
+    ax.set_xticks([5,32,77])
+    ax.set_xticklabels(['AB','A','B'])
+    ax.set_yticks([5,32,77])
+    ax.set_yticklabels(['AB','A','B'])
+else:
+    ax.set_xticks([25,75])
+    ax.set_xticklabels(['A','B'])
+    ax.set_yticks([25,75])
+    ax.set_yticklabels(['A','B'])
 plt.xlabel("Parent")
 plt.ylabel("Child")
-plt.imshow(conn_matrix, cmap='binary', aspect='auto', interpolation='nearest',origin='lower')
+im = ax.imshow(conn_matrix, cmap='binary', aspect='auto', interpolation='nearest',origin='lower')
 plt.show()
 
 ##############################################################################
@@ -188,8 +246,10 @@ for x in range(len(points)):
 
 for k,v in points.items():
     if v.pid != None:
-        edges[k][v.pid] = 1
-        edges[v.pid][k] = 1
+        i1 = order.index(k)
+        i2 = order.index(v.pid)
+        edges[i1][i2] = 1
+        edges[i2][i1] = 1
 
 for x in range(len(points)):
     for y in range(len(points)):
@@ -214,10 +274,16 @@ for k in range(len(points)):
 
 ax = plt.subplot()
 
-# ax.set_xticks([2,7,12,17,22,27,32])
-# ax.set_xticklabels([1,2,3,4,5,6,7])
-# ax.set_yticks([2,7,12,17,22,27,32])
-# ax.set_yticklabels([1,2,3,4,5,6,7])
+if OVERLAP:
+    ax.set_xticks([5,32,77])
+    ax.set_xticklabels(['AB','A','B'])
+    ax.set_yticks([5,32,77])
+    ax.set_yticklabels(['AB','A','B'])
+else:
+    ax.set_xticks([25,75])
+    ax.set_xticklabels(['A','B'])
+    ax.set_yticks([25,75])
+    ax.set_yticklabels(['A','B'])
 im = ax.imshow(dist, cmap='jet', aspect='auto', interpolation='nearest',origin='lower')
 plt.title("Dendritic (Network) Distance")
 plt.xlabel("Pattern")
@@ -230,18 +296,18 @@ plt.show()
 
 #############################################################################3
 # Radial Distances
-radial_dist = np.zeros([len(points)-1])
-synapse_list = np.zeros([len(points)-1])
-colors = ['blue']*5+['red']*5+['purple']*5+['green']*5+['orange']*5+['yellow']*5+['gray']*5 #004D
-#colors = ['red','blue','purple','green','orange','grey','yellow']*5 #004C
-for k,v in points.items():
-    if k==-1:
-        continue
-    synapse_list[k] = k
-    radial_dist[k] = v.rad
+# radial_dist = np.zeros([len(points)-1])
+# synapse_list = np.zeros([len(points)-1])
+# colors = [
+# for k,v in points.items():
+#     if k==-1:
+#         continue
+#     i = order.index(k)
+#     synapse_list[i] = k
+#     radial_dist[i] = v.rad
 
-plt.title("Radial Distances")
-plt.xlabel("Synapse ID")
-plt.ylabel("Distance")
-plt.scatter(synapse_list, radial_dist,c=colors)
-plt.show()
+# plt.title("Radial Distances")
+# plt.xlabel("Synapse ID")
+# plt.ylabel("Distance")
+# plt.scatter(synapse_list, radial_dist,c=colors)
+# plt.show()

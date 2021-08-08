@@ -29,6 +29,15 @@ void Network::Reset() {
         }
     }
 }
+void Network::RandomizeOrder(RNG & rng) {
+    for(
+        vec<Layer>::iterator it = layers.begin();
+        it != layers.end();
+        it++
+    ) {
+        it->RandomizeNeuronOrder(rng);
+    }
+}
 
 i64 Network::AddLayer(Layer layer) {
     i64 id = static_cast<i64>(layers.size());

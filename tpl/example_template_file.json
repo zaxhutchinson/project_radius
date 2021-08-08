@@ -204,7 +204,7 @@
             "record_data_size" : 1000
         }
     },
-    "poisson_net_004" : {
+    "poisson_net_004B" : {
         "input_layer" : {
             "is_input_layer" : true,
             "is_output_layer" : false,
@@ -252,7 +252,48 @@
             "neuron_templates" : {
                 "neuron1": {
                     "type":"Regular Spiking",
-                    "number": 35,
+                    "number": 43,
+                    "baseline":50.0
+                }
+            },
+            "connections" : {
+                "output_layer" : {
+                    "number_of_downstream_connections" : 10,
+                    "prob_of_making_downstream_connection" : 1.0,
+                    "min_starting_strength": 1000.0,
+                    "max_starting_strength": 1000.0,
+                    "max_strength": 100.0,
+                    "min_radius": 100.0,
+                    "max_radius": 100.0
+                }
+            },
+            "record_data" : false,
+            "record_interval" : 0,
+            "record_data_size" : 0
+        },
+        "output_layer" : {
+            "is_input_layer" : false,
+            "is_output_layer" : true,
+            "neuron_templates" : {
+                "neuron1": {
+                    "type": "Regular Spiking",
+                    "number": 1,
+                    "baseline":0.0
+                }
+            },
+            "record_data" : true,
+            "record_interval" : 100,
+            "record_data_size" : 1000
+        }
+    },
+    "exp_beacon" : {
+        "input_layer" : {
+            "is_input_layer" : true,
+            "is_output_layer" : false,
+            "neuron_templates" : {
+                "neuron1": {
+                    "type":"Regular Spiking",
+                    "number": 13,
                     "baseline":50.0
                 }
             },

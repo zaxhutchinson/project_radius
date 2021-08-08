@@ -41,6 +41,7 @@ out
 \log
 \output
 \tst
+\exp_*
 
 # Python
 *.pyc

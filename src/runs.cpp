@@ -481,7 +481,7 @@ void RunPoisson002(
     // Label, Index of output neuron
     vec<sizet> patterns = {0, 1, 2};
 
-    sizet num_iterations = 1000;
+    sizet num_iterations = 2000;
     sizet iteration_size = patterns.size();
     i64 time_per_example = 1000;
     i64 output_layer_index = network->GetOutputLayerIndex();
@@ -509,18 +509,22 @@ void RunPoisson002(
         ig3->dist = std::uniform_real_distribution<double>(0.0,1.0);
         ig3->strength.push_back(500.0);
         ig3->signal.push_back(0.0);
-        ig3->rate.push_back(0.1);
+        ig3->rate.push_back(0.05);
 
-        if(i<55) {
+        if(i<10) {
+            ig1->rate.push_back(0.1);
+        } else if(i%2==0) {
             ig1->rate.push_back(0.1);
         } else {
-            ig1->rate.push_back(0.0);
+            ig1->rate.push_back(0.01);
         }
         
-        if(i>=45) {
+        if(i<10) {
+            ig2->rate.push_back(0.1);
+        } else if(i%2==1) {
             ig2->rate.push_back(0.1);
         } else {
-            ig2->rate.push_back(0.0);
+            ig2->rate.push_back(0.01);
         }
     }
 
@@ -540,12 +544,11 @@ void RunPoisson002(
     writer->StartRecording();
     
     for(sizet i = 0; i < num_iterations; i++) {
-        zxlog::Debug("Iteration " + std::to_string(i));
+        std::cout << i << "\r" << std::flush;
 
         std::shuffle(patterns.begin(), patterns.end(), rng);
 
         for(sizet k = 0; k < iteration_size; k++) {
-            zxlog::Debug("   Image " + std::to_string(k));
 
             // Get the image
             sizet pattern = patterns[k];
@@ -576,11 +579,7 @@ void RunPoisson002(
                 );
             }
 
-            vec<double> error_rates = network->GetErrorRates(output_layer_index);
-            std::cout << "/== Iteration " << i << "  Image " << pattern << " ==============================//\n";
-            for(sizet m = 0; m < error_rates.size(); m++) {
-                std::cout << m << ":" << error_rates[m] << std::endl;
-            }
+            
             
             writer->AddExampleData(std::make_unique<ExampleData>(i, k, std::to_string(pattern)));
 
@@ -593,6 +592,7 @@ void RunPoisson002(
         network->RebuildDendrites();
         network->SaveData(-1);
         network->WriteData(writer);
+        network->RandomizeOrder(rng);
         
     }
 
@@ -953,7 +953,7 @@ void RunPoisson004_B(
     // Label, Index of output neuron
     vec<sizet> patterns = {0, 1, 2, 3, 4};
 
-    sizet num_iterations = 3000;
+    sizet num_iterations = 4000;
     sizet iteration_size = patterns.size();
     i64 time_per_example = 1000;
     i64 output_layer_index = network->GetOutputLayerIndex();
@@ -998,30 +998,30 @@ void RunPoisson004_B(
         ig5->dist = std::uniform_real_distribution<double>(0.0,1.0);
         ig5->strength.push_back(500.0);
         ig5->signal.push_back(0.0);
-        ig5->rate.push_back(0.005);
+        ig5->rate.push_back(0.01);
 
         if(i==39 || i <=10) {
             ig1->rate.push_back(0.1);
         } else {
-            ig1->rate.push_back(0.01);
+            ig1->rate.push_back(0.0);
         }
         
         if(i>=9 && i<=20) {
             ig2->rate.push_back(0.1);
         } else {
-            ig2->rate.push_back(0.01);
+            ig2->rate.push_back(0.0);
         }
 
         if(i>=19 && i<=30) {
             ig3->rate.push_back(0.1);
         } else {
-            ig3->rate.push_back(0.01);
+            ig3->rate.push_back(0.0);
         }
 
         if(i==0 || (i>=29 && i<40)) {
             ig4->rate.push_back(0.1);
         } else {
-            ig4->rate.push_back(0.01);
+            ig4->rate.push_back(0.0);
         }
     }
 
@@ -1147,7 +1147,7 @@ void RunPoisson004_C(
     // Label, Index of output neuron
     vec<sizet> patterns = {0, 1, 2, 3, 4, 5, 6, 7};
 
-    sizet num_iterations = 30000;
+    sizet num_iterations = 20000;
     sizet iteration_size = patterns.size();
     i64 time_per_example = 1000;
     i64 output_layer_index = network->GetOutputLayerIndex();
@@ -1215,7 +1215,7 @@ void RunPoisson004_C(
         ig8->signal.push_back(0.0);
         ig8->rate.push_back(0.005);
 
-        if(i==0||i==7||i==14||i==21||i==28) {
+        if(i>=0 && i<=6) {
             ig1->rate.push_back(0.1);
         } else {
             ig1->rate.push_back(0.0);
@@ -1223,99 +1223,52 @@ void RunPoisson004_C(
         
         if(i==0) {
             ig2->rate.push_back(0.1);
-        } else if(i==1||i==8||i==15||i==22||i==29) {
+        } else if(i>=7 && i<=12) {
             ig2->rate.push_back(0.07);
         } else {
             ig2->rate.push_back(0.0);
         }
 
-        if(i==28) {
+        if(i==6) {
             ig3->rate.push_back(0.1);
-        } else if(i==2||i==9||i==16||i==23||i==30) {
+        } else if(i>=13 && i<=18) {
             ig3->rate.push_back(0.07);
         } else {
             ig3->rate.push_back(0.0);
         }
 
-        if(i==1) {
+        if(i==7) {
             ig4->rate.push_back(0.07);
-        } else if(i==3||i==10||i==17||i==24||i==31) {
+        } else if(i>=19 && i<=24) {
             ig4->rate.push_back(0.04);
         } else {
             ig4->rate.push_back(0.0);
         }
         
-        if(i==29) {
+        if(i==12) {
             ig5->rate.push_back(0.07);
-        } else if(i==4||i==11||i==18||i==25||i==32) {
+        } else if(i>=25 && i<=30) {
             ig5->rate.push_back(0.04);
         } else {
             ig5->rate.push_back(0.0);
         }
 
-        if(i==2) {
+        if(i==13) {
             ig6->rate.push_back(0.07);
-        } else if(i==5||i==12||i==19||i==26||i==33) {
+        } else if(i>=31 && i<=36) {
             ig6->rate.push_back(0.04);
         } else {
             ig6->rate.push_back(0.0);
         }
 
-        if(i==30) {
+        if(i==18) {
             ig7->rate.push_back(0.07);
-        } else if(i==6||i==13||i==20||i==27||i==34) {
+        } else if(i>=37 && i<=42) {
             ig7->rate.push_back(0.04);
         } else {
             ig7->rate.push_back(0.0);
         }
 
-        // if(i==0 || i == 6 || i == 12 ) {
-        //     ig1->rate.push_back(0.1);
-        // } else if(i>=1 || i<=5) {
-        //     ig1->rate.push_back(0.1);
-        // } else {
-        //     ig1->rate.push_back(0.0);
-        // }
-        
-        // if(i==0 || i == 6 || i == 12 ) {
-        //     ig2->rate.push_back(0.1);
-        // } else if(i>=7 || i<=11) {
-        //     ig2->rate.push_back(0.05);
-        // } else {
-        //     ig2->rate.push_back(0.0);
-        // }
-
-        // if(i==0 || i == 6 || i == 12 ) {
-        //     ig3->rate.push_back(0.1);
-        // } else if(i>=13 || i<=17) {
-        //     ig3->rate.push_back(0.05);
-        // } else {
-        //     ig3->rate.push_back(0.0);
-        // }
-
-        // if(i==18 || i == 24 || i == 30 ) {
-        //     ig4->rate.push_back(0.1);
-        // } else if(i>=19 || i<=23) {
-        //     ig4->rate.push_back(0.1);
-        // } else {
-        //     ig4->rate.push_back(0.0);
-        // }
-        
-        // if(i==18 || i == 24 || i == 30 ) {
-        //     ig5->rate.push_back(0.1);
-        // } else if(i>=25 || i<=29) {
-        //     ig5->rate.push_back(0.05);
-        // } else {
-        //     ig5->rate.push_back(0.0);
-        // }
-
-        // if(i==18 || i == 24 || i == 30 ) {
-        //     ig6->rate.push_back(0.1);
-        // } else if(i>=31 || i<=35) {
-        //     ig6->rate.push_back(0.05);
-        // } else {
-        //     ig6->rate.push_back(0.0);
-        // }
     }
 
     //-------------------------------------------------------------------------
@@ -1635,6 +1588,136 @@ void RunPoisson004_D(
             network->Reset();
             
         }
+        network->RebuildDendrites();
+        network->SaveData(-1);
+        network->WriteData(writer);
+        
+    }
+
+    network->CleanUpData(writer);
+
+    writer->StopRecording();
+
+}
+
+
+
+/*****************************************************************************
+ * ExpBeacon
+ ****************************************************************************/
+void RunExpBeacon(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+) {
+    zxlog::Debug("ExpBeacon Run.");
+
+    ExpBeacon beacon;
+    beacon.Init(rng());
+    ExpBeaconEntry * entry;
+
+    sizet num_iterations = 200;
+    sizet iteration_size = beacon.GetSizeLabeledEntries();
+    i64 time_per_example = 1000;
+    i64 output_layer_index = network->GetOutputLayerIndex();
+    Layer * input_layer = network->GetLayer(network->GetInputLayerIndex());
+    i64 input_layer_size = input_layer->GetLayerSize();
+    sizet mask_interval = 10000000000000;
+
+    uptr<InputGenerator_Poisson> ig = std::make_unique<InputGenerator_Poisson>();
+    ig->id = "0";
+    for(i64 i = 0; i < input_layer_size; i++) {
+        ig->decay.push_back(std::exp(-1.0/10));
+        ig->dist = std::uniform_real_distribution<double>(0.0,1.0);
+        ig->strength.push_back(500.0);
+        ig->signal.push_back(0.0);
+        ig->rate.push_back(0.005);
+    }
+
+    //-------------------------------------------------------------------------
+    // Build the rates vector. Default to incorrect rates.
+    // Size of the rate vector is equal to the number of
+    // output neurons.
+    vec<double> rates = {
+        config::INCORRECT_EXPECTED
+    };
+    //-------------------------------------------------------------------------
+    // Start the run
+    network->RebuildDendrites();
+
+    vec<double> zero_inputs;
+    for(int i = 0; i < input_layer_size; i++) {
+        zero_inputs.push_back(0.0);
+    }
+
+    writer->StartRecording();
+    //vec<double> input;
+    //input.reserve(13);
+    for(sizet i = 0; i < num_iterations; i++) {
+        std::cout << i << "\r" << std::flush;
+        zxlog::Debug("Iteration " + std::to_string(i));
+
+        //-----------------------------------------------------------
+        // Exp BEACON start
+        beacon.ShuffleLabeledEntries();
+        // Get the entry
+
+        for(sizet k = 0; k < iteration_size; k++) {
+            entry = beacon.GetLabeledEntry(k);
+
+            //input.clear();
+            //std::copy(std::begin(entry->beacons), std::end(entry->beacons),std::back_inserter(input));
+            
+            network->SetInputs(entry->beacons);
+
+            // Set the rate to correct
+            rates[0] = config::CORRECT_EXPECTED;
+
+            network->UpdateLayerErrorValues(
+                rates, output_layer_index
+            );
+
+            i64 time = 1;
+            for(; time <= time_per_example; time++) {
+                network->Update(
+                    time,
+                    writer,
+                    rng
+                );
+            }
+            network->Reset();
+
+
+            // MASK
+            if(k%mask_interval==0) {
+                network->SetInputs(zero_inputs);
+                input_layer->AddInputGenerator(ig.get());
+                rates[0] = config::INCORRECT_EXPECTED;
+                network->UpdateLayerErrorValues(
+                    rates, output_layer_index
+                );
+
+                i64 time = 1;
+                for(; time <= time_per_example; time++) {
+                    network->Update(
+                        time,
+                        writer,
+                        rng
+                    );
+                }
+
+                // Reset the input generator
+                ig->Reset();
+
+                network->Reset();
+                network->RandomizeOrder(rng);
+            }
+        }
+
+    
+        // END OF ITERATION
+        //------------------------------------------------------   
+
         network->RebuildDendrites();
         network->SaveData(-1);
         network->WriteData(writer);

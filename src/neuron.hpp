@@ -51,6 +51,7 @@ struct Neuron {
 
     //------------------------------------------------------------------------
     void Reset();
+    void RandomizeSynapseOrder(RNG & rng);
 
     i64 GetID();
     void SetID(i64 _id);

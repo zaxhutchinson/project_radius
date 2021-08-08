@@ -19,6 +19,7 @@ public:
     Network& operator=(Network && n) = default;
     
     void Reset();
+    void RandomizeOrder(RNG & rng);
     //------------------------------------------------------------------------
     /* AddLayer:
         Adds a layer to the network. Sets its id based on its place in the

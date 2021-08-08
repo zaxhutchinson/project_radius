@@ -134,10 +134,10 @@ for k1,v1 in points.items():
 #     dist_matrix[i//28][i%28] = avg_dists[i]
 
 ax = plt.subplot()
-# ax.set_xticks([2,7,12,17,22,27,32])
-# ax.set_xticklabels([1,2,3,4,5,6,7])
-# ax.set_yticks([2,7,12,17,22,27,32])
-# ax.set_yticklabels([1,2,3,4,5,6,7])
+ax.set_xticks([0,4.5,9.5,14.5,19.5,24.5,29.5,34.5,39])
+ax.set_xticklabels(['DA','A','AB','B','BC','C','CD','D','DA'])
+ax.set_yticks([0,4.5,9.5,14.5,19.5,24.5,29.5,34.5,39])
+ax.set_yticklabels(['DA','A','AB','B','BC','C','CD','D','DA'])
 plt.title("Angular Distance (in radians)")
 plt.xlabel("Pattern")
 plt.ylabel("Pattern")

@@ -11,13 +11,25 @@ out = output.Output(defs.OUTPUT_PATH)
 NEURON_ID = 0
 LAYER_ID = 1
 
+colors = []
+
+#002
+# SYN_IDS = list(range(0,100))
+# colors = ['purple']*10+['blue']*45+['red']*45
+
+#004B
+# SYN_IDS = list(range(0,40))
+
 #004C
-SYN_IDS = list(range(0,35))
-colors = ['red','blue','purple','green','orange','gray','yellow']*5
+# SYN_IDS = list(range(0,35))
+# colors = ['red','blue','purple','green','orange','gray','yellow']*5
 
 #004D
 # SYN_IDS = list(range(0,40))
 # colors = ['red']*10+['blue']*10+['purple']*10+['green']*10
+
+#Beacon
+SYN_IDS = list(range(0,13))
 
 xs = {}
 ys = {}
@@ -42,6 +54,8 @@ for sid in SYN_IDS:
     ys[sid] = []
     zs[sid] = []
 
+    # Use this to see the final movements
+    #for i in range(len(syn.lats)-5,len(syn.lats)):
     for i in range(len(syn.lats)):
 
         lat = syn.lats[i][-1]
@@ -65,7 +79,10 @@ ax = fig.add_subplot(projection='3d')
 # ax.set_ylim3d(-a,a)
 # ax.set_zlim3d(-a,a)
 for k,v in xs.items():
-    ax.plot3D(xs[k], ys[k], zs[k], label=k, c=colors[k])
+    if colors:
+        ax.plot3D(xs[k], ys[k], zs[k], label=k, c=colors[k])
+    else:
+        ax.plot3D(xs[k], ys[k], zs[k], label=k)
 ax.legend()
 plt.show()
 

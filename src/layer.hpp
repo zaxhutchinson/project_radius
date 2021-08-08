@@ -11,6 +11,7 @@ private:
     i64 id;
     str name;
     vec<Neuron> neurons;
+    vec<sizet> neuron_indexes;
     bool is_input;
     bool is_output;
     InputGenerator * input_generator;
@@ -22,6 +23,7 @@ public:
     Layer& operator=(Layer && l) = default;
     //-------------------------------------------------------------------------
     void Reset();
+    void RandomizeNeuronOrder(RNG & rng);
     void SetID(i64 _id);
     i64 GetID();
     void SetName(str _name);

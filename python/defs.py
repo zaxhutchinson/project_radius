@@ -8,5 +8,11 @@
 # Output Path: This is the location of the output files from
 #   project radius.
 
+# Generic output dir
 OUTPUT_PATH = "/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/project_radius/output/"
-#OUTPUT_PATH = "/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/project_radius/POIS004C_A/"
+
+#002 YY
+# OUTPUT_PATH = "/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/project_radius/POIS002_2000_YesNoiseYesOverlap/"
+
+#004 B
+# OUTPUT_PATH = "/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/project_radius/POIS004B_D/"

@@ -18,6 +18,20 @@ void Layer::Reset() {
     }
     input_generator = nullptr;
 }
+void Layer::RandomizeNeuronOrder(RNG & rng) {
+    std::shuffle(
+        neuron_indexes.begin(),
+        neuron_indexes.end(),
+        rng
+    );
+    for(
+        vec<Neuron>::iterator it = neurons.begin();
+        it != neurons.end();
+        it++
+    ) {
+        it->RandomizeSynapseOrder(rng);
+    }
+}
 void Layer::SetID(i64 _id) {
     id = _id;
     for(sizet i = 0; i < neurons.size(); i++) {
@@ -57,7 +71,7 @@ void Layer::AddInputGenerator(InputGenerator * ig) {
 void Layer::AddNeuron(Neuron neuron) {
     // Set the neuron's id to its index in the list.
     neuron.SetID(static_cast<i64>(neurons.size()));
-
+    neuron_indexes.push_back(neurons.size());
     neurons.push_back(std::move(neuron));
 }
 
@@ -75,14 +89,14 @@ void Layer::Update(i64 time, Writer * writer, ConnectionMatrix & cm, RNG & rng) 
         for(sizet i = 0; i < neurons.size(); i++) {
             neurons[i].SetRawInput(input_generator->GetInput(i, time, rng));
             if(neurons[i].Update(time, writer, id, cm)) {
-                neurons[i].PostsynapticSignal(time, cm);
+                //neurons[i].PostsynapticSignal(time, cm);
             }
         }
     } else {
         // #pragma omp parallel for
         for(sizet i = 0; i < neurons.size(); i++) {
             if(neurons[i].Update(time, writer, id, cm)) {
-                neurons[i].PostsynapticSignal(time, cm);
+                //neurons[i].PostsynapticSignal(time, cm);
             }
         }
     }

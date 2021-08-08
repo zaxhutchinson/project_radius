@@ -1,3 +1,6 @@
+**Version 0.13**
+- Fixes a bug in the PreSynaptic Update. (See notes for July 29 2021).
+
 **Version 0.12**
 - No significant core changes. Work on 0.12 focused on longer runs of more complex patterns.
 

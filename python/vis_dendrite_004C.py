@@ -9,6 +9,7 @@ import defs
 NEURON_ID = 0
 LAYER_ID = 1
 SIDS = list(range(100))
+DISPLAY_DENDRITE = False
 
 out = output.Output(defs.OUTPUT_PATH, lid=LAYER_ID, nid=NEURON_ID)
 
@@ -18,7 +19,14 @@ xs = []
 ys = []
 zs = []
 
-colors = []
+colors = ['magenta']+['blue']*5+['magenta']
+colors += ['magenta']+['red']*4+['magenta']
+colors += ['magenta']+['green']*4+['magenta']
+colors += ['orange']*6
+colors += ['brown']*6
+colors += ['pink']*6
+colors += ['yellow']*6
+colors += ['black']
 
 points = []
 
@@ -78,17 +86,16 @@ ax.set_xlim3d(-a,a)
 ax.set_ylim3d(-a,a)
 ax.set_zlim3d(-a,a)
 for k,v in points.items():
-    ax.scatter(v.x, v.y, v.z, c=v.rad, cmap='jet')
+    ax.scatter(v.x, v.y, v.z, c=colors[k], cmap='jet')
     ax.text(v.x, v.y, v.z, '%s' % (str(v.ID)), size=10, zorder=1 )
-# ax.scatter(xs_max, ys_max, zs_max, marker='o')
 
-for k,v in points.items():
-    if v.pid!=None:
 
-        parent = points[v.pid]
-        # if v.pid==-1:
-        #     print(v.ID, v.lat, v.lon, v.rad, v.x, v.y, v.z)    
-        ax.plot3D([v.x, parent.x], [v.y, parent.y], [v.z, parent.z], 'gray')
+if DISPLAY_DENDRITE:
+    for k,v in points.items():
+        if v.pid!=None:
+
+            parent = points[v.pid]
+            ax.plot3D([v.x, parent.x], [v.y, parent.y], [v.z, parent.z], 'gray')
 
 plt.title("Synaptic Locations and Dendritic Connections")
 plt.show()

@@ -64,7 +64,13 @@ void Neuron::Reset() {
 
     
 }
-
+void Neuron::RandomizeSynapseOrder(RNG & rng) {
+    std::shuffle(
+        synapse_indexes.begin(),
+        synapse_indexes.end(),
+        rng
+    );
+}
 
 i64 Neuron::GetID() {
     return id;
@@ -75,6 +81,8 @@ void Neuron::SetID(i64 _id) {
 void Neuron::SetLayerID(i64 _id) {
     layer_id = _id;
 }
+
+
 
 i64 Neuron::AddSynapse(Synapse synapse) {
     // Set the synapse's ID to the index it will
@@ -123,11 +131,12 @@ void Neuron::PresynapticSpike(i64 time, i64 synapse_id, ConnectionMatrix & cm) {
         std::exp( - time_diff_self / zxlb::PRE_SELF_FORCE_TIME_WINDOW )
     ) * error;
 
-
-    for(i64 i = 0; i < static_cast<i64>(synapses.size()); i++) {
-        if(i != synapse_id) {
+    i64 other_id = synapse_id;
+    for(i64 i = 0; i < static_cast<i64>(synapse_indexes.size()); i++) {
+        other_id = synapse_indexes[i];
+        if(other_id != synapse_id) {
             double time_diff_other = static_cast<double>(
-                time - synapses[i].time_cur_spike
+                time - synapses[other_id].time_cur_spike
             );
 
             // If the difference between cur time (this presyn spike time) and
@@ -139,7 +148,7 @@ void Neuron::PresynapticSpike(i64 time, i64 synapse_id, ConnectionMatrix & cm) {
 
             // What percent of the orbit are we aiming for?
             double target_angular_distance = M_PI * (time_diff_other / zxlb::PRE_OTHER_FORCE_TIME_WINDOW);
-            double cur_distance = synapses[synapse_id].location.Distance(synapses[i].location);
+            double cur_distance = synapses[synapse_id].location.Distance(synapses[other_id].location);
             double angular_delta = cur_distance-target_angular_distance;
 
 
@@ -158,7 +167,8 @@ void Neuron::PresynapticSpike(i64 time, i64 synapse_id, ConnectionMatrix & cm) {
             // VecS temp_direction(direction);
 
             //std::cout << synapse_id << "  "<< synapses[synapse_id].location.HeadingTo(synapses[i].location) << "  " << partial_force << std::endl;
-            direction.Orbit(synapses[synapse_id].location.HeadingTo(synapses[i].location), partial_force);
+            // direction.Orbit(synapses[synapse_id].location.HeadingTo(synapses[other_id].location), partial_force);
+            direction.Orbit(direction.HeadingTo(synapses[other_id].location), partial_force);
             
             // if(std::isnan(direction.Lat()) || std::isnan(temp_direction.Lat()) || std::isnan(cur_distance)) {
             // // if(angular_delta > M_PI || angular_delta < -M_PI) {
@@ -212,13 +222,13 @@ void Neuron::PostsynapticSignal(i64 time, ConnectionMatrix & cm) {
     
 
     #pragma omp parallel for
-    for(std::size_t i = 0; i < synapses.size(); i++) {
+    for(std::size_t i = 0; i < synapse_indexes.size(); i++) {
 
         // double time_diff_synapse = static_cast<double>(
         //     synapses[i].time_cur_spike - synapses[i].time_pre_spike
         // );
         double time_diff = static_cast<double>(
-            time_cur_spike - synapses[i].time_cur_spike
+            time_cur_spike - synapses[synapse_indexes[i]].time_cur_spike
         );
 
 
@@ -240,7 +250,7 @@ void Neuron::PostsynapticSignal(i64 time, ConnectionMatrix & cm) {
         //     time_cur_spike - time_pre_spike
         // );
 
-        double distance = time_diff - synapses[i].location.Rad();
+        double distance = time_diff - synapses[synapse_indexes[i]].location.Rad();
         
 
         double force = (
@@ -252,7 +262,7 @@ void Neuron::PostsynapticSignal(i64 time, ConnectionMatrix & cm) {
             cm[layer_id][id].GetErrorRateReLU() *
             zxlb::LEARNING_RATE;
 
-        synapses[i].location.ChangeRad( force );
+        synapses[synapse_indexes[i]].location.ChangeRad( force );
 
     }
 
@@ -395,11 +405,11 @@ bool Neuron::Update(i64 time, Writer * writer, i64 layer_id, ConnectionMatrix & 
     // Update all the synapses
     vec<sizet> syns_with_pre_spikes;
     // #pragma omp parallel for
-    for(sizet i = 0; i < synapses.size(); i++) {
+    for(sizet i = 0; i < synapse_indexes.size(); i++) {
         // Update, and if the input source for this synapse
         // produced a spike, then save index.
-        if(synapses[i].Update(time, writer, cm)) {
-            syns_with_pre_spikes.push_back(i);
+        if(synapses[synapse_indexes[i]].Update(time, writer, cm)) {
+            syns_with_pre_spikes.push_back(synapse_indexes[i]);
         }
     }
 

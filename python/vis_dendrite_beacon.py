@@ -8,10 +8,16 @@ import defs
 
 NEURON_ID = 0
 LAYER_ID = 1
-SIDS = list(range(100))
+SIDS = list(range(59))
 
 out = output.Output(defs.OUTPUT_PATH, lid=LAYER_ID, nid=NEURON_ID)
 
+names = [
+    'B1','B2','B3','B4','B5','B6','B7','B8','B9','B10','B11','B12','B13',
+    1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,
+    'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R',
+    'S','T','U','V','W','X','Y','Z'
+]
 
 
 xs = []
@@ -79,7 +85,7 @@ ax.set_ylim3d(-a,a)
 ax.set_zlim3d(-a,a)
 for k,v in points.items():
     ax.scatter(v.x, v.y, v.z, c=v.rad, cmap='jet')
-    ax.text(v.x, v.y, v.z, '%s' % (str(v.ID)), size=10, zorder=1 )
+    ax.text(v.x, v.y, v.z, '%s' % (str(names[v.ID])), size=10, zorder=1 )
 # ax.scatter(xs_max, ys_max, zs_max, marker='o')
 
 for k,v in points.items():
