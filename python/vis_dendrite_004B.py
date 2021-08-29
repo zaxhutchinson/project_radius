@@ -118,6 +118,7 @@ ax.legend(handles=legend_eles,loc=(1,0.33))
 ax.set_xticklabels([])
 ax.set_yticklabels([])
 ax.set_zticklabels([])
+plt.title("Synaptic Position")
 plt.show()
 
 

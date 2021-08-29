@@ -125,7 +125,7 @@ int main(int argc, char**argv) {
 
     //-------------------------------------------------------------------------
     // Process command line args.
-    str network_id = "exp_beacon";
+    str network_id = "poisson_net_004B";
 
     zxlog::Debug("MAIN: Processing cmd line args.");
     for(int i = 1; i < argc; i++) {
@@ -159,23 +159,31 @@ int main(int argc, char**argv) {
     network->InitWriteData();
 
     //-------------------------------------------------------------------------
-    // Run network
     // MNIST
-    //zxlog::Debug("MAIN: Loading MNIST data");
-    // std::string LABELS_FILENAME("mnist/train-labels-idx1-ubyte");
-    // std::string IMAGES_FILENAME("mnist/train-images-idx3-ubyte");
-    // MNISTReader mnist_reader;
-    // mnist_reader.LoadData(LABELS_FILENAME,IMAGES_FILENAME);
-
     // RunMNIST(
     //     &writer,
     //     network.get(),
-    //     mnist_reader,
     //     rng
     // );
 
+    //-------------------------------------------------------------------------
+    // POISSON002
+    // RunPoisson002(
+    //     &writer,
+    //     network.get(),
+    //     rng
+    // );
+
+    //-------------------------------------------------------------------------
+    // POISSON004B
+    RunPoisson004_B(
+        &writer,
+        network.get(),
+        rng
+    );
+
     //----------------------------------------------------------------------------
-    // Pattern 001
+    // Pattern 002
     // zxlog::Debug("MAIN: Loading Pattern data");
     // PatternMaker pattern_maker = BuildPattern001(rng);
     // RunPattern001(
@@ -188,11 +196,11 @@ int main(int argc, char**argv) {
 
     //----------------------------------------------------------------------------
     // Poisson Spike Trains
-    RunExpBeacon(
-        &writer,
-        network.get(),
-        rng
-    );
+    // RunExpBeacon(
+    //     &writer,
+    //     network.get(),
+    //     rng
+    // );
 
     return 0;
 }

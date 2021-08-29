@@ -151,6 +151,8 @@ void VecS::Orbit(double heading, double distance) {
     );
     lat = nlat;
     lon = nlon;
+    if(lon < -M_PI) lon += MPI2;
+    else if(lon > M_PI) lon -= MPI2;
 }
 
 Vec3 VecS::VectorTo(const VecS & v) {

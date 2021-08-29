@@ -20,6 +20,7 @@
 #include<algorithm>
 
 #include"zxlb.hpp"
+#include"input_gen.hpp"
 
 template<typename T, typename U>
 using umap = std::unordered_map<T,U>;
@@ -58,6 +59,11 @@ struct MNISTReader {
     // Returns a pointer to the ith MNISTData object. Returns nullptr if
     // your i is bad.
     MNISTData GetDataAt(unsigned i);
+
+    // Returns an input generator which encodes the mnist image as a
+    // poisson process spike train.
+    uptr<InputGenerator_Poisson> GetDataAsPoissonInputGenerator(unsigned i);
+    uptr<InputGenerator_Poisson> GetDataAsPoissonInputGenerator(MNISTData & d);
 
     // Returns a vector of MNISTData built by iteration size. Each iteration
     // will contain one example of each label. The order within each iteration

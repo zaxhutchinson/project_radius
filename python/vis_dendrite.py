@@ -8,7 +8,7 @@ import defs
 
 NEURON_ID = 0
 LAYER_ID = 1
-SIDS = list(range(100))
+SIDS = list(range(784))
 
 out = output.Output(defs.OUTPUT_PATH, lid=LAYER_ID, nid=NEURON_ID)
 
@@ -82,13 +82,13 @@ for k,v in points.items():
     ax.text(v.x, v.y, v.z, '%s' % (str(v.ID)), size=10, zorder=1 )
 # ax.scatter(xs_max, ys_max, zs_max, marker='o')
 
-for k,v in points.items():
-    if v.pid!=None:
+# for k,v in points.items():
+#     if v.pid!=None:
 
-        parent = points[v.pid]
-        # if v.pid==-1:
-        #     print(v.ID, v.lat, v.lon, v.rad, v.x, v.y, v.z)    
-        ax.plot3D([v.x, parent.x], [v.y, parent.y], [v.z, parent.z], 'gray')
+#         parent = points[v.pid]
+#         # if v.pid==-1:
+#         #     print(v.ID, v.lat, v.lon, v.rad, v.x, v.y, v.z)    
+#         ax.plot3D([v.x, parent.x], [v.y, parent.y], [v.z, parent.z], 'gray')
 
 plt.title("Synaptic Locations and Dendritic Connections")
 plt.show()

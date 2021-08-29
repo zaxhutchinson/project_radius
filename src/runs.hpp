@@ -23,7 +23,6 @@
 void RunMNIST(
     Writer * writer,
     Network * network,
-    MNISTReader & mnist,
     RNG & rng
 );
 /******************************************************************************

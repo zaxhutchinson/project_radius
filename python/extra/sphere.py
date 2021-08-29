@@ -98,18 +98,20 @@ u, v = np.mgrid[0:2.0*np.pi:60j, 0:np.pi:60j]
 x = np.cos(u)*np.sin(v)
 y = np.sin(u)*np.sin(v)
 z = np.cos(v)
-ax.plot_surface(x, y, z, cmap="gist_gray",alpha=0.5)
+ax.plot_surface(x, y, z, cmap="gist_gray",alpha=0.5,zorder=0)
 
-ax.scatter(x1, y1, z1,c='blue',linewidths=2)
-ax.scatter(x2, y2, z2,c='red',linewidths=2)
-ax.scatter(0,0,0,c='black',linewidths=2)
+ax.plot([0,x1],[0,y1],[0,z1],linestyle='--',c='gray',zorder=3)
+ax.plot([0,x2],[0,y2],[0,z2],linestyle='--',c='gray',zorder=3)
 
-ax.text(x1+0.05,y1+0.05,z1+0.05,'A',fontsize=12)
-ax.text(x2+0.05,y2+0.05,z2+0.05,'B',fontsize=12)
+ax.scatter(x1, y1, z1,c='blue',linewidths=2,zorder=3)
+ax.scatter(x2, y2, z2,c='red',linewidths=2,zorder=3)
+ax.scatter(0,0,0,c='black',linewidths=2,zorder=3)
+
+ax.text(x1+0.05,y1+0.05,z1+0.05,'A',fontsize=12,zorder=3)
+ax.text(x2+0.05,y2+0.05,z2+0.05,'B',fontsize=12,zorder=3)
 ax.text(-0.05,-0.05,0.1,'C',fontsize=12)
 
-ax.plot([0,x1],[0,y1],[0,z1],linestyle='--',c='gray')
-ax.plot([0,x2],[0,y2],[0,z2],linestyle='--',c='gray')
+
 
 ax.text(x1/2,y1/2,z1/2,'a',fontsize=12)
 ax.text(x2/2,y2/2,z2/2+0.07,'b',fontsize=12)

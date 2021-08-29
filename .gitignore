@@ -41,7 +41,9 @@ out
 \log
 \output
 \tst
-\exp_*
+\exp_beacon
+\exp_mnist
+\exp_dota2
 
 # Python
 *.pyc

@@ -183,7 +183,7 @@ else:
     ax.set_xticklabels(['A','B'])
     ax.set_yticks([25,75])
     ax.set_yticklabels(['A','B'])
-plt.title("Angular Distance (in radians)")
+plt.title("Angular Distances")
 plt.xlabel("Pattern")
 plt.ylabel("Pattern")
 im = ax.imshow(dist_matrix, cmap='jet', aspect='auto', interpolation='nearest',origin='lower')

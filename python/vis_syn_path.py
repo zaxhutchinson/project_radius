@@ -29,7 +29,10 @@ colors = []
 # colors = ['red']*10+['blue']*10+['purple']*10+['green']*10
 
 #Beacon
-SYN_IDS = list(range(0,13))
+# SYN_IDS = list(range(0,13))
+
+#MNIST
+SYN_IDS = [3]
 
 xs = {}
 ys = {}
@@ -62,6 +65,8 @@ for sid in SYN_IDS:
         lon = syn.lons[i][-1]
         rad = syn.rads[i][-1]
         pid = syn.parents[i][-1]
+
+        print(lon)
 
         x = rad * math.cos(lat) * math.cos(lon)
         y = rad * math.cos(lat) * math.sin(lon)

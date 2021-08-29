@@ -1,5 +1,5 @@
 {
-    "mnist_network_001" : {
+    "mnist_network_1" : {
         "input_layer" : {
             "is_input_layer" : true,
             "is_output_layer" : false,
@@ -31,7 +31,7 @@
             "neuron_templates" : {
                 "neuron1": {
                     "type": "Regular Spiking",
-                    "number": 10,
+                    "number": 1,
                     "baseline":0.0
                 }
             },

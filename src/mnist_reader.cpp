@@ -78,6 +78,33 @@ MNISTData MNISTReader::GetDataAt(unsigned i) {
     return data.at(i);
 }
 
+uptr<InputGenerator_Poisson> MNISTReader::GetDataAsPoissonInputGenerator(unsigned i) {
+    MNISTData d = data[i];
+    uptr<InputGenerator_Poisson> ig = std::make_unique<InputGenerator_Poisson>();
+    ig->id = std::to_string(d.label);
+    for(sizet i = 0; i < d.image.size(); i++) {
+        ig->decay.push_back(std::exp(-1.0/10));
+        ig->dist = std::uniform_real_distribution<double>(0.0,1.0);
+        ig->strength.push_back(500.0);
+        ig->signal.push_back(0.0);
+        ig->rate.push_back(d.image[i]/255.0);
+    }
+    return ig;
+}
+
+uptr<InputGenerator_Poisson> MNISTReader::GetDataAsPoissonInputGenerator(MNISTData & d) {
+    uptr<InputGenerator_Poisson> ig = std::make_unique<InputGenerator_Poisson>();
+    ig->id = std::to_string(d.label);
+    for(sizet i = 0; i < d.image.size(); i++) {
+        ig->decay.push_back(std::exp(-1.0/10));
+        ig->dist = std::uniform_real_distribution<double>(0.0,1.0);
+        ig->strength.push_back(500.0);
+        ig->signal.push_back(0.0);
+        ig->rate.push_back(d.image[i]/255.0);
+    }
+    return ig;
+}
+
 vec<vec<MNISTData>> MNISTReader::GetDataAsIteration(vec<unsigned> labels, sizet num_iterations, sizet examples_per_iteration, RNG & rng) {
     zxlog::Debug("MNISTReader: GetDataAsIteration");
     vec<vec<MNISTData>> data_by_label;

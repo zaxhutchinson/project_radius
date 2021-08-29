@@ -3,70 +3,74 @@
 void RunMNIST(
     Writer * writer,
     Network * network,
-    MNISTReader & mnist,
     RNG & rng
 ) {
-    zxlog::Debug("RunMNIST() called.");
+    std::string LABELS_FILENAME("exp_mnist/train-labels-idx1-ubyte");
+    std::string IMAGES_FILENAME("exp_mnist/train-images-idx3-ubyte");
 
-    // Label, Index of output neuron
-    vec<unsigned> labels = {0,1,2,3,4,5,6,7,8,9};
-    umap<unsigned, sizet> labels_with_indexes = {
-        {0,0},
-        {1,1},
-        {2,2},
-        {3,3},
-        {4,4},
-        {5,5},
-        {6,6},
-        {7,7},
-        {8,8},
-        {9,9}
-    };
-    sizet num_iterations = 1000;
-    sizet examples_per_iteration = 1;
-    sizet iteration_size = examples_per_iteration * labels.size();
+
+    MNISTReader mnist;
+    mnist.LoadData(LABELS_FILENAME,IMAGES_FILENAME);
+    vec<MNISTData> data; 
+    vec<MNISTData> dataA = mnist.GetDataWithLabel(3);
+    vec<MNISTData> dataB = mnist.GetDataWithLabel(8);
+    std::copy(dataA.begin(), dataA.end(), std::back_inserter(data));
+    std::copy(dataB.begin(), dataB.end(), std::back_inserter(data));
+    
+    sizet num_iterations = 100;
+    // sizet examples_per_iteration = 1;
+    sizet iteration_size = 100;
     i64 time_per_example = 1000;
-    sizet correct_choice = 0;
+    sizet mask_interval = 10;
     i64 output_layer_index = network->GetOutputLayerIndex();
+    Layer * input_layer = network->GetLayer(network->GetInputLayerIndex());
+    i64 input_layer_size = input_layer->GetLayerSize();
 
-    zxlog::Debug("Get MNIST data.");
-    vec<vec<MNISTData>> data = mnist.GetDataAsIteration(
-        labels,
-        num_iterations,
-        examples_per_iteration,
-        rng
-    );
+    vec<sizet> image_indexes;
+    for(sizet i = 0; i < mnist.GetData().size(); i++) {
+        image_indexes.push_back(i);
+    }
 
-    //-------------------------------------------------------------------------
-    // Build the rates vector. Default to incorrect rates.
-    vec<double> rates;
-    for(sizet i = 0; i < labels.size(); i++) {
-        rates.push_back(config::INCORRECT_EXPECTED);
+    uptr<InputGenerator_Poisson> ig_mask = std::make_unique<InputGenerator_Poisson>();
+    ig_mask->id = "0";
+    for(i64 i = 0; i < input_layer_size; i++) {
+        ig_mask->decay.push_back(std::exp(-1.0/10));
+        ig_mask->dist = std::uniform_real_distribution<double>(0.0,1.0);
+        ig_mask->strength.push_back(500.0);
+        ig_mask->signal.push_back(0.0);
+        ig_mask->rate.push_back(0.05);
     }
 
     //-------------------------------------------------------------------------
+    // Build the rates vector. Default to incorrect rates.
+    vec<double> rates = {config::CORRECT_EXPECTED};
+    // for(sizet i = 0; i < 10; i++) {
+    //     rates.push_back(config::INCORRECT_EXPECTED);
+    // }
+
+    //-------------------------------------------------------------------------
     // Start the run
-    network->RebuildDendrites();
+    // network->RebuildDendrites();
 
     writer->StartRecording();
     
     for(sizet i = 0; i < num_iterations; i++) {
-        zxlog::Debug("Iteration " + std::to_string(i));
+        std::cout << "Iteration: " << i << std::endl;
+
+        std::shuffle(data.begin(), data.end(), rng);
+
 
         for(sizet k = 0; k < iteration_size; k++) {
-            zxlog::Debug("   Image " + std::to_string(k));
+            std::cout << k << "\r" << std::flush;
 
             // Get the image
-            MNISTData & d = data[i][k];
+            uptr<InputGenerator_Poisson> ig = mnist.GetDataAsPoissonInputGenerator(data[k]);
 
             // Set the inputs to the pixel data
-            network->SetInputs(d.image);
+            input_layer->AddInputGenerator(ig.get());
 
-            // Update the error rates before and after swapping
-            // to the new correct choice
-            rates[correct_choice] = config::INCORRECT_EXPECTED;
-            correct_choice = labels_with_indexes[d.label]; // look up neuron index.
-            rates[correct_choice] = config::CORRECT_EXPECTED;
+
+            rates[0] = config::CORRECT_EXPECTED;
 
 
             network->UpdateLayerErrorValues(
@@ -83,28 +87,41 @@ void RunMNIST(
                 );
             }
 
-            vec<double> error_rates = network->GetErrorRates(output_layer_index);
-            std::cout << "/== Iteration " << i << "  Image " << k << " ==============================//\n";
-            for(sizet m = 0; m < error_rates.size(); m++) {
-                std::cout << m << ":" << error_rates[m] << std::endl;
-            }
-
-            writer->AddExampleData(std::make_unique<ExampleData>(i, k, std::to_string(d.label)));
-
-            network->SaveData(time);
-            network->WriteData(writer);
-
             network->Reset();
+            network->RandomizeOrder(rng);
+
+            if(k%mask_interval==0) {
+                input_layer->AddInputGenerator(ig_mask.get());
+                rates[0] = config::INCORRECT_EXPECTED;
+                network->UpdateLayerErrorValues(
+                    rates, output_layer_index
+                );
+
+                i64 time = 1;
+                for(; time <= time_per_example; time++) {
+                    network->Update(
+                        time,
+                        writer,
+                        rng
+                    );
+                }
+
+                // Reset the input generator
+                ig_mask->Reset();
+
+                network->Reset();
+                network->RandomizeOrder(rng);
+            }
             
         }
-        network->RebuildDendrites();
+        std::cout << std::endl;
+        //network->RebuildDendrites();
         network->SaveData(-1);
         network->WriteData(writer);
         
     }
 
     network->CleanUpData(writer);
-
     writer->StopRecording();
 
 }
@@ -481,7 +498,7 @@ void RunPoisson002(
     // Label, Index of output neuron
     vec<sizet> patterns = {0, 1, 2};
 
-    sizet num_iterations = 2000;
+    sizet num_iterations = 5000;
     sizet iteration_size = patterns.size();
     i64 time_per_example = 1000;
     i64 output_layer_index = network->GetOutputLayerIndex();
@@ -953,7 +970,7 @@ void RunPoisson004_B(
     // Label, Index of output neuron
     vec<sizet> patterns = {0, 1, 2, 3, 4};
 
-    sizet num_iterations = 4000;
+    sizet num_iterations = 16000;
     sizet iteration_size = patterns.size();
     i64 time_per_example = 1000;
     i64 output_layer_index = network->GetOutputLayerIndex();
@@ -998,30 +1015,30 @@ void RunPoisson004_B(
         ig5->dist = std::uniform_real_distribution<double>(0.0,1.0);
         ig5->strength.push_back(500.0);
         ig5->signal.push_back(0.0);
-        ig5->rate.push_back(0.01);
+        ig5->rate.push_back(0.05);
 
         if(i==39 || i <=10) {
             ig1->rate.push_back(0.1);
         } else {
-            ig1->rate.push_back(0.0);
+            ig1->rate.push_back(0.01);
         }
         
         if(i>=9 && i<=20) {
             ig2->rate.push_back(0.1);
         } else {
-            ig2->rate.push_back(0.0);
+            ig2->rate.push_back(0.01);
         }
 
         if(i>=19 && i<=30) {
             ig3->rate.push_back(0.1);
         } else {
-            ig3->rate.push_back(0.0);
+            ig3->rate.push_back(0.01);
         }
 
         if(i==0 || (i>=29 && i<40)) {
             ig4->rate.push_back(0.1);
         } else {
-            ig4->rate.push_back(0.0);
+            ig4->rate.push_back(0.01);
         }
     }
 
@@ -1616,13 +1633,13 @@ void RunExpBeacon(
     beacon.Init(rng());
     ExpBeaconEntry * entry;
 
-    sizet num_iterations = 200;
+    sizet num_iterations = 50;
     sizet iteration_size = beacon.GetSizeLabeledEntries();
     i64 time_per_example = 1000;
     i64 output_layer_index = network->GetOutputLayerIndex();
     Layer * input_layer = network->GetLayer(network->GetInputLayerIndex());
     i64 input_layer_size = input_layer->GetLayerSize();
-    sizet mask_interval = 10000000000000;
+    sizet mask_interval = 1000000000000000;
 
     uptr<InputGenerator_Poisson> ig = std::make_unique<InputGenerator_Poisson>();
     ig->id = "0";

@@ -1,3 +1,20 @@
+**Aug 15,2021**
+*Version 0.14 work*
+Using all:
+    0: 1.0
+    1: 
+
+**Aug 12,2021**
+*Version 0.14 work*
+* MNIST work. Exp: run of 20 iterations of 100 examples each. at 5hz not enough mask effect. Beef it up to 10 hz.
+
+**Aug 10,2021**
+*Version 0.14 work*
+* Been lax in updating this. Working on the Beacon experiment. It is placing synapses in the right place. The key was to remove the mask.
+* Ran 50, 100 ,200 and 500. The max normalized difference between the synaptic angular distance and the beacon distances decreases from 50 to 200. However, with 500, it goes up again. I'm not sure if this is an outlier.
+* Overall, the results are somewhat interesting. The synapse locations are definitely a product of the signals. The syn locations do not exactly match the beacon locations because the signals received are not always what one would expect. For example, the algorithm repeatedly places b13 surrounded by a semicircle of b10,11 and 12. This is because 13 is active with 10 and 11. There are even instances where 10 and 13 are active but 12 is not. So there is a pull toward 10 which causes 12 and especially 13 to be close to 9. When according to the map, it shouldn't be. I suspect this would work to reproduce the layout of beacons with more examples. The dataset isn't superb since there are 4 or 5 times the number of examples containing signals from some beacons than others e.g. 2 v 13.
+* I tried to limit the beacon entries to those that only had two signals as a way to refine the locations. I did not get a change to run enough examples. 50 iterations isn't enough since this reduces the number of examples per iteration.
+
 **July 29, 2021**
 *Version 0.13 work*
 * Fixed a very big, stupid error in the code. This was the reason that the random version wasn't working. And I suspect it has caused the unreliability and looseness of clustering. In the Presyn Update, the direction of movement for the copied VecS wasn't using the heading of the copy to the dest VecS, but the heading from the original location to the dest VecS. This means, after the first movement, all other headings were off...perhaps by a lot. Not sure how I missed that one. I guess when coding I was considering only the i=0 case, when the copied VecS==original VecS.

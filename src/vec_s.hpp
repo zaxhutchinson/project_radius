@@ -25,6 +25,7 @@
 struct Vec3;
 
 struct VecS {
+    inline static double MPI2 = M_PI * 2.0;
     double lat;
     double lon;
     double rad;
