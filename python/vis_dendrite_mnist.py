@@ -10,7 +10,8 @@ NEURON_ID = 0
 LAYER_ID = 1
 SIDS = list(range(784))
 
-out = output.Output(defs.OUTPUT_PATH, lid=LAYER_ID, nid=NEURON_ID)
+outA = output.Output("/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/project_radius/MNIST_9_5000_YesMask50/", lid=LAYER_ID, nid=NEURON_ID)
+outB = output.Output("/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/project_radius/MNIST_2_5000_YesMask50/", lid=LAYER_ID, nid=NEURON_ID)
 
 NEURON_ID = 0
 LAYER_ID = 1
@@ -30,10 +31,11 @@ def minmaxNorm(dic, mn=0.0, mx=1.0):
 
 
 # Pixel ID: (lat, lon)
-model = {}
+modelA = {}
+modelB = {}
 
 # Load data
-for name,syn in out.synapses.items():
+for name,syn in outA.synapses.items():
     if syn.neuron_id == NEURON_ID and syn.layer_id == LAYER_ID:
         sid = syn.synapse_id
         lat = syn.lats[-1][-1]
@@ -42,16 +44,28 @@ for name,syn in out.synapses.items():
             lon -= math.pi*2.0
         while lon < -math.pi:
             lon += math.pi*2.0
-        model[sid] = (lat,lon)
+        modelA[sid] = (lat,lon)
 
-final_dists = {}
+for name,syn in outB.synapses.items():
+    if syn.neuron_id == NEURON_ID and syn.layer_id == LAYER_ID:
+        sid = syn.synapse_id
+        lat = syn.lats[-1][-1]
+        lon = syn.lons[-1][-1]
+        while lon > math.pi:
+            lon -= math.pi*2.0
+        while lon < -math.pi:
+            lon += math.pi*2.0
+        modelB[sid] = (lat,lon)
 
-model_size = len(model)
-dists = {}
 
-for k1,v1 in model.items():
+
+model_size = len(modelA)
+distsA = {}
+distsB = {}
+
+for k1,v1 in modelA.items():
     dist = 0.0
-    for k2,v2 in model.items():
+    for k2,v2 in modelA.items():
         
         alon = v2[1] - v1[1]
         alat = v2[0] - v1[0]
@@ -64,31 +78,80 @@ for k1,v1 in model.items():
             a = 0.0
         
         dist += 2.0 * abs(math.atan2(math.sqrt(a), math.sqrt(1.0-a)))
-    dists[k1] = dist /  len(model)
+    distsA[k1] = dist
+
+for k1,v1 in modelB.items():
+    dist = 0.0
+    for k2,v2 in modelB.items():
+        
+        alon = v2[1] - v1[1]
+        alat = v2[0] - v1[0]
+        a = math.pow( math.sin(alat/2.0), 2.0 ) + \
+            math.cos(v1[0]) * math.cos(v2[0]) * \
+            math.pow( math.sin(alon/2.0), 2.0 )
+        if a > 1:
+            a = 1.0
+        if a < 0:
+            a = 0.0
+        
+        dist += 2.0 * abs(math.atan2(math.sqrt(a), math.sqrt(1.0-a)))
+    distsB[k1] = dist
 
 
-minmaxNorm(dists, mn=0.0, mx=math.pi)
+minmaxNorm(distsA, mn=0.0, mx=math.pi)
+minmaxNorm(distsB, mn=0.0, mx=math.pi)
 
-while len(final_dists) < NUM_FINAL_PIXELS:
-    minv=1.0
+final_distsA = {}
+final_distsB = {}
+
+while len(final_distsA) < NUM_FINAL_PIXELS:
+    minv=math.inf
     mini=0
-    for k,v in dists.items():
+    for k,v in distsA.items():
         if v < minv:
             minv = v
             mini=k
-    del dists[mini]
-    final_dists[mini]=minv
+    del distsA[mini]
+    final_distsA[mini]=minv
+
+while len(final_distsB) < NUM_FINAL_PIXELS:
+    minv=math.inf
+    mini=0
+    for k,v in distsB.items():
+        if v < minv:
+            minv = v
+            mini=k
+    del distsB[mini]
+    final_distsB[mini]=minv
+
+A = 0
+B = 0
+AB = 0
 
 fig = plt.figure()
 ax = fig.add_subplot()
-for k,v in model.items():
-    if k in final_dists:
+for k,v in modelA.items():
+    if k in final_distsA and k in final_distsB:
+        ax.scatter(v[1],v[0],color='purple',zorder=10)
+        AB+=1
+    elif k in final_distsA:
         ax.scatter(v[1],v[0],color='red',zorder=10)
+        A+=1
+    elif k in final_distsB:
+        ax.scatter(v[1],v[0],color='blue',zorder=10)
+        B+=1
     else:
         ax.scatter(v[1],v[0],color='black',zorder=1)
 plt.xlabel("Longitude")
 plt.ylabel("Latitude")
+
+print(f"A  {A}")
+print(f"B  {B}")
+print(f"AB {AB}")
+
 plt.show()
+
+
 
 # fig = plt.figure()
 # ax = fig.add_subplot(projection='3d')

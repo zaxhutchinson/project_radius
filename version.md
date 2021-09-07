@@ -1,5 +1,6 @@
 **Version 0.14**
 - Paper version
+- Hard cut here before further development
 
 **Version 0.13**
 - Fixes a bug in the PreSynaptic Update. (See notes for July 29 2021).
