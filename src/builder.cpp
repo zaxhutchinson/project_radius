@@ -56,82 +56,80 @@ uptr<Network> BuildNetwork(str network_id, RNG & rng) {
     std::uniform_real_distribution<double> dice(0.0, 1.0);
 
     zxlog::Debug("Building connections.");
-
-    // Iterate back through all the layer templates so we can connect things.
-    for(
-        vec<pair<str,tmps::LayerTemplate>>::iterator lit = nettemp.layers.begin();
-        lit != nettemp.layers.end();
-        lit++
-    ) {
     
-        Layer * layer_us = network->GetLayer(layer_lookup.at(lit->first));
 
-        // Iterate through all connection templates.
-        for(
-            vec<tmps::ConnectionTemplate>::iterator cit = lit->second.connections.begin();
-            cit != lit->second.connections.end();
-            cit++
-        ) {
-            // Find the downstream layer.
-            i64 layer_ds_id = layer_lookup.at(cit->downstream_layer_id);
-            Layer * layer_ds = network->GetLayer(layer_ds_id);
+    // Iterate through all connection templates.
+    for(
+        vec<tmps::ConnectionTemplate>::iterator cit = nettemp.connections.begin();
+        cit != nettemp.connections.end();
+        cit++
+    ) {
+        // Find the downstream layer.
 
-            double prob = cit->prob_making_downstream_connection;
+        i64 layer_to_id = layer_lookup.at(cit->to_layer);
+        i64 layer_from_id = layer_lookup.at(cit->from_layer);
+        Layer * layer_to = network->GetLayer(layer_to_id);
+        Layer * layer_from = network->GetLayer(layer_from_id);
 
-            zxlog::Debug(
-                "   Connection: " + lit->first + " to " + std::to_string(layer_ds_id) +
-                " with prob " + std::to_string(prob)
-            );
+        double prob = cit->prob_making_downstream_connection;
 
-            std::uniform_real_distribution<double> strengthDist(
-                cit->min_starting_strength, cit->max_starting_strength
-            );
+        // zxlog::Debug(
+        //     "   Connection: " + lit->first + " to " + std::to_string(layer_ds_id) +
+        //     " with prob " + std::to_string(prob)
+        // );
 
-            // All upstream neurons
-            for(i64 us_i = 0; us_i < layer_us->GetLayerSize(); us_i++) {
+        std::uniform_real_distribution<double> strengthDist(
+            cit->min_starting_strength, cit->max_starting_strength
+        );
 
-                Neuron * neuron_us = layer_us->GetNeuron(us_i);
+        // All upstream neurons
+        for(i64 us_i = 0; us_i < layer_from->GetLayerSize(); us_i++) {
 
-                // All downstream neurons
-                for(i64 ds_i = 0; ds_i < layer_ds->GetLayerSize(); ds_i++) {
+            Neuron * neuron_us = layer_from->GetNeuron(us_i);
+
+            // All downstream neurons
+            for(i64 ds_i = 0; ds_i < layer_to->GetLayerSize(); ds_i++) {
+
+                for(i64 syn_i = 0; syn_i < cit->number_of_downstream_connections; syn_i++) {
+                    
+                    Neuron * neuron_ds = layer_to->GetNeuron(ds_i);
 
                     if(dice(rng) < prob) {
-                        Neuron * neuron_ds = layer_ds->GetNeuron(ds_i);
+                        
 
                         // Set location
                         std::uniform_real_distribution<double> radDist(
                             cit->min_radius, cit->max_radius
                         );
                         double radius = radDist(rng);
-                        VecS loc(radius);
-                        loc.RandomizeLatLong(rng);
-
-                        // Build synapse
-                        Synapse synapse(
-                            loc,
-                            cit->max_strength,
-                            strengthDist(rng)
-                        );
-                        synapse.SetLayerID(layer_ds_id);
-                        synapse.SetNeuronID(ds_i);
                         
 
                         ConnectionAddress ca;
-                        ca.pre_layer = layer_us->GetID();
+                        ca.pre_layer = layer_from->GetID();
                         ca.pre_neuron = neuron_us->GetID();
-                        ca.post_layer = layer_ds->GetID();
+                        ca.post_layer = layer_to->GetID();
                         ca.post_neuron = neuron_ds->GetID();
 
-                        synapse.SetConnectionAddress(ca);
 
+                        VecS loc(radius);
+                        loc.RandomizeLatLong(rng);
+                        Synapse synapse(
+                            loc,
+                            cit->max_strength,
+                            strengthDist(rng),
+                            cit->polarity
+                        );
+                        synapse.SetLayerID(layer_to_id);
+                        synapse.SetNeuronID(ds_i);
+                        synapse.SetConnectionAddress(ca);
                         neuron_ds->AddSynapse(std::move(synapse));
+                        
                     }
                 }
-
             }
         }
-    
     }
+
 
 
     return network;

@@ -42,6 +42,7 @@ public:
 
     vec<double> GetErrorRates(i64 layer_id);
 
+    void InitDendrites();
     void RebuildDendrites();
 
     void InitWriteData();

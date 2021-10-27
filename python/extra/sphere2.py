@@ -122,13 +122,23 @@ path3 = []
 #     path3.append(GetXYZ(e[0],e[1],rad))
 
 
-s1_head = HeadingTo(p1_lat,p1_lon,p2_lat,p2_lon)
-s1_lat,s1_lon = OrbitTo(p1_lat,p1_lon,rad,s1_head,0.3)
-s2_head = HeadingTo(s1_lat,s1_lon,p3_lat,p3_lon)
-s2_lat,s2_lon = OrbitTo(s1_lat,s1_lon,rad,s2_head,0.5)
+s1_head = HeadingTo(p1_lat,p1_lon,p3_lat,p3_lon)
+s1_lat,s1_lon = OrbitTo(p1_lat,p1_lon,rad,s1_head,0.5)
+s2_head = HeadingTo(s1_lat,s1_lon,p2_lat,p2_lon)
+s2_lat,s2_lon = OrbitTo(s1_lat,s1_lon,rad,s2_head,0.3)
 
 s1x,s1y,s1z = GetXYZ(s1_lat,s1_lon,rad)
 s2x,s2y,s2z = GetXYZ(s2_lat,s2_lon,rad)
+
+s3_head = HeadingTo(p1_lat,p1_lon,p2_lat,p2_lon)
+s3_lat,s3_lon = OrbitTo(p1_lat,p1_lon,rad,s3_head,0.3)
+s4_head = HeadingTo(s3_lat,s3_lon,p3_lat,p3_lon)
+s4_lat,s4_lon = OrbitTo(s3_lat,s3_lon,rad,s4_head,0.5)
+
+s1x,s1y,s1z = GetXYZ(s1_lat,s1_lon,rad)
+s2x,s2y,s2z = GetXYZ(s2_lat,s2_lon,rad)
+s3x,s3y,s3z = GetXYZ(s3_lat,s3_lon,rad)
+s4x,s4y,s4z = GetXYZ(s4_lat,s4_lon,rad)
 
 
 dist1 = AngularDistanceTo(p1_lat,p1_lon,s1_lat,s1_lon)
@@ -179,6 +189,8 @@ ax.scatter(x2, y2, z2,c='red',linewidths=1,zorder=3)
 ax.scatter(x3, y3, z3,c='red',linewidths=1,zorder=3)
 ax.scatter(s1x, s1y, s1z,c='blue',linewidths=1,zorder=3)
 ax.scatter(s2x, s2y, s2z,c='blue',linewidths=1,zorder=3)
+ax.scatter(s3x, s3y, s3z,c='blue',linewidths=1,zorder=3)
+ax.scatter(s4x, s4y, s4z,c='blue',linewidths=1,zorder=3)
 ax.scatter(0,0,0,c='black',linewidths=1,zorder=3)
 
 ax.text(x1+0.2,y1-0.2,z1+0.0,'A',fontsize=12,zorder=3)

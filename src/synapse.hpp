@@ -13,7 +13,7 @@ struct Synapse {
     i64 neuron_id;
     i64 layer_id;
     double signal[2];
-    double bap[2];
+    i64 bap;
     double max_strength;
     double abs_max_strength;
     double cur_strength;
@@ -31,6 +31,9 @@ struct Synapse {
     std::size_t record_data_size;
     uptr<SynapseData> data;
     ConnectionAddress ca;
+    i64 compartment;
+    double compartment_length;
+    double polarity;
 
     // Helper variable.
     // Stores upstream signals during the
@@ -43,7 +46,8 @@ struct Synapse {
     Synapse(
         VecS _loc,
         double _max_strength,
-        double _cur_strength
+        double _cur_strength,
+        double _polarity
     );
     Synapse(const Synapse & s) = default;
     Synapse(Synapse && s) = default;
@@ -58,6 +62,8 @@ struct Synapse {
     void SetID(i64 _id);
     void SetLayerID(i64 _id);
     void SetNeuronID(i64 _id);
+
+    
 
     void SetConnectionAddress(ConnectionAddress ca);
     void SetSignal(i64 time, double amt);
@@ -75,13 +81,21 @@ struct Synapse {
     */
     double GetStrength();
     double GetStrengthDelta();
+    void ChangeStrengthPre(i64 time);
+    void ChangeStrengthPost(i64 time);
 
-    double GetSignal(i64 time);
-    double GetSignalWithStrength(i64 time);
-    double GetSignalFull(i64 time);
+    void SetBAP(i64 time);
+
+    double GetSignal_Simple(i64 time);
+    double GetSignal_In(i64 time);
+    double GetSignal_Out(i64 time);
 
     double GetDendritePathLength();
 
+    void SetCompartment(i64 comp_id);
+    i64 GetCompartment();
+    void SetCompartmentLength(double len);
+    double GetCompartmentLength();
     //------------------------------------------------------------------------
     // Dendrite connections
     i64 GetParent();

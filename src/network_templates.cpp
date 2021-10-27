@@ -21,8 +21,10 @@ namespace tmps {
                 "NetworkTemplate " + network_template.network_template_id + " loading."
             );
 
+            json layers = nit.value().at("layers");
+
             // Iterate through this network's layers.
-            for(json::iterator lit = nit.value().begin(); lit != nit.value().end(); lit++) {
+            for(json::iterator lit = layers.begin(); lit != layers.end(); lit++) {
 
                 LayerTemplate layer_template;
                 layer_template.layer_template_id = lit.key();
@@ -75,50 +77,7 @@ namespace tmps {
                     );
                 }
 
-                if(lit->contains("connections")) {
-                    json conns = lit->at("connections");
-
-                    for(
-                        json::iterator cit = conns.begin();
-                        cit != conns.end();
-                        cit++
-                    ) {
-                        ConnectionTemplate connection_template;
-                        connection_template.downstream_layer_id = cit.key();
-
-                        if(cit->contains("number_of_downstream_connections")) {
-                            connection_template.number_of_downstream_connections =
-                                cit->at("number_of_downstream_connections");
-                        }
-                        if(cit->contains("prob_of_making_downstream_connection")) {
-                            connection_template.prob_making_downstream_connection =
-                                cit->at("prob_of_making_downstream_connection");
-                        }
-                        if(cit->contains("min_starting_strength")) {
-                            connection_template.min_starting_strength =
-                                cit->at("min_starting_strength");
-                        }
-                        if(cit->contains("max_starting_strength")) {
-                            connection_template.max_starting_strength =
-                                cit->at("max_starting_strength");
-                        }
-                        if(cit->contains("max_strength")) {
-                            connection_template.max_strength =
-                                cit->at("max_strength");
-                        }
-                        if(cit->contains("min_radius")) {
-                            connection_template.min_radius =
-                                cit->at("min_radius");
-                        }
-                        if(cit->contains("max_radius")) {
-                            connection_template.max_radius =
-                                cit->at("max_radius");
-                        }
-
-                        layer_template.connections.push_back(connection_template);
-                    }
-
-                } else if(!layer_template.is_output_layer) {
+                if(!layer_template.is_output_layer) {
                     zxlog::Warning(
                         "LAYER TEMPLATE "+
                         layer_template.layer_template_id +
@@ -131,6 +90,62 @@ namespace tmps {
                 );
 
             }
+
+
+            json conns = nit->at("connections");
+
+            for(
+                json::iterator cit = conns.begin();
+                cit != conns.end();
+                cit++
+            ) {
+                ConnectionTemplate connection_template;
+                
+                if(cit->contains("from_layer")) {
+                    connection_template.from_layer =
+                        cit->at("from_layer");
+                }
+                if(cit->contains("to_layer")) {
+                    connection_template.to_layer =
+                        cit->at("to_layer");
+                }
+                if(cit->contains("number_of_downstream_connections")) {
+                    connection_template.number_of_downstream_connections =
+                        cit->at("number_of_downstream_connections");
+                }
+                if(cit->contains("prob_of_making_downstream_connection")) {
+                    connection_template.prob_making_downstream_connection =
+                        cit->at("prob_of_making_downstream_connection");
+                }
+                if(cit->contains("min_starting_strength")) {
+                    connection_template.min_starting_strength =
+                        cit->at("min_starting_strength");
+                }
+                if(cit->contains("max_starting_strength")) {
+                    connection_template.max_starting_strength =
+                        cit->at("max_starting_strength");
+                }
+                if(cit->contains("max_strength")) {
+                    connection_template.max_strength =
+                        cit->at("max_strength");
+                }
+                if(cit->contains("min_radius")) {
+                    connection_template.min_radius =
+                        cit->at("min_radius");
+                }
+                if(cit->contains("max_radius")) {
+                    connection_template.max_radius =
+                        cit->at("max_radius");
+                }
+                if(cit->contains("polarity")) {
+                    connection_template.polarity = 
+                        cit->at("polarity");
+                }
+
+                network_template.connections.push_back(connection_template);
+            }
+
+
 
             NETWORK_TEMPLATES.emplace(network_template.network_template_id, network_template);
         }

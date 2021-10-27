@@ -15,6 +15,9 @@ private:
     bool is_input;
     bool is_output;
     InputGenerator * input_generator;
+    bool train_rad;
+    bool train_ang;
+    bool train_str;
 public:
     Layer();
     Layer(const Layer & l) = delete;
@@ -34,6 +37,8 @@ public:
     void SetIsOutput(bool b);
     i64 GetLayerSize();
 
+    void SetTraining(bool rad, bool ang, bool str);
+
     void AddInputGenerator(InputGenerator * ig);
 
     void AddNeuron(Neuron neuron);
@@ -42,6 +47,7 @@ public:
 
     void SetInputs(vec<double> & inputs);
 
+    void InitDendrites();
     void RebuildDendrites();
 
     void CleanUp(Writer * writer);

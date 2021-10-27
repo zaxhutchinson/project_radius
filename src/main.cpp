@@ -125,7 +125,7 @@ int main(int argc, char**argv) {
 
     //-------------------------------------------------------------------------
     // Process command line args.
-    str network_id = "poisson_net_004B";
+    str network_id = "xor";
 
     zxlog::Debug("MAIN: Processing cmd line args.");
     for(int i = 1; i < argc; i++) {
@@ -176,11 +176,11 @@ int main(int argc, char**argv) {
 
     //-------------------------------------------------------------------------
     // POISSON004B
-    RunPoisson004_B(
-        &writer,
-        network.get(),
-        rng
-    );
+    // RunPoisson004_B(
+    //     &writer,
+    //     network.get(),
+    //     rng
+    // );
 
     //----------------------------------------------------------------------------
     // Pattern 002
@@ -201,6 +201,23 @@ int main(int argc, char**argv) {
     //     network.get(),
     //     rng
     // );
+
+    //----------------------------------------------------------------------------
+    // Lines Vert
+    // RunLinesVert(
+    //     &writer,
+    //     network.get(),
+    //     rng
+    // );
+
+
+    //----------------------------------------------------------------------------
+    // XOR
+    RunXOR(
+        &writer,
+        network.get(),
+        rng
+    );
 
     return 0;
 }

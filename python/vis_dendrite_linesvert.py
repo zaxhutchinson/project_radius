@@ -9,11 +9,9 @@ import defs
 
 NEURON_ID = 0
 LAYER_ID = 1
-SIDS = list(range(64))
+SIDS = list(range(50))
 
-out = output.Output(defs.OUTPUT_PATH, lid=LAYER_ID, nid=NEURON_ID, sid=SIDS)
-
-
+out = output.Output(defs.OUTPUT_PATH, lid=LAYER_ID, nid=NEURON_ID)
 
 xs = []
 ys = []
@@ -91,7 +89,11 @@ ax.set_ylim3d(-a,a)
 ax.set_zlim3d(-a,a)
 for k,v in points.items():
     ax.scatter(v.x, v.y, v.z, color=colors[v.comp], cmap='jet')
-    label = str(v.ID)
+    label = str(v.ID) #str(v.ID//2)
+    # if v.ID%2==0:
+    #     label += "A"
+    # else:
+    #     label += "B"
     ax.text(v.x, v.y, v.z, '%s' % (label), size=10, zorder=1 )
 # ax.scatter(xs_max, ys_max, zs_max, marker='o')
 

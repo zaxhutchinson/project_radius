@@ -5,7 +5,7 @@
 namespace zxlb {
 
     inline constexpr double MAJOR_VERSION {0.0};
-    inline constexpr double MINOR_VERSION {0.14};
+    inline constexpr double MINOR_VERSION {0.15};
 
     /* NEURON_SPIKE_TIME_WINDOW
         Determines how long spikes are saved and continue to affect neuronal
@@ -22,17 +22,22 @@ namespace zxlb {
     inline constexpr int64_t NEURON_SPIKE_TIME_WINDOW { 30 };
 
 
-    inline constexpr double PRE_SELF_FORCE_TIME_WINDOW { 100.0 };
-    inline constexpr double PRE_OTHER_FORCE_TIME_WINDOW { 100.0 };
+    inline constexpr double PRE_SELF_FORCE_TIME_WINDOW { 10.0 };
+    inline constexpr double PRE_OTHER_FORCE_TIME_WINDOW { 10.0 };
 
-    inline constexpr double POST_SYNAPSE_FORCE_TIME_WINDOW { 100.0 }; // UNUSED
-    inline constexpr double POST_SOMA_FORCE_TIME_WINDOW { 100.0 };
+    inline constexpr double POST_SYNAPSE_FORCE_TIME_WINDOW { 10.0 }; // UNUSED
+    inline constexpr double POST_SOMA_FORCE_TIME_WINDOW { 10.0 };
 
-    inline constexpr double LEARNING_TIME_WINDOW { 30.0 };
+    // inline constexpr double LEARNING_TIME_WINDOW { 100.0 };
+    inline constexpr double LEARNING_WINDOW_SYN_STRENGTH {10.0};
 
     inline constexpr double MAX_RADIUS {100.0};
 
-    inline constexpr double LEARNING_RATE {0.01};
+    // inline constexpr double RADIUS_TIME_DIFF_SCALAR {1000.0/MAX_RADIUS};
+
+    inline constexpr double PRE_LEARNING_RATE {0.001};
+    inline constexpr double POST_LEARNING_RATE {0.001};
+    inline constexpr double SYN_STRENGTH_LEARNING_RATE {0.001};
 
     /* BF: Balancing Factor
         Used in the calculation of dendritic path lengths. Part of the
@@ -42,4 +47,25 @@ namespace zxlb {
         synapse has on calculating distance for Prim's Algorithm.
     */
     inline constexpr double BF = 0.5;
+
+    /* MAX_COMPARTMENT_LENGTH
+        Used to determine where compartments begin and end.
+    */
+    inline constexpr double MAX_COMPARTMENT_LENGTH = 5*MAX_RADIUS;
+
+
+    inline constexpr double COMPARTMENT_OUT_EXPONENT = 1.0;
+
+    /* DENDRITE SIGNAL WEIGHT
+        Signals moving down the dendrite are clamped to [-1,1].
+        This values scales the signal as it enters the soma to boost it
+        to a level able to elicit a spike.
+    */
+    inline constexpr double DENDRITE_SIGNAL_WEIGHT = 200.0;
+
+
+
+    inline constexpr double CORRECT_EXPECTED = 1.0;
+    inline constexpr double INCORRECT_EXPECTED = -1.0;
+    inline constexpr int64_t TASK_DURATION = 1000;
 };

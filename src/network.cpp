@@ -135,6 +135,11 @@ void Network::InitWriteData() {
     }
 }
 
+void Network::InitDendrites() {
+    for(sizet i = 0; i < layers.size(); i++) {
+        layers[i].InitDendrites();
+    }
+}
 void Network::RebuildDendrites() {
     for(sizet i = 0; i < layers.size(); i++) {
         layers[i].RebuildDendrites();

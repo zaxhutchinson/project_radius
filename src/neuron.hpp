@@ -12,6 +12,11 @@
 #include"synapse.hpp"
 #include"neuron_type.hpp"
 
+enum class InputMethod {
+    Simple,
+    Full
+};
+
 struct Neuron {
     i64 id;
     i64 layer_id;
@@ -37,6 +42,7 @@ struct Neuron {
     bool just_spiked;
     double output;
     double input;
+    std::function<void(i64)> get_input;
 
     Neuron();
     Neuron(
@@ -65,19 +71,23 @@ struct Neuron {
     // void PresynapticSignal(i64 time, i64 synapse_id, double signal, bool pre_spike);
     void PresynapticSpike(i64 time, i64 synapse_id, ConnectionMatrix & cm);
     void PostsynapticSignal(i64 time, ConnectionMatrix & cm);
-    void bAP(i64 time, i64 synapse_id, double amt);
+    void bAP(i64 time, double signal, bool train_str);
    
-    bool Update(i64 time, Writer * writer, i64 layer_id, ConnectionMatrix & cm);
+    bool Update(i64 time, Writer * writer, i64 layer_id, ConnectionMatrix & cm, bool train_str, bool train_ang);
     void InitWriteData();
     void ResetWriteData();
     void SaveData(i64 time, ConnectionMatrix & cm);
     void WriteData(Writer * writer);
     void CleanupData(Writer * writer);
 
+    void InitDendrites();
     void BuildDendrite();
+    void BuildCompartments();
     void BuildDendriteParallel();
 
     void PrintDendrite();
+
+    void SetInputMethod(InputMethod im);
 
 private:
      /* GetInput:
@@ -86,6 +96,8 @@ private:
         to each other.
     */
     void GetInput(i64 time);
+    void GetInput2(i64 time);
+    void GetInput_Old(i64 time);
     void GetInputSimple(i64 time);
 
 };

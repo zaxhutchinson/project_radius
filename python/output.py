@@ -33,6 +33,7 @@ class Synapse:
         self.errors = []
         self.parents = []
         self.children = []
+        self.compartments = []
 
     def AddTimes(self, times):
         self.times.append(times)
@@ -54,6 +55,8 @@ class Synapse:
         self.parents.append(pids)
     def AddChildren(self, cids):
         self.children.append(cids)
+    def AddCompartment(self, cids):
+        self.compartments.append(cids)
 
 class Neuron:
     def __init__(
@@ -130,11 +133,12 @@ class Output:
         # Load all the example data
         for efn in self.example_filenames:
             with open(self.path+efn, 'r') as f:
-                line = f.readline().strip().split()
-                iteration = int(line[0])
-                example = int(line[1])
-                info = line[2]
-                self.examples.append(Example(iteration, example, info))
+                for line in f:
+                    line = line.strip().split()
+                    iteration = int(line[0])
+                    example = int(line[1])
+                    info = line[2]
+                    self.examples.append(Example(iteration, example, info))
 
         # Load all neuron data
         for nfn in self.neuron_filenames:
@@ -218,6 +222,7 @@ class Output:
                     err_data = f.readline().strip().split()[1:]
                     pid_data = f.readline().strip().split()[1:]
                     cid_data_pre = f.readline().strip().split()[1:]
+                    comp_data = f.readline().strip().split()[1:]
                     
 
                     for i in range(len(time_data)):
@@ -230,6 +235,7 @@ class Output:
                         in_data[i] = float(in_data[i])
                         err_data[i] = float(err_data[i])
                         pid_data[i] = int(pid_data[i])
+                        comp_data[i] = int(comp_data[i])
 
                     cid_data = []
                     for cids in cid_data_pre:
@@ -250,6 +256,7 @@ class Output:
                     synapse.AddErrors(err_data)
                     synapse.AddParents(pid_data)
                     synapse.AddChildren(cid_data)
+                    synapse.AddCompartment(comp_data)
 
                     name = str(synapse.layer_id)+" "+str(synapse.neuron_id)+" "+str(synapse.synapse_id)
 

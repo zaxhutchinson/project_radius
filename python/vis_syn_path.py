@@ -6,10 +6,13 @@ import numpy as np
 import output
 import defs
 
-out = output.Output(defs.OUTPUT_PATH)
+
 
 NEURON_ID = 0
 LAYER_ID = 1
+SYN_IDS = list(range(34))
+
+out = output.Output(defs.OUTPUT_PATH, sid=SYN_IDS, nid=NEURON_ID, lid=LAYER_ID)
 
 colors = []
 
@@ -18,7 +21,8 @@ colors = []
 # colors = ['purple']*10+['blue']*45+['red']*45
 
 #004B
-# SYN_IDS = list(range(0,40))
+# SYN_IDS = [6,9,11]
+# SYN_IDS = list(range(40))
 
 #004C
 # SYN_IDS = list(range(0,35))
@@ -32,7 +36,13 @@ colors = []
 # SYN_IDS = list(range(0,13))
 
 #MNIST
-SYN_IDS = [3]
+# SYN_IDS = [3]
+
+#LINES VERT
+# SYN_IDS = list(range(10,15))
+# SYN_IDS = list(range(25))
+# SYN_IDS = [0,5,10,15,20]
+# SYN_IDS = [1,2,3,4,19]
 
 xs = {}
 ys = {}
@@ -57,16 +67,19 @@ for sid in SYN_IDS:
     ys[sid] = []
     zs[sid] = []
 
+
     # Use this to see the final movements
-    #for i in range(len(syn.lats)-5,len(syn.lats)):
+    #for i in range(len(syn.lats)-1000,len(syn.lats)):
     for i in range(len(syn.lats)):
+
+
 
         lat = syn.lats[i][-1]
         lon = syn.lons[i][-1]
         rad = syn.rads[i][-1]
         pid = syn.parents[i][-1]
 
-        print(lon)
+        # print(lon)
 
         x = rad * math.cos(lat) * math.cos(lon)
         y = rad * math.cos(lat) * math.sin(lon)

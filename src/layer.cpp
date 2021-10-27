@@ -6,6 +6,9 @@ Layer::Layer() {
     is_input = false;
     is_output = false;
     input_generator = nullptr;
+    train_ang = false;
+    train_rad = false;
+    train_str = false;
 }
 
 void Layer::Reset() {
@@ -63,6 +66,12 @@ i64 Layer::GetLayerSize() {
     return static_cast<i64>(neurons.size());
 }
 
+void Layer::SetTraining(bool rad, bool ang, bool str) {
+    train_rad=rad;
+    train_ang=ang;
+    train_str=str;
+}
+
 void Layer::AddInputGenerator(InputGenerator * ig) {
     // std::cout << dynamic_cast<InputGenerator_Poisson*>(ig)->id << std::endl;
     input_generator = ig;
@@ -84,19 +93,24 @@ Neuron * Layer::GetNeuron(i64 index) {
 }
 
 void Layer::Update(i64 time, Writer * writer, ConnectionMatrix & cm, RNG & rng) {
+    sizet i=0;
     if(input_generator != nullptr) {
         //#pragma omp parallel for
-        for(sizet i = 0; i < neurons.size(); i++) {
+        for(sizet j = 0; j < neuron_indexes.size(); j++) {
+            i = neuron_indexes[j];
             neurons[i].SetRawInput(input_generator->GetInput(i, time, rng));
-            if(neurons[i].Update(time, writer, id, cm)) {
-                //neurons[i].PostsynapticSignal(time, cm);
+            if(neurons[i].Update(time, writer, id, cm, train_str, train_ang)) {
+                if(train_rad) neurons[i].PostsynapticSignal(time, cm);
+                neurons[i].bAP(time,1.0, train_str);
             }
         }
     } else {
         // #pragma omp parallel for
-        for(sizet i = 0; i < neurons.size(); i++) {
-            if(neurons[i].Update(time, writer, id, cm)) {
-                //neurons[i].PostsynapticSignal(time, cm);
+        for(sizet j = 0; j < neuron_indexes.size(); j++) {
+            i = neuron_indexes[j];
+            if(neurons[i].Update(time, writer, id, cm, train_str, train_ang)) {
+                if(train_rad) neurons[i].PostsynapticSignal(time, cm);
+                neurons[i].bAP(time,1.0, train_str);
             }
         }
     }
@@ -114,7 +128,12 @@ void Layer::SetInputs(vec<double> & inputs) {
         }
     }
 }
-
+void Layer::InitDendrites() {
+    #pragma omp parallel for
+    for(sizet i = 0; i < neurons.size(); i++) {
+        neurons[i].InitDendrites();
+    }
+}
 void Layer::RebuildDendrites() {
     #pragma omp parallel for
     for(sizet i = 0; i < neurons.size(); i++) {

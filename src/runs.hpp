@@ -130,3 +130,27 @@ void RunExpBeacon(
     Network * network,
     RNG & rng
 );
+
+
+
+/******************************************************************************
+ * Lines Vert
+ * This experiment will test whether an AD neuron can detect horizontal lines
+ * versus vertical lines.
+ *****************************************************************************/
+void RunLinesVert(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+);
+
+
+/******************************************************************************
+ * XOR
+ * This experiment will test whether an AD neuron can learn a simple XOR.
+ *****************************************************************************/
+void RunXOR(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+);

@@ -43,9 +43,9 @@ void RunMNIST(
 
     //-------------------------------------------------------------------------
     // Build the rates vector. Default to incorrect rates.
-    vec<double> rates = {config::CORRECT_EXPECTED};
+    vec<double> rates = {zxlb::CORRECT_EXPECTED};
     // for(sizet i = 0; i < 10; i++) {
-    //     rates.push_back(config::INCORRECT_EXPECTED);
+    //     rates.push_back(zxlb::INCORRECT_EXPECTED);
     // }
 
     //-------------------------------------------------------------------------
@@ -70,7 +70,7 @@ void RunMNIST(
             input_layer->AddInputGenerator(ig.get());
 
 
-            rates[0] = config::CORRECT_EXPECTED;
+            rates[0] = zxlb::CORRECT_EXPECTED;
 
 
             network->UpdateLayerErrorValues(
@@ -92,7 +92,7 @@ void RunMNIST(
 
             if(k%mask_interval==0) {
                 input_layer->AddInputGenerator(ig_mask.get());
-                rates[0] = config::INCORRECT_EXPECTED;
+                rates[0] = zxlb::INCORRECT_EXPECTED;
                 network->UpdateLayerErrorValues(
                     rates, output_layer_index
                 );
@@ -159,7 +159,7 @@ void RunPattern001(
     // Build the rates vector. Default to incorrect rates.
     vec<double> rates;
     for(sizet i = 0; i < labels.size(); i++) {
-        rates.push_back(config::INCORRECT_EXPECTED);
+        rates.push_back(zxlb::INCORRECT_EXPECTED);
     }
 
     //-------------------------------------------------------------------------
@@ -182,9 +182,9 @@ void RunPattern001(
 
             // Update the error rates before and after swapping
             // to the new correct choice
-            rates[correct_choice] = config::INCORRECT_EXPECTED;
+            rates[correct_choice] = zxlb::INCORRECT_EXPECTED;
             correct_choice = labels_with_indexes[d.label]; // look up neuron index.
-            rates[correct_choice] = config::CORRECT_EXPECTED;
+            rates[correct_choice] = zxlb::CORRECT_EXPECTED;
 
 
             network->UpdateLayerErrorValues(
@@ -285,7 +285,7 @@ void RunPoisson000(
     //-------------------------------------------------------------------------
     // Build the rates vector. Default to incorrect rates.
     vec<double> rates = {
-        config::INCORRECT_EXPECTED
+        zxlb::INCORRECT_EXPECTED
     };
     vec<sizet> patterns = {0, 1, 2, 2};
 
@@ -308,13 +308,13 @@ void RunPoisson000(
 
             if(pattern==0) {
                 input_layer->AddInputGenerator(ig1.get());
-                rates[0] = config::CORRECT_EXPECTED;
+                rates[0] = zxlb::CORRECT_EXPECTED;
             } else if(pattern==1) {
                 input_layer->AddInputGenerator(ig2.get());
-                rates[1] = config::CORRECT_EXPECTED;
+                rates[1] = zxlb::CORRECT_EXPECTED;
             } else if(pattern==2) {
                 input_layer->AddInputGenerator(ig3.get());
-                rates[1] = config::INCORRECT_EXPECTED;
+                rates[1] = zxlb::INCORRECT_EXPECTED;
             }
 
 
@@ -409,8 +409,8 @@ void RunPoisson001(
     //-------------------------------------------------------------------------
     // Build the rates vector. Default to incorrect rates.
     vec<double> rates = {
-        config::INCORRECT_EXPECTED, 
-        config::INCORRECT_EXPECTED
+        zxlb::INCORRECT_EXPECTED, 
+        zxlb::INCORRECT_EXPECTED
     };
     vec<sizet> patterns = {0, 1};
 
@@ -433,12 +433,12 @@ void RunPoisson001(
 
             if(pattern==0) {
                 input_layer->AddInputGenerator(ig1.get());
-                rates[0] = config::CORRECT_EXPECTED;
-                rates[1] = config::INCORRECT_EXPECTED;
+                rates[0] = zxlb::CORRECT_EXPECTED;
+                rates[1] = zxlb::INCORRECT_EXPECTED;
             } else if(pattern==1) {
                 input_layer->AddInputGenerator(ig2.get());
-                rates[0] = config::INCORRECT_EXPECTED;
-                rates[1] = config::CORRECT_EXPECTED;
+                rates[0] = zxlb::INCORRECT_EXPECTED;
+                rates[1] = zxlb::CORRECT_EXPECTED;
             }
 
 
@@ -550,7 +550,7 @@ void RunPoisson002(
     // Size of the rate vector is equal to the number of
     // output neurons.
     vec<double> rates = {
-        config::INCORRECT_EXPECTED
+        zxlb::INCORRECT_EXPECTED
     };
     
 
@@ -572,13 +572,13 @@ void RunPoisson002(
 
             if(pattern==0) {
                 input_layer->AddInputGenerator(ig1.get());
-                rates[0] = config::CORRECT_EXPECTED;
+                rates[0] = zxlb::CORRECT_EXPECTED;
             } else if(pattern==1) {
                 input_layer->AddInputGenerator(ig2.get());
-                rates[0] = config::CORRECT_EXPECTED;
+                rates[0] = zxlb::CORRECT_EXPECTED;
             } else if(pattern==2) {
                 input_layer->AddInputGenerator(ig3.get());
-                rates[0] = config::INCORRECT_EXPECTED;
+                rates[0] = zxlb::INCORRECT_EXPECTED;
             }
 
 
@@ -685,7 +685,7 @@ void RunPoisson003(
     // Size of the rate vector is equal to the number of
     // output neurons.
     vec<double> rates = {
-        config::INCORRECT_EXPECTED
+        zxlb::INCORRECT_EXPECTED
     };
     
 
@@ -708,13 +708,13 @@ void RunPoisson003(
 
             if(pattern==0) {
                 input_layer->AddInputGenerator(ig1.get());
-                rates[0] = config::CORRECT_EXPECTED;
+                rates[0] = zxlb::CORRECT_EXPECTED;
             } else if(pattern==1) {
                 input_layer->AddInputGenerator(ig2.get());
-                rates[0] = config::CORRECT_EXPECTED;
+                rates[0] = zxlb::CORRECT_EXPECTED;
             } else if(pattern==2) {
                 input_layer->AddInputGenerator(ig3.get());
-                rates[0] = config::INCORRECT_EXPECTED;
+                rates[0] = zxlb::INCORRECT_EXPECTED;
             }
 
 
@@ -851,7 +851,7 @@ void RunPoisson004(
     // Size of the rate vector is equal to the number of
     // output neurons.
     vec<double> rates = {
-        config::INCORRECT_EXPECTED
+        zxlb::INCORRECT_EXPECTED
     };
     
 
@@ -876,25 +876,25 @@ void RunPoisson004(
             //std::cout << "/== Iteration " << i << "  Pattern2 " << pattern << " ==============================//\n";
 
                 // input_layer->AddInputGenerator(ig5.get());
-                // rates[0] = config::INCORRECT_EXPECTED;
+                // rates[0] = zxlb::INCORRECT_EXPECTED;
 
 
 
             if(pattern==0) {
                 input_layer->AddInputGenerator(ig1.get());
-                rates[0] = config::CORRECT_EXPECTED;
+                rates[0] = zxlb::CORRECT_EXPECTED;
             } else if(pattern==1) {
                 input_layer->AddInputGenerator(ig2.get());
-                rates[0] = config::CORRECT_EXPECTED;
+                rates[0] = zxlb::CORRECT_EXPECTED;
             } else if(pattern==2) {
                 input_layer->AddInputGenerator(ig3.get());
-                rates[0] = config::CORRECT_EXPECTED;
+                rates[0] = zxlb::CORRECT_EXPECTED;
             } else if(pattern==3) {
                 input_layer->AddInputGenerator(ig4.get());
-                rates[0] = config::CORRECT_EXPECTED;
+                rates[0] = zxlb::CORRECT_EXPECTED;
             } else if(pattern==4) {
                 input_layer->AddInputGenerator(ig5.get());
-                rates[0] = config::INCORRECT_EXPECTED;
+                rates[0] = zxlb::INCORRECT_EXPECTED;
             }
 
 
@@ -970,7 +970,7 @@ void RunPoisson004_B(
     // Label, Index of output neuron
     vec<sizet> patterns = {0, 1, 2, 3, 4};
 
-    sizet num_iterations = 16000;
+    sizet num_iterations = 2000;
     sizet iteration_size = patterns.size();
     i64 time_per_example = 1000;
     i64 output_layer_index = network->GetOutputLayerIndex();
@@ -982,7 +982,12 @@ void RunPoisson004_B(
     uptr<InputGenerator_Poisson> ig4 = std::make_unique<InputGenerator_Poisson>();
     uptr<InputGenerator_Poisson> ig5 = std::make_unique<InputGenerator_Poisson>();
     Layer * input_layer = network->GetLayer(network->GetInputLayerIndex());
+    Layer * output_layer = network->GetLayer(network->GetOutputLayerIndex());
     i64 input_layer_size = input_layer->GetLayerSize();
+
+    double RATE_ON = 0.01;
+    double RATE_OFF = 0.001;
+    double RATE_MASK = 0.005;
     
     for(i64 i = 0; i < input_layer_size; i++) {
 
@@ -1015,30 +1020,30 @@ void RunPoisson004_B(
         ig5->dist = std::uniform_real_distribution<double>(0.0,1.0);
         ig5->strength.push_back(500.0);
         ig5->signal.push_back(0.0);
-        ig5->rate.push_back(0.05);
+        ig5->rate.push_back(RATE_MASK);
 
         if(i==39 || i <=10) {
-            ig1->rate.push_back(0.1);
+            ig1->rate.push_back(RATE_ON);
         } else {
-            ig1->rate.push_back(0.01);
+            ig1->rate.push_back(RATE_OFF);
         }
         
         if(i>=9 && i<=20) {
-            ig2->rate.push_back(0.1);
+            ig2->rate.push_back(RATE_ON);
         } else {
-            ig2->rate.push_back(0.01);
+            ig2->rate.push_back(RATE_OFF);
         }
 
         if(i>=19 && i<=30) {
-            ig3->rate.push_back(0.1);
+            ig3->rate.push_back(RATE_ON);
         } else {
-            ig3->rate.push_back(0.01);
+            ig3->rate.push_back(RATE_OFF);
         }
 
         if(i==0 || (i>=29 && i<40)) {
-            ig4->rate.push_back(0.1);
+            ig4->rate.push_back(RATE_ON);
         } else {
-            ig4->rate.push_back(0.01);
+            ig4->rate.push_back(RATE_OFF);
         }
     }
 
@@ -1047,24 +1052,24 @@ void RunPoisson004_B(
     // Size of the rate vector is equal to the number of
     // output neurons.
     vec<double> rates = {
-        config::INCORRECT_EXPECTED
+        zxlb::INCORRECT_EXPECTED
     };
     
 
     //-------------------------------------------------------------------------
     // Start the run
-    network->RebuildDendrites();
+    
 
     writer->StartRecording();
     
     for(sizet i = 0; i < num_iterations; i++) {
-        std::cout << i << "\r" << std::flush;
-        zxlog::Debug("Iteration " + std::to_string(i));
 
         std::shuffle(patterns.begin(), patterns.end(), rng);
 
+        network->RebuildDendrites();
+
         for(sizet k = 0; k < iteration_size; k++) {
-            zxlog::Debug("   Image " + std::to_string(k));
+            std::cout << i << " " << k << "\r" << std::flush;
 
             // Get the image
             sizet pattern = patterns[k];
@@ -1072,25 +1077,30 @@ void RunPoisson004_B(
             //std::cout << "/== Iteration " << i << "  Pattern2 " << pattern << " ==============================//\n";
 
                 // input_layer->AddInputGenerator(ig5.get());
-                // rates[0] = config::INCORRECT_EXPECTED;
+                // rates[0] = zxlb::INCORRECT_EXPECTED;
 
 
 
             if(pattern==0) {
                 input_layer->AddInputGenerator(ig1.get());
-                rates[0] = config::CORRECT_EXPECTED;
+                output_layer->SetTraining(true,true,true);
+                rates[0] = zxlb::CORRECT_EXPECTED;
             } else if(pattern==1) {
                 input_layer->AddInputGenerator(ig2.get());
-                rates[0] = config::CORRECT_EXPECTED;
+                output_layer->SetTraining(true,true,true);
+                rates[0] = zxlb::CORRECT_EXPECTED;
             } else if(pattern==2) {
                 input_layer->AddInputGenerator(ig3.get());
-                rates[0] = config::CORRECT_EXPECTED;
+                output_layer->SetTraining(true,true,true);
+                rates[0] = zxlb::CORRECT_EXPECTED;
             } else if(pattern==3) {
                 input_layer->AddInputGenerator(ig4.get());
-                rates[0] = config::CORRECT_EXPECTED;
+                output_layer->SetTraining(true,true,true);
+                rates[0] = zxlb::CORRECT_EXPECTED;
             } else if(pattern==4) {
                 input_layer->AddInputGenerator(ig5.get());
-                rates[0] = config::INCORRECT_EXPECTED;
+                output_layer->SetTraining(false,true,false);
+                rates[0] = zxlb::INCORRECT_EXPECTED;
             }
 
 
@@ -1126,19 +1136,11 @@ void RunPoisson004_B(
 
             vec<double> error_rates = network->GetErrorRates(output_layer_index);
             
-            // for(sizet m = 0; m < error_rates.size(); m++) {
-            //     std::cout << m << ":" << error_rates[m] << std::endl;
-            // }
-            
             writer->AddExampleData(std::make_unique<ExampleData>(i, k, std::to_string(pattern)));
-
-            // network->SaveData(time);
-            // network->WriteData(writer);
 
             network->Reset();
             
         }
-        network->RebuildDendrites();
         network->SaveData(-1);
         network->WriteData(writer);
         
@@ -1293,7 +1295,7 @@ void RunPoisson004_C(
     // Size of the rate vector is equal to the number of
     // output neurons.
     vec<double> rates = {
-        config::INCORRECT_EXPECTED
+        zxlb::INCORRECT_EXPECTED
     };
     
 
@@ -1318,34 +1320,34 @@ void RunPoisson004_C(
             //std::cout << "/== Iteration " << i << "  Pattern2 " << pattern << " ==============================//\n";
 
                 // input_layer->AddInputGenerator(ig5.get());
-                // rates[0] = config::INCORRECT_EXPECTED;
+                // rates[0] = zxlb::INCORRECT_EXPECTED;
 
 
 
             if(pattern==0) {
                 input_layer->AddInputGenerator(ig1.get());
-                rates[0] = config::CORRECT_EXPECTED;
+                rates[0] = zxlb::CORRECT_EXPECTED;
             } else if(pattern==1) {
                 input_layer->AddInputGenerator(ig2.get());
-                rates[0] = config::CORRECT_EXPECTED;
+                rates[0] = zxlb::CORRECT_EXPECTED;
             } else if(pattern==2) {
                 input_layer->AddInputGenerator(ig3.get());
-                rates[0] = config::CORRECT_EXPECTED;
+                rates[0] = zxlb::CORRECT_EXPECTED;
             } else if(pattern==3) {
                 input_layer->AddInputGenerator(ig4.get());
-                rates[0] = config::CORRECT_EXPECTED;
+                rates[0] = zxlb::CORRECT_EXPECTED;
             } else if(pattern==4) {
                 input_layer->AddInputGenerator(ig5.get());
-                rates[0] = config::CORRECT_EXPECTED;
+                rates[0] = zxlb::CORRECT_EXPECTED;
             } else if(pattern==5) {
                 input_layer->AddInputGenerator(ig6.get());
-                rates[0] = config::CORRECT_EXPECTED;
+                rates[0] = zxlb::CORRECT_EXPECTED;
             } else if(pattern==6) {
                 input_layer->AddInputGenerator(ig7.get());
-                rates[0] = config::CORRECT_EXPECTED;
+                rates[0] = zxlb::CORRECT_EXPECTED;
             } else if(pattern==7) {
                 input_layer->AddInputGenerator(ig8.get());
-                rates[0] = config::INCORRECT_EXPECTED;
+                rates[0] = zxlb::INCORRECT_EXPECTED;
             }
 
 
@@ -1514,7 +1516,7 @@ void RunPoisson004_D(
     // Size of the rate vector is equal to the number of
     // output neurons.
     vec<double> rates = {
-        config::INCORRECT_EXPECTED
+        zxlb::INCORRECT_EXPECTED
     };
     
 
@@ -1539,25 +1541,25 @@ void RunPoisson004_D(
             //std::cout << "/== Iteration " << i << "  Pattern2 " << pattern << " ==============================//\n";
 
                 // input_layer->AddInputGenerator(ig5.get());
-                // rates[0] = config::INCORRECT_EXPECTED;
+                // rates[0] = zxlb::INCORRECT_EXPECTED;
 
 
 
             if(pattern==0) {
                 input_layer->AddInputGenerator(ig1.get());
-                rates[0] = config::CORRECT_EXPECTED;
+                rates[0] = zxlb::CORRECT_EXPECTED;
             } else if(pattern==1) {
                 input_layer->AddInputGenerator(ig2.get());
-                rates[0] = config::CORRECT_EXPECTED;
+                rates[0] = zxlb::CORRECT_EXPECTED;
             } else if(pattern==2) {
                 input_layer->AddInputGenerator(ig3.get());
-                rates[0] = config::CORRECT_EXPECTED;
+                rates[0] = zxlb::CORRECT_EXPECTED;
             } else if(pattern==3) {
                 input_layer->AddInputGenerator(ig4.get());
-                rates[0] = config::CORRECT_EXPECTED;
+                rates[0] = zxlb::CORRECT_EXPECTED;
             } else if(pattern==4) {
                 input_layer->AddInputGenerator(ig5.get());
-                rates[0] = config::INCORRECT_EXPECTED;
+                rates[0] = zxlb::INCORRECT_EXPECTED;
             }
 
 
@@ -1656,7 +1658,7 @@ void RunExpBeacon(
     // Size of the rate vector is equal to the number of
     // output neurons.
     vec<double> rates = {
-        config::INCORRECT_EXPECTED
+        zxlb::INCORRECT_EXPECTED
     };
     //-------------------------------------------------------------------------
     // Start the run
@@ -1688,7 +1690,7 @@ void RunExpBeacon(
             network->SetInputs(entry->beacons);
 
             // Set the rate to correct
-            rates[0] = config::CORRECT_EXPECTED;
+            rates[0] = zxlb::CORRECT_EXPECTED;
 
             network->UpdateLayerErrorValues(
                 rates, output_layer_index
@@ -1709,7 +1711,7 @@ void RunExpBeacon(
             if(k%mask_interval==0) {
                 network->SetInputs(zero_inputs);
                 input_layer->AddInputGenerator(ig.get());
-                rates[0] = config::INCORRECT_EXPECTED;
+                rates[0] = zxlb::INCORRECT_EXPECTED;
                 network->UpdateLayerErrorValues(
                     rates, output_layer_index
                 );
@@ -1739,6 +1741,273 @@ void RunExpBeacon(
         network->SaveData(-1);
         network->WriteData(writer);
         
+    }
+
+    network->CleanUpData(writer);
+
+    writer->StopRecording();
+
+}
+
+/*****************************************************************************
+ * LINES VERT
+ ****************************************************************************/
+
+void RunLinesVert(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+) {
+    vec<sizet> patterns = {
+        0,1,2,3,4,5,6,7,8,9
+    };
+    umap<sizet,vec<sizet>> inputs_by_pattern = {
+        {0, vec<sizet>({0,1,2,3,4})},
+        {1, vec<sizet>({5,6,7,8,9})},
+        {2, vec<sizet>({10,11,12,13,14})},
+        {3, vec<sizet>({15,16,17,18,19})},
+        {4, vec<sizet>({20,21,22,23,24})},
+        {5, vec<sizet>({0,5,10,15,20})},
+        {6, vec<sizet>({1,6,11,16,21})},
+        {7, vec<sizet>({2,7,12,17,22})},
+        {8, vec<sizet>({3,8,13,18,23})},
+        {9, vec<sizet>({4,9,14,19,24})}
+    };
+    sizet num_iterations = 10000;
+    sizet iteration_size = patterns.size();
+    i64 time_per_example = 1000;
+    i64 output_layer_index = network->GetOutputLayerIndex();
+    Layer * input_layer = network->GetLayer(network->GetInputLayerIndex());
+    Layer * output_layer = network->GetLayer(network->GetOutputLayerIndex());
+    i64 input_layer_size = input_layer->GetLayerSize();
+
+    Neuron * output_neuron = output_layer->GetNeuron(0);
+    //output_neuron->SetInputMethod(InputMethod::Simple);
+    sizet input_method_switch_to_full = 0;
+    sizet start_iteration_rebuild_dendrites = 0;
+
+    double RATE_ON = 0.1;
+    double RATE_OFF = 0.0;
+
+    vuptr<InputGenerator_Poisson> igens;
+
+    for(sizet i = 0; i < patterns.size(); i++) {
+        uptr<InputGenerator_Poisson> ig = std::make_unique<InputGenerator_Poisson>();
+        ig->id = std::to_string(i);
+        ig->dist=std::uniform_real_distribution<double>(0.0,1.0);
+        for(i64 k = 0; k < input_layer_size; k++) {
+            ig->decay.push_back(std::exp(-1.0/10.0));
+            ig->strength.push_back(500.0);
+            ig->signal.push_back(0.0);
+            ig->rate.push_back(RATE_OFF);
+        }
+        igens.emplace_back(std::move(ig));
+    }
+    for(sizet i = 0; i < patterns.size(); i++) {
+        for(sizet k = 0; k < inputs_by_pattern[i].size(); k++) {
+                igens[i]->rate[inputs_by_pattern[i][k]] = RATE_ON;
+                //std::cout << i << " " << inputs_by_pattern[i][k] << " ON.\n";
+        }
+    }
+    vec<double> rates_by_pattern = {
+        zxlb::CORRECT_EXPECTED,
+        zxlb::CORRECT_EXPECTED,
+        zxlb::CORRECT_EXPECTED,
+        zxlb::CORRECT_EXPECTED,
+        zxlb::CORRECT_EXPECTED,
+        zxlb::INCORRECT_EXPECTED,
+        zxlb::INCORRECT_EXPECTED,
+        zxlb::INCORRECT_EXPECTED,
+        zxlb::INCORRECT_EXPECTED,
+        zxlb::INCORRECT_EXPECTED,
+    };
+    vec<double> rate = {zxlb::INCORRECT_EXPECTED};
+
+    writer->StartRecording();
+
+    // Build the dendrites the first time.
+    network->InitDendrites();
+
+    for(sizet i = 0; i < num_iterations; i++) {
+        std::cout << i << "\r" << std::flush;
+
+        network->RandomizeOrder(rng);
+
+        if(i==input_method_switch_to_full) {
+            output_neuron->SetInputMethod(
+                InputMethod::Full
+            );
+        }
+
+        std::shuffle(patterns.begin(), patterns.end(), rng);
+
+        if(i >= start_iteration_rebuild_dendrites) {
+            network->RebuildDendrites();
+        }
+
+        for(sizet k = 0; k < iteration_size; k++) {
+            sizet pattern = patterns[k];
+
+            input_layer->AddInputGenerator(igens[pattern].get());
+            output_layer->SetTraining(true,true,true);
+            rate[0] = rates_by_pattern[pattern];
+            network->UpdateLayerErrorValues(
+                rate, output_layer_index
+            );
+
+            i64 time = 1;
+            for(; time <= time_per_example; time++) {
+                network->Update(
+                    time,
+                    writer,
+                    rng
+                );
+            }
+
+            igens[pattern]->Reset();
+
+            writer->AddExampleData(std::make_unique<ExampleData>(i,k,std::to_string(pattern)));
+            network->SaveData(-1);
+            network->WriteData(writer);
+            network->Reset();
+        }
+
+        
+        
+
+    }
+
+    network->CleanUpData(writer);
+
+    writer->StopRecording();
+}
+
+
+
+/*****************************************************************************
+ * XOR
+ ****************************************************************************/
+
+void RunXOR(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+) {
+    vec<sizet> patterns = {
+        0,1,2
+    };
+    umap<sizet,vec<sizet>> inputs_by_pattern = {
+        {0, vec<sizet>({0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15})},
+        {1, vec<sizet>({16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31})},
+        {2, vec<sizet>({0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31})}
+    };
+    sizet num_iterations = 20000;
+    sizet iteration_size = patterns.size();
+    i64 time_per_example = 1000;
+    i64 output_layer_index = network->GetOutputLayerIndex();
+    Layer * input_layer = network->GetLayer(network->GetInputLayerIndex());
+    Layer * output_layer = network->GetLayer(network->GetOutputLayerIndex());
+    i64 input_layer_size = input_layer->GetLayerSize();
+
+    Neuron * output_neuron = output_layer->GetNeuron(0);
+    //output_neuron->SetInputMethod(InputMethod::Simple);
+    sizet input_method_switch_to_full = 0;
+    sizet start_iteration_rebuild_dendrites = 0;
+
+    sizet train_ang_start_it = 0;
+    sizet train_rad_start_it = 0;
+    sizet train_str_start_it = 100000000;
+    bool train_ang = false;
+    bool train_rad = false;
+    bool train_str = false;
+
+
+    double RATE_ON = 0.1;
+    double RATE_OFF = 0.0;
+
+    vuptr<InputGenerator_Poisson> igens;
+
+    for(sizet i = 0; i < patterns.size(); i++) {
+        uptr<InputGenerator_Poisson> ig = std::make_unique<InputGenerator_Poisson>();
+        ig->id = std::to_string(i);
+        ig->dist=std::uniform_real_distribution<double>(0.0,1.0);
+        for(i64 k = 0; k < input_layer_size; k++) {
+            ig->decay.push_back(std::exp(-1.0/10.0));
+            ig->strength.push_back(500.0);
+            ig->signal.push_back(0.0);
+            ig->rate.push_back(RATE_OFF);
+        }
+        igens.emplace_back(std::move(ig));
+    }
+    for(sizet i = 0; i < patterns.size(); i++) {
+        for(sizet k = 0; k < inputs_by_pattern[i].size(); k++) {
+                igens[i]->rate[inputs_by_pattern[i][k]] = RATE_ON;
+        }
+    }
+    vec<double> rates_by_pattern = {
+        zxlb::CORRECT_EXPECTED,
+        zxlb::CORRECT_EXPECTED,
+        zxlb::INCORRECT_EXPECTED,
+    };
+    vec<double> rate = {zxlb::INCORRECT_EXPECTED};
+
+    writer->StartRecording();
+
+    // Build the dendrites the first time.
+    network->InitDendrites();
+
+    for(sizet i = 0; i < num_iterations; i++) {
+        std::cout << i << "\r" << std::flush;
+
+        network->RandomizeOrder(rng);
+
+        if(i==input_method_switch_to_full) {
+            output_neuron->SetInputMethod(
+                InputMethod::Full
+            );
+        }
+
+        if(i >= train_ang_start_it) train_ang=true;
+        if(i >= train_rad_start_it) train_rad=true;
+        if(i >= train_str_start_it) train_str=true;
+        output_layer->SetTraining(train_rad, train_ang, train_str);
+
+        std::shuffle(patterns.begin(), patterns.end(), rng);
+
+        if(i >= start_iteration_rebuild_dendrites) {
+            network->RebuildDendrites();
+        }
+
+        for(sizet k = 0; k < iteration_size; k++) {
+            sizet pattern = patterns[k];
+
+            input_layer->AddInputGenerator(igens[pattern].get());
+            
+            rate[0] = rates_by_pattern[pattern];
+            network->UpdateLayerErrorValues(
+                rate, output_layer_index
+            );
+
+            i64 time = 1;
+            for(; time <= time_per_example; time++) {
+                network->Update(
+                    time,
+                    writer,
+                    rng
+                );
+            }
+
+            igens[pattern]->Reset();
+
+            writer->AddExampleData(std::make_unique<ExampleData>(i,k,std::to_string(pattern)));
+            network->SaveData(-1);
+            network->WriteData(writer);
+            network->Reset();
+        }
+
+        
+        
+
     }
 
     network->CleanUpData(writer);

@@ -1,3 +1,21 @@
+**GENERAL**
+* Randomizing neuron order within a layer removes the orbiting of synapses. They no longer chase each otehr.
+
+**Vert/Hor Lines Experiment**
+* Problematic. On the one hand, the neuron had to learn that horizontal lines are good and vertical ones are not. I can see this working if all synapses of a pattern move into one dendrite. This way the critical mass from one dendrite will drive the neuron. And when active inputs are spread across multiple dendrites (vert non-patterns), they cannot move the soma. But what happens is that most synapses cluster into separate dendrites. But not all do. And some get a late start...probably for initial value reasons. So they become the big negative allowing the system to learn. The result is that the neuron learns all the patterns but one, which has a strong negative weight. Not sure how to fix this one or if it was just a bad experiment idea.
+
+**Version 0.15 work**
+* The next step is to turn on radial and connectivity.
+* All aspects of the algorithm have been given an initial version. Radius and Angular Distance (spread) are unchanged from 0.14. The weight training underwent an overhaul but it remains, more or less, Hebbian. And compartments saw an initial implementation. Turned out to be pretty easy to embed into the BuildDendrite() method.
+* Compartments: This is a simplified version of the initial concept from the proposal. In that version compartments depended on a weighted distance. Tight clusters would tend to weigh the boundaries of compartments. This simpler version uses unweighted path lengths and a hard cut off max length. All connections from the soma are separate dendrites. The initial max length is 1/3 of the starting radius.
+* Starting with POIS004_B used in the paper...but with all things turned on.
+* From a 10,000 iteration run, the clustering looks much the same as the one from the paper. Clustering appears to be working. However, the strength changes are concerning. All synapses start at 100. The syns which are unique to the four patterns drop slightly at first and then rise slowly back to ~95 after 10,000 its. However, the shared synapses drop steadily. Finished under -1000. Furthermore, these syns are the initial connection points for the dendrite so input from the positive syns move through these strong negatives.
+* However, the output neuron still spikes at 25-30 hz although the shared syn strengths drop negative. Need to double check, but I believe this is because some of the positive stren syns are not connected through the shared.
+* Radius for the shared syns is shorter than the unique. Why is this? They all spike at the same rate. The only diff is that they appear twice as often. Is that enough? They should still coincide with a post-syn reponse with the same frequency.
+* Perhaps results would be easier to interpret if I used a precise spike pattern.
+* BREAKTHROUGH: I've discovered that certain pattern recognition abilities depend strongly on the magnitude of input strength to the input neurons. For a while I've had the input at 1000. Neurons spike strongly and regularly to even the sparsest spike. In the lines_vert experiment, this means that inputs distributed across compartments, in spite of the squashing, can muster strong input. I believe this is a form of saturation as compartmental transfer function output is near 1, no matter if there's one active synapse in a compartment or five. Reducing the input to 500 and then ultimately to 400 has increased accuracy dramatically. From ~52% to stretches of 100%.
+
+
 **Aug 15,2021**
 *Version 0.14 work*
 Using all:

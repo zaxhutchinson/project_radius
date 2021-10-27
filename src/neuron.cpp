@@ -17,6 +17,7 @@ Neuron::Neuron()
     just_spiked = false;
     output = 0.0;
     input = 0.0;
+    get_input = std::bind( &Neuron::GetInput,this, std::placeholders::_1);
 }
 
 Neuron::Neuron(
@@ -37,7 +38,8 @@ Neuron::Neuron(
     time_pre_spike = 0;
     just_spiked = false;
     output = 0.0;
-    input = 0.0;   
+    input = 0.0;
+    get_input = std::bind( &Neuron::GetInput,this, std::placeholders::_1);
 }
 
 void Neuron::Reset() {
@@ -93,6 +95,7 @@ i64 Neuron::AddSynapse(Synapse synapse) {
     synapse.record_data = record_data;
     synapse.record_data_size = record_data_size;
     synapse.record_interval = record_interval;
+    synapse.compartment = synapse_id;
     synapses.push_back(std::move(synapse));
     return synapse_id;
 }
@@ -117,6 +120,8 @@ void Neuron::SetRawInput(double amt) {
 
 void Neuron::PresynapticSpike(i64 time, i64 synapse_id, ConnectionMatrix & cm) {
 
+    
+
     VecS direction = synapses[synapse_id].location;
     double partial_force = 0.0;
     double error = synapses[synapse_id].GetError();
@@ -129,7 +134,7 @@ void Neuron::PresynapticSpike(i64 time, i64 synapse_id, ConnectionMatrix & cm) {
         (time_diff_self+zxlb::PRE_SELF_FORCE_TIME_WINDOW) /
         zxlb::PRE_SELF_FORCE_TIME_WINDOW *
         std::exp( - time_diff_self / zxlb::PRE_SELF_FORCE_TIME_WINDOW )
-    ) * error;
+    ) * error * synapses[synapse_id].polarity;
 
     i64 other_id = synapse_id;
     for(i64 i = 0; i < static_cast<i64>(synapse_indexes.size()); i++) {
@@ -142,12 +147,12 @@ void Neuron::PresynapticSpike(i64 time, i64 synapse_id, ConnectionMatrix & cm) {
             // If the difference between cur time (this presyn spike time) and
             // the prev spike time of the other syn is greater than the
             // window, skip
-            if(time_diff_other > zxlb::PRE_OTHER_FORCE_TIME_WINDOW) {
-                continue;
-            }
+            // if(time_diff_other > zxlb::PRE_OTHER_FORCE_TIME_WINDOW) {
+            //     continue;
+            // }
 
             // What percent of the orbit are we aiming for?
-            double target_angular_distance = M_PI * (time_diff_other / zxlb::PRE_OTHER_FORCE_TIME_WINDOW);
+            double target_angular_distance = M_PI * (time_diff_other / 100.0);//zxlb::PRE_OTHER_FORCE_TIME_WINDOW);
             double cur_distance = synapses[synapse_id].location.Distance(synapses[other_id].location);
             double angular_delta = cur_distance-target_angular_distance;
 
@@ -162,7 +167,7 @@ void Neuron::PresynapticSpike(i64 time, i64 synapse_id, ConnectionMatrix & cm) {
             //     (force_self * force_other)
             // ) * error;
 
-            partial_force = force_self * angular_delta;
+            partial_force = force_self * angular_delta * synapses[other_id].polarity;
 
             // VecS temp_direction(direction);
 
@@ -192,7 +197,7 @@ void Neuron::PresynapticSpike(i64 time, i64 synapse_id, ConnectionMatrix & cm) {
     }
     synapses[synapse_id].location.Orbit(
         synapses[synapse_id].location.HeadingTo(direction),
-        synapses[synapse_id].location.Distance(direction) * zxlb::LEARNING_RATE
+        synapses[synapse_id].location.Distance(direction) * zxlb::PRE_LEARNING_RATE
     );
     // if(synapse_id==0)
     // std::cout << synapses[synapse_id].location.HeadingTo(direction) << "  "
@@ -213,7 +218,7 @@ void Neuron::PresynapticSpike(i64 time, i64 synapse_id, ConnectionMatrix & cm) {
     // synapse's strength. Not sure about this one.
     //synapses[synapse_id].cur_strength += force.Length() * synapses[synapse_id].GetStrengthDelta();
 
-
+    
 
 }
 
@@ -250,7 +255,8 @@ void Neuron::PostsynapticSignal(i64 time, ConnectionMatrix & cm) {
         //     time_cur_spike - time_pre_spike
         // );
 
-        double distance = time_diff - synapses[synapse_indexes[i]].location.Rad();
+        double target_radial_distance = zxlb::MAX_RADIUS * (time_diff / 100.0);
+        double distance = target_radial_distance - synapses[synapse_indexes[i]].location.Rad();
         
 
         double force = (
@@ -260,57 +266,131 @@ void Neuron::PostsynapticSignal(i64 time, ConnectionMatrix & cm) {
             ) * 
             std::tanh(distance) * 
             cm[layer_id][id].GetErrorRateReLU() *
-            zxlb::LEARNING_RATE;
+            zxlb::POST_LEARNING_RATE;
 
         synapses[synapse_indexes[i]].location.ChangeRad( force );
 
     }
 
-    // UNCOMMENT TO ADD STRENGTH CHANGES
-    // for(std::size_t i = 0; i < dendrites.size(); i++) {
-    //     bAP(time, dendrites[i], output);
-    // }
-
-
-
-
-    
-
 }
 
 
-void Neuron::bAP(i64 time, i64 synapse_id, double amt) {
-    double prepost_time_diff = static_cast<double>(
-        time_cur_spike - synapses[synapse_id].time_cur_spike
-    );
+void Neuron::bAP(i64 time, double signal, bool train_str) {
 
-    double time_delta = (
-        ((prepost_time_diff+zxlb::LEARNING_TIME_WINDOW) / zxlb::LEARNING_TIME_WINDOW) *
-        std::exp( -prepost_time_diff/zxlb::LEARNING_TIME_WINDOW)
-    );
+    stk<i64> synstk;
+    for(
+        vec<i64>::iterator it = dendrites.begin();
+        it != dendrites.end();
+        it++
+    ) {
+        synstk.push(*it);
+    }
 
-    // double str_delta = 1.0 - std::abs(
-    //     0.5 - std::abs(synapses[synapse_id].cur_strength) / 
-    //     (synapses[synapse_id].max_strength + std::abs(synapses[synapse_id].cur_strength))
-    // );
+    Synapse * syn;
+    vec<i64> * children;
+    while(!synstk.empty()) {
+        syn = GetSynapse(synstk.top());
+        synstk.pop();
+        syn->SetBAP(time);
+        if(train_str) syn->ChangeStrengthPost(time);
+        children = syn->GetChildren();
+        for(sizet i = 0; i < children->size(); i++) {
+            synstk.push(children->at(i));
+        }
+    }
+}
 
-    double str_delta = synapses[synapse_id].GetStrengthDelta();
+void Neuron::GetInput(i64 time) {
+    input = baseline + raw_input;
+    stk<i64> synstk;
+    for(
+        vec<i64>::iterator it = dendrites.begin();
+        it != dendrites.end();
+        it++
+    ) {
+        synstk.push(*it);
+    }
 
-    double delta = ( str_delta * time_delta * synapses[synapse_id].GetError() * synapses[synapse_id].GetSignal(time)); // str_delta zxlb::LEARNING_RATE * 
-    
-    synapses[synapse_id].cur_strength += delta;//(time_delta * str_delta * synapses[synapse_id].GetError() * amt);
+    Synapse * syn;
+    Synapse * parent;
+    vec<i64> * children;
+    i64 pid;
+    double temp_input = 0.0;
+    while(!synstk.empty()) {
+        syn = GetSynapse(synstk.top());
+        children = syn->GetChildren();
+        if(children->empty() || syn->GetUpstreamEval()) {
+            pid = syn->GetParent();
+            // If soma is parent...
+            if(pid==-1) {
+                // This version allows negative input into the soma
+                // input += syn->GetSignal_Out(time) * zxlb::DENDRITE_SIGNAL_WEIGHT;
 
-    double bap_amt = std::tanh(synapses[synapse_id].GetSignal(time) + amt);
+                // This version limits somatic input to only positive.
+                temp_input = syn->GetSignal_Out(time) * zxlb::DENDRITE_SIGNAL_WEIGHT;
+                if(temp_input > 0.0) input += temp_input;
+            } 
+            // Add this syn's signal to its parent's upstream signal.
+            else {
+                parent = GetSynapse(pid);
+                // Same or diff compartment?
+                if(parent->GetCompartment() == syn->GetCompartment()) {
+                    parent->AddToUpstreamSignal(syn->GetSignal_In(time)); 
+                } else {
+                    parent->AddToUpstreamSignal(syn->GetSignal_Out(time));
+                }
+            }
+            syn->ResetUpstreamSignal();
+            syn->SetUpstreamEval(false);
+            synstk.pop();
+        } else {
+            syn->SetUpstreamEval(true);
+            for(sizet i = 0; i < children->size(); i++) {
+                synstk.push(children->at(i));
+            }
+        }
+    }
+}
 
-    for(std::size_t i = 0; i < synapses[synapse_id].children.size(); i++) {
-        bAP(time, synapses[synapse_id].children[i], bap_amt);
+void Neuron::GetInput2(i64 time) {
+    input = baseline + raw_input;
+    que<i64> synque;
+    for(
+        vec<Synapse>::iterator it = synapses.begin();
+        it != synapses.end();
+        it++
+    ) {
+        if(it->children.empty()) {
+            synque.push(it->id);
+        }
+    }
+
+    Synapse * syn;
+    Synapse * parent;
+    i64 pid;
+    double temp_input = 0.0;
+    while(!synque.empty()) {
+        syn = GetSynapse(synque.front());
+        synque.pop();
+        pid = syn->GetParent();
+        if(pid==-1) {
+            temp_input = syn->GetSignal_Out(time) * zxlb::DENDRITE_SIGNAL_WEIGHT;
+            if(temp_input > 0.0) input += temp_input;
+        } else {
+            parent = GetSynapse(pid);
+            if(parent->GetCompartment() == syn->GetCompartment()) {
+                parent->AddToUpstreamSignal(syn->GetSignal_In(time)); 
+            } else {
+                parent->AddToUpstreamSignal(syn->GetSignal_Out(time));
+            }
+            synque.push(parent->id);
+        }
+        syn->ResetUpstreamSignal();
     }
 }
 
 
-
-
-void Neuron::GetInput(i64 time) {
+void Neuron::GetInput_Old(i64 time) {
     // Calculate input
     input = baseline + raw_input;
 
@@ -327,6 +407,7 @@ void Neuron::GetInput(i64 time) {
 
     i64 synid;
     Synapse * syn;
+    
     vec<i64> * children;
 
     while(!synstk.empty()) {
@@ -347,7 +428,7 @@ void Neuron::GetInput(i64 time) {
             // to the soma, update it's parent's upstream signal.
             if(syn->GetParent() != -1) {
                 Synapse * parent = GetSynapse(syn->GetParent());
-                double us = syn->GetSignalFull(time);
+                double us = syn->GetSignal_Out(time);
                 parent->AddToUpstreamSignal(us);
                 syn->ResetUpstreamSignal();
             }
@@ -377,8 +458,7 @@ void Neuron::GetInput(i64 time) {
         it != dendrites.end();
         it++
     ) {
-        double us = synapses[*it].GetSignalFull(time);
-        input += us;
+        input += synapses[*it].GetSignal_Out(time);
         synapses[*it].ResetUpstreamSignal();
     }
 
@@ -396,11 +476,12 @@ void Neuron::GetInputSimple(i64 time) {
         it != synapses.end();
         it++
     ) {
-        input += it->GetSignalWithStrength(time);
+        input += it->GetSignal_Out(time);
     }
+    input *=  zxlb::DENDRITE_SIGNAL_WEIGHT;
 }
 
-bool Neuron::Update(i64 time, Writer * writer, i64 layer_id, ConnectionMatrix & cm) {
+bool Neuron::Update(i64 time, Writer * writer, i64 layer_id, ConnectionMatrix & cm, bool train_str, bool train_ang) {
 
     // Update all the synapses
     vec<sizet> syns_with_pre_spikes;
@@ -418,18 +499,19 @@ bool Neuron::Update(i64 time, Writer * writer, i64 layer_id, ConnectionMatrix & 
     // syns updated earlier in the vector won't see current prespikes of those
     // further down the vector.
     for(sizet i = 0; i < syns_with_pre_spikes.size(); i++) {
-        PresynapticSpike(time, syns_with_pre_spikes[i], cm);
+        // Change strength
+        if(train_str) synapses[syns_with_pre_spikes[i]].ChangeStrengthPre(time);
+        if(train_ang) PresynapticSpike(time, syns_with_pre_spikes[i], cm);
     }
 
-    //GetInput(time);
-    GetInputSimple(time);
+    GetInput(time);
 
     // Calculate voltage
     vcur = vpre +
     (
         nt.k * (vpre - nt.vr) * (vpre - nt.vt) -
         upre +
-        input//GetInput(time)
+        input
     ) / nt.cap;
 
     // Calculate recovery
@@ -446,7 +528,6 @@ bool Neuron::Update(i64 time, Writer * writer, i64 layer_id, ConnectionMatrix & 
         spike_times_live.push_back(time);
         spike_times_data.push_back(time);
         just_spiked = true;
-        // Add Back prop
     
     } else {
         vpre = vcur;
@@ -536,7 +617,17 @@ void Neuron::WriteData(Writer * writer) {
     }
 }
 
-
+void Neuron::InitDendrites() {
+    dendrites.clear();
+    for(sizet i = 0; i < synapses.size(); i++) {
+        synapses[i].parent = -1;
+        synapses[i].children.clear();
+        synapses[i].dendrite_path_length = 0.0;
+        synapses[i].compartment = static_cast<i64>(i);
+        synapses[i].compartment_length = 0;
+        dendrites.push_back(i);
+    }
+}
 
 void Neuron::BuildDendrite() {
 
@@ -545,7 +636,7 @@ void Neuron::BuildDendrite() {
     // Init lists.
     lst<i64> unconnected;
     lst<i64> connected = {-1};
-
+    i64 comp_id = 0;
     //-------------------------------------
     // Disconnect
 
@@ -558,6 +649,8 @@ void Neuron::BuildDendrite() {
         synapses[i].parent = -1;
         synapses[i].children.clear();
         synapses[i].dendrite_path_length = 0.0;
+        synapses[i].compartment = 0;
+        synapses[i].compartment_length = 0;
         unconnected.push_back(i);
     }
     // std::cout << "NEWBUILD\n";
@@ -583,7 +676,7 @@ void Neuron::BuildDendrite() {
 
                 if(*cit==-1) {
                     uc_dist = synapses[*uit].location.Rad();
-                    //uc_dist += zxlb::BF * uc_dist;
+                    
 
                 } else {
                     uc_dist = synapses[*cit].location.DistanceStraightLine(synapses[*uit].location);
@@ -605,12 +698,26 @@ void Neuron::BuildDendrite() {
             synapses[*min_uit].parent = -1;
             double min_path_len = synapses[*min_uit].location.Rad();
             synapses[*min_uit].SetDendritePathLength(min_path_len);
+            synapses[*min_uit].SetCompartmentLength(min_path_len);
+            // Since it is connected to soma, new compartment.
+            synapses[*min_uit].SetCompartment(comp_id++);
         } else {
             synapses[*min_cit].children.push_back(*min_uit);
             synapses[*min_uit].parent = *min_cit;
             double min_path_len = synapses[*min_cit].dendrite_path_length +
                 synapses[*min_cit].location.DistanceStraightLine(synapses[*min_uit].location);
             synapses[*min_uit].SetDendritePathLength(min_path_len);
+
+            // Parent is another syn...
+            double cur_comp_length = synapses[*min_cit].GetCompartmentLength();
+            double add_comp_length = synapses[*min_cit].location.DistanceStraightLine(synapses[*min_uit].location);
+            if(cur_comp_length+add_comp_length <= zxlb::MAX_COMPARTMENT_LENGTH) {
+                synapses[*min_uit].SetCompartmentLength(cur_comp_length+add_comp_length);
+                synapses[*min_uit].SetCompartment(synapses[*min_cit].GetCompartment());
+            } else {
+                synapses[*min_uit].SetCompartment(comp_id++);
+                synapses[*min_uit].SetCompartmentLength(0.0);
+            }
         }
 
         // Update connected/unconnected lists.
@@ -619,6 +726,45 @@ void Neuron::BuildDendrite() {
         unconnected.erase(min_uit);
 
 
+    }
+
+}
+
+void Neuron::BuildCompartments() {
+    umap<i64,double> comp_lengths;
+    i64 compid = 0;
+    stk<i64> synstk;
+    for(
+        vec<i64>::iterator it = dendrites.begin();
+        it != dendrites.end();
+        it++
+    ) {
+        synapses[*it].compartment=compid;
+        comp_lengths.insert({
+            compid++,
+            synapses[*it].location.DistanceStraightLine(VecS())
+        });
+        synstk.push(*it);
+    }
+
+    Synapse * syn;
+    vec<i64> * children;
+    Synapse * child;
+    double cur_dist;
+    double ext_dist;
+    while(!synstk.empty()) {
+        syn = GetSynapse(synstk.top());
+        synstk.pop();
+        children = syn->GetChildren();
+        cur_dist = comp_lengths.at(syn->compartment);
+        for(sizet i = 0; i < children->size(); i++) {
+            child = GetSynapse((*children)[i]);
+            ext_dist = child->location.DistanceStraightLine(syn->location);
+            // If still in same compartment...
+            if(ext_dist+cur_dist <= zxlb::MAX_COMPARTMENT_LENGTH) {
+                comp_lengths.at(syn->compartment) = ext_dist+cur_dist;
+            }
+        }
     }
 
 }
@@ -747,7 +893,18 @@ void Neuron::PrintDendrite() {
 
 }
 
-
+void Neuron::SetInputMethod(InputMethod im) {
+    switch(im) {
+        case InputMethod::Full:
+            get_input = std::bind( &Neuron::GetInput,this, std::placeholders::_1);
+            break;
+        case InputMethod::Simple:
+            get_input = std::bind( &Neuron::GetInputSimple, this, std::placeholders::_1);
+            break;
+        default:
+            break;
+    }
+}
 
 
 // OLD VERSION

@@ -133,7 +133,12 @@ void Writer::WriteSynapseData() {
                 ofs << data->children_ids[i][k] << " ";
             }
             ofs << "] ";
-         } ofs << "\n";
+        } ofs << "\n";
+
+        ofs << "COMPID ";
+        for(sizet i = 0; i < data->data_size; i++) {
+            ofs << data->compartment_ids[i] << " ";
+        } ofs << "\n";
 
         ofs.close();
     }
