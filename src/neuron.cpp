@@ -42,7 +42,7 @@ Neuron::Neuron(
     get_input = std::bind( &Neuron::GetInput,this, std::placeholders::_1);
 }
 
-void Neuron::Reset() {
+void Neuron::Reset(bool purge_data) {
     vpre = vcur = nt.c;
     upre = ucur = nt.d;
     raw_input = 0.0;
@@ -53,6 +53,10 @@ void Neuron::Reset() {
     input = 0.0;
 
     spike_times_live.clear();
+
+    if(purge_data) {
+        spike_times_data.clear();
+    }
 
     // std::shuffle(synapse_indexes.begin(), synapse_indexes.end(), rng);
 
@@ -265,7 +269,7 @@ void Neuron::PostsynapticSignal(i64 time, ConnectionMatrix & cm) {
                 std::exp( - time_diff / zxlb::POST_SOMA_FORCE_TIME_WINDOW)
             ) * 
             std::tanh(distance) * 
-            cm[layer_id][id].GetErrorRateReLU() *
+            cm[layer_id][id].GetErrorRateRaw() *
             zxlb::POST_LEARNING_RATE;
 
         synapses[synapse_indexes[i]].location.ChangeRad( force );
@@ -568,6 +572,7 @@ void Neuron::InitWriteData() {
 }
 
 void Neuron::ResetWriteData() {
+    data = nullptr;
     data = std::make_unique<NeuronData>();
     data->id = "NEURON_"+std::to_string(layer_id)+"_"+std::to_string(id);
     data->data_size = 0;

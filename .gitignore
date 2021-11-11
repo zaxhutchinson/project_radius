@@ -44,6 +44,7 @@ out
 \exp_beacon
 \exp_mnist
 \exp_dota2
+\exp_eeg
 
 # Python
 *.pyc

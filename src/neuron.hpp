@@ -56,7 +56,7 @@ struct Neuron {
     //------------------------------------------------------------------------
 
     //------------------------------------------------------------------------
-    void Reset();
+    void Reset(bool purge_data = false);
     void RandomizeSynapseOrder(RNG & rng);
 
     i64 GetID();

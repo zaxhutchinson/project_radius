@@ -25,7 +25,7 @@ public:
     Layer& operator=(const Layer & l) = delete;
     Layer& operator=(Layer && l) = default;
     //-------------------------------------------------------------------------
-    void Reset();
+    void Reset(bool purge_data = false);
     void RandomizeNeuronOrder(RNG & rng);
     void SetID(i64 _id);
     i64 GetID();

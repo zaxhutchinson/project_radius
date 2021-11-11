@@ -10,7 +10,7 @@ import defs
 
 NEURON_ID = 0
 LAYER_ID = 1
-SYN_IDS = list(range(34))
+SYN_IDS = list(range(64))
 
 out = output.Output(defs.OUTPUT_PATH, sid=SYN_IDS, nid=NEURON_ID, lid=LAYER_ID)
 

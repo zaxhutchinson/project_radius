@@ -18,7 +18,7 @@ public:
     Network& operator=(const Network & n) = default;
     Network& operator=(Network && n) = default;
     
-    void Reset();
+    void Reset(bool purge_data = false);
     void RandomizeOrder(RNG & rng);
     //------------------------------------------------------------------------
     /* AddLayer:

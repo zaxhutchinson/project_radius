@@ -1,5 +1,6 @@
 **GENERAL**
 * Randomizing neuron order within a layer removes the orbiting of synapses. They no longer chase each otehr.
+* It is very important to scale input into the network so that the min and max spike rates mesh with the learning rate window. If they are dialed too high, the all activity will be within the windows and cause clustering or strength increase. 0-100 or 0-200 seems to be OK. This also depends on how many inputs one has. In the eeg_ac experiment, the raw values have too large a swing.
 
 **Vert/Hor Lines Experiment**
 * Problematic. On the one hand, the neuron had to learn that horizontal lines are good and vertical ones are not. I can see this working if all synapses of a pattern move into one dendrite. This way the critical mass from one dendrite will drive the neuron. And when active inputs are spread across multiple dendrites (vert non-patterns), they cannot move the soma. But what happens is that most synapses cluster into separate dendrites. But not all do. And some get a late start...probably for initial value reasons. So they become the big negative allowing the system to learn. The result is that the neuron learns all the patterns but one, which has a strong negative weight. Not sure how to fix this one or if it was just a bad experiment idea.

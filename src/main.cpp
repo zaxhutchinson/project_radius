@@ -14,6 +14,7 @@
 #include"builder.hpp"
 #include"pattern_maker.hpp"
 #include"runs.hpp"
+#include"exp_eeg.hpp"
 
 // #ifdef DEBUG
 //     #define RUN_TEST 1
@@ -25,6 +26,11 @@
 
 
 int main(int argc, char**argv) {
+
+    // ExpEEG exp_eeg;
+    // exp_eeg.LoadData("./exp_eeg/train", "./exp_eeg/test");
+    // return 0;
+
     // std::cout << std::sqrt(0) << std::endl;
     // VecS v1( -1.22428754752690549523208574101,2.83163092469335131440288932936,89.6130481824433360316106700338);
     // VecS v2( 1.22428754943845707892080554302,-0.309961738331212655062074645684,87.6133275637629225229829899035);
@@ -125,7 +131,7 @@ int main(int argc, char**argv) {
 
     //-------------------------------------------------------------------------
     // Process command line args.
-    str network_id = "xor";
+    str network_id = "eeg";
 
     zxlog::Debug("MAIN: Processing cmd line args.");
     for(int i = 1; i < argc; i++) {
@@ -213,7 +219,15 @@ int main(int argc, char**argv) {
 
     //----------------------------------------------------------------------------
     // XOR
-    RunXOR(
+    // RunXOR(
+    //     &writer,
+    //     network.get(),
+    //     rng
+    // );
+
+    //----------------------------------------------------------------------------
+    // EEG
+    RunEEG(
         &writer,
         network.get(),
         rng

@@ -11,13 +11,13 @@ Layer::Layer() {
     train_str = false;
 }
 
-void Layer::Reset() {
+void Layer::Reset(bool purge_data) {
     for(
         vec<Neuron>::iterator it = neurons.begin();
         it != neurons.end();
         it++
     ) {
-        it->Reset();
+        it->Reset(purge_data);
     }
     input_generator = nullptr;
 }

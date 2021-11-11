@@ -1,13 +1,13 @@
 #include"network.hpp"
 
-void Network::Reset() {
+void Network::Reset(bool purge_data) {
     // Reset the layers
     for(
         vec<Layer>::iterator it = layers.begin();
         it != layers.end();
         it++
     ) {
-        it->Reset();
+        it->Reset(purge_data);
     }
 
     // Reset the connection matrix.

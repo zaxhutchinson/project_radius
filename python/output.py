@@ -116,7 +116,7 @@ class Output:
                 if fn[0]=='S':
                     if lid and lid!=int(fnsplt[1]):
                         continue
-                    if nid and nid!=int(fnsplt[2]):
+                    if nid and int(fnsplt[2]) not in nid:
                         continue
                     if sid and int(fnsplt[3]) not in sid:
                         continue
@@ -124,7 +124,7 @@ class Output:
                 elif fn[0]=='N':
                     if lid and lid!=int(fnsplt[1]):
                         continue
-                    if nid and nid!=int(fnsplt[2]):
+                    if nid and int(fnsplt[2]) not in nid:
                         continue
                     self.neuron_filenames.append(fn)
                 elif fn[0]=='E':

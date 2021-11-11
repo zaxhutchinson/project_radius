@@ -15,6 +15,7 @@
 #include"builder.hpp"
 #include"pattern_maker.hpp"
 #include"exp_beacon.hpp"
+#include"exp_eeg.hpp"
 
 
 /******************************************************************************
@@ -150,6 +151,18 @@ void RunLinesVert(
  * This experiment will test whether an AD neuron can learn a simple XOR.
  *****************************************************************************/
 void RunXOR(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+);
+
+
+/******************************************************************************
+ * ExpEEG
+ * This experiment will test whether an AD neuron can learn to differentiate
+ * between two types of EEGs.
+ *****************************************************************************/
+void RunEEG(
     Writer * writer,
     Network * network,
     RNG & rng
