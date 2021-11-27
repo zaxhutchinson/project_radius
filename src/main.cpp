@@ -15,6 +15,7 @@
 #include"pattern_maker.hpp"
 #include"runs.hpp"
 #include"exp_eeg.hpp"
+#include"loader.hpp"
 
 // #ifdef DEBUG
 //     #define RUN_TEST 1
@@ -116,7 +117,8 @@ int main(int argc, char**argv) {
     // LOGS
     zxlog::Init(false);
 
-    
+    str OUTPUT_PATH = "/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/project_radius/output/";
+    str PRESET_PATH = "/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/project_radius/EEG_200W/";
 
     //-------------------------------------------------------------------------
     // RANDOM
@@ -127,11 +129,12 @@ int main(int argc, char**argv) {
     //-------------------------------------------------------------------------
     // WRITER
     zxlog::Debug("MAIN: Setting up writer.");
-    Writer writer(str("/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/project_radius/output/"));
+    Writer writer(OUTPUT_PATH);
 
     //-------------------------------------------------------------------------
     // Process command line args.
     str network_id = "eeg";
+    bool load_preset = false;
 
     zxlog::Debug("MAIN: Processing cmd line args.");
     for(int i = 1; i < argc; i++) {
@@ -142,6 +145,8 @@ int main(int argc, char**argv) {
             std::cout << "RUNNING SIM: " << network_id << std::endl;
         } else if(strcmp(argv[i],"-d")==0) {
             UnitTests();
+        } else if(strcmp(argv[i],"-p")==0) {
+            load_preset = true;
         }
     }
 
@@ -155,6 +160,8 @@ int main(int argc, char**argv) {
     tmps::ReadNetworkTemplate("example_template_file.json");
     zxlog::Debug("MAIN: End reading network templates.");
 
+    
+
     //-------------------------------------------------------------------------
     // Network
     
@@ -163,6 +170,14 @@ int main(int argc, char**argv) {
     zxlog::Debug("MAIN: End building network " + network_id + ".");
 
     network->InitWriteData();
+
+    //-------------------------------------------------------------------------
+    // Load preset if preset.
+    
+    if(load_preset) {
+        NetData netdata = LoadNetworkOutput(PRESET_PATH);
+        network->LoadPresets(netdata);
+    }
 
     //-------------------------------------------------------------------------
     // MNIST

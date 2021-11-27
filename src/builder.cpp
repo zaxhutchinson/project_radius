@@ -41,6 +41,7 @@ uptr<Network> BuildNetwork(str network_id, RNG & rng) {
                 neuron.record_interval = lit->second.record_interval;
                 neuron.record_data_size = lit->second.record_data_size;
                 neuron.SetID(i);
+                neuron.SetInputMethod(InputMethod::Full);
                 layer.AddNeuron(std::move(neuron));
             }
         }
@@ -94,7 +95,7 @@ uptr<Network> BuildNetwork(str network_id, RNG & rng) {
                     
                     Neuron * neuron_ds = layer_to->GetNeuron(ds_i);
 
-                    if(dice(rng) < prob) {
+                    if(dice(rng) <= prob) {
                         
 
                         // Set location

@@ -111,25 +111,27 @@ class Output:
         # Load all the filenames in the output directory
         for filename in os.scandir(path):
             if filename.is_file():
+                
                 fn = filename.name
+
                 fnsplt = fn.split('_')
                 if fn[0]=='S':
-                    if lid and lid!=int(fnsplt[1]):
+                    if lid != None and lid!=int(fnsplt[1]):
                         continue
-                    if nid and int(fnsplt[2]) not in nid:
+                    if nid != None and int(fnsplt[2])!=nid:
                         continue
-                    if sid and int(fnsplt[3]) not in sid:
+                    if sid != None and int(fnsplt[3]) not in sid:
                         continue
                     self.synapse_filenames.append(fn)
                 elif fn[0]=='N':
-                    if lid and lid!=int(fnsplt[1]):
+                    if lid != None and lid!=int(fnsplt[1]):
                         continue
-                    if nid and int(fnsplt[2]) not in nid:
+                    if nid != None and int(fnsplt[2])!=nid:
                         continue
                     self.neuron_filenames.append(fn)
                 elif fn[0]=='E':
                     self.example_filenames.append(fn)
-
+        #print(self.neuron_filenames)
         # Load all the example data
         for efn in self.example_filenames:
             with open(self.path+efn, 'r') as f:

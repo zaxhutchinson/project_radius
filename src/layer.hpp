@@ -5,6 +5,7 @@
 #include"zxlb.hpp"
 #include"neuron.hpp"
 #include"input_gen.hpp"
+#include"loader.hpp"
 
 class Layer {
 private:
@@ -21,10 +22,11 @@ private:
 public:
     Layer();
     Layer(const Layer & l) = delete;
-    Layer(Layer && l) = default;
+    Layer(Layer && l);
     Layer& operator=(const Layer & l) = delete;
-    Layer& operator=(Layer && l) = default;
+    Layer& operator=(Layer && l);
     //-------------------------------------------------------------------------
+    void LoadPresets(LayData & laydata);
     void Reset(bool purge_data = false);
     void RandomizeNeuronOrder(RNG & rng);
     void SetID(i64 _id);

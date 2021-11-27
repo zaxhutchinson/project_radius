@@ -11,6 +11,49 @@ Layer::Layer() {
     train_str = false;
 }
 
+Layer::Layer(Layer && l) {
+    if(&l != this) {
+        id = l.id;
+        name = std::move(l.name);
+        neurons = std::move(l.neurons);
+        neuron_indexes = std::move(l.neuron_indexes);
+        is_input = l.is_input;
+        is_output = l.is_output;
+        input_generator = l.input_generator;
+        train_rad = l.train_rad;
+        train_ang = l.train_ang;
+        train_str = l.train_str;
+    }
+}
+
+Layer& Layer::operator=(Layer && l) {
+    if(&l != this) {
+        id = l.id;
+        name = std::move(l.name);
+        neurons = std::move(l.neurons);
+        neuron_indexes = std::move(l.neuron_indexes);
+        is_input = l.is_input;
+        is_output = l.is_output;
+        input_generator = l.input_generator;
+        train_rad = l.train_rad;
+        train_ang = l.train_ang;
+        train_str = l.train_str;
+    }
+    return *this;
+}
+
+void Layer::LoadPresets(LayData & laydata) {
+
+    for(
+        umap<i64,NeuData>::iterator it = laydata.neudata.begin();
+        it != laydata.neudata.end();
+        it++
+    ) {
+        neurons[it->first].LoadPresets(it->second);
+    }
+
+}
+
 void Layer::Reset(bool purge_data) {
     for(
         vec<Neuron>::iterator it = neurons.begin();
@@ -137,7 +180,7 @@ void Layer::InitDendrites() {
 void Layer::RebuildDendrites() {
     #pragma omp parallel for
     for(sizet i = 0; i < neurons.size(); i++) {
-        neurons[i].BuildDendrite();
+        neurons[i].BuildDendrite2();
     }
 }
 

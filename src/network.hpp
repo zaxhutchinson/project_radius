@@ -3,7 +3,7 @@
 #include"zxlb.hpp"
 #include"layer.hpp"
 #include"connection.hpp"
-
+#include"loader.hpp"
 
 class Network {
 private:
@@ -17,6 +17,8 @@ public:
     Network(Network && n) = default;
     Network& operator=(const Network & n) = default;
     Network& operator=(Network && n) = default;
+
+    void LoadPresets(NetData & netdata);
     
     void Reset(bool purge_data = false);
     void RandomizeOrder(RNG & rng);

@@ -10,11 +10,11 @@
 inline const sizet NUM_CHANNELS = 64;
 inline const sizet NUM_READINGS = 256;
 
-inline const double MAX_READING = 453.847;
-inline const double MIN_READING = -(-213.491);
+inline const double MAX_READING = 25.0;//453.847;
+inline const double MIN_READING = 25.0;//-(-213.491);
 inline const double MINMAX_READING = MIN_READING + MAX_READING;
 
-inline const double READING_SCALAR = 400.0;
+inline const double READING_SCALAR = 500.0;
 
 struct EEG {
     vec<vec<double>> readings;

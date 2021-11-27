@@ -11,11 +11,15 @@
 #include"writer.hpp"
 #include"synapse.hpp"
 #include"neuron_type.hpp"
+#include"loader.hpp"
 
 enum class InputMethod {
     Simple,
-    Full
+    Full,
+    Witch
 };
+
+
 
 struct Neuron {
     i64 id;
@@ -42,6 +46,7 @@ struct Neuron {
     bool just_spiked;
     double output;
     double input;
+    InputMethod input_method;
     std::function<void(i64)> get_input;
 
     Neuron();
@@ -50,12 +55,13 @@ struct Neuron {
         const tmps::NeuronType & _nt
     );
     Neuron(const Neuron & n) = delete;
-    Neuron(Neuron && n) = default;
+    Neuron(Neuron && n);
     Neuron& operator=(const Neuron & n) = delete;
-    Neuron& operator=(Neuron && n) = default;
+    Neuron& operator=(Neuron && n);
     //------------------------------------------------------------------------
 
     //------------------------------------------------------------------------
+    void LoadPresets(NeuData & neudata);
     void Reset(bool purge_data = false);
     void RandomizeSynapseOrder(RNG & rng);
 
@@ -82,6 +88,7 @@ struct Neuron {
 
     void InitDendrites();
     void BuildDendrite();
+    void BuildDendrite2();
     void BuildCompartments();
     void BuildDendriteParallel();
 
@@ -95,6 +102,9 @@ private:
         Iterative solution used because synapses can't talk
         to each other.
     */
+    void GetInputWitch(i64 time);
+    void GetInputWitch2(i64 time);
+    void GetInputWitch3(i64 time);
     void GetInput(i64 time);
     void GetInput2(i64 time);
     void GetInput_Old(i64 time);

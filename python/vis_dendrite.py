@@ -7,7 +7,7 @@ import numpy as np
 import output
 import defs
 
-NEURON_ID = 0
+NEURON_ID = 1
 LAYER_ID = 1
 SIDS = list(range(64))
 

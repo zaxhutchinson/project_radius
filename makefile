@@ -5,11 +5,11 @@ CC=g++ # define the compiler to use
 TARGET=radius # define the name of the executable
 
 # RELEASE
-# CFLAGS= -c -std=c++20 -O3 -fopenmp -Wall
-# LFLAGS= -Llib -lm -pthread -fopenmp -pg
+CFLAGS= -c -std=c++20 -O3 -fopenmp -Wall
+LFLAGS= -Llib -lm -pthread -fopenmp
 # DEBUG
-CFLAGS= -c -std=c++20 -g3 -pg -fopenmp -Wall -DDEBUG
-LFLAGS= -Llib -lm -pthread -fopenmp -pg
+#CFLAGS= -c -std=c++20 -g3 -pg -fopenmp -Wall -DDEBUG
+#LFLAGS= -Llib -lm -pthread -fopenmp -pg
 SRCDIR = src
 OBJDIR = obj
 INCLUDE = -Iinc
@@ -25,7 +25,7 @@ OBJS=$(subst .cpp,.o,$(OBJECTS))
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
-	$(CC) -pg -o $@ $^ $(LFLAGS)
+	$(CC) -o $@ $^ $(LFLAGS)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	$(CC) $(CFLAGS) $(INCLUDE) $^ -o $@

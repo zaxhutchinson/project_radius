@@ -21,13 +21,27 @@ void ExpEEG::LoadData(str fn_train_path, str fn_test_path) {
 
     std::ifstream ifs;
 
-    vec<double> as;
-    vec<double> cs;
+    // vec<int> as;
+    // vec<int> cs;
+    // for(int i = 0; i < MAX_READING*2; i++) {
+    //     as.push_back(0);
+    //     cs.push_back(0);
+    // }
 
-    double min_a = std::numeric_limits<double>::max();
-    double max_a = std::numeric_limits<double>::min();
-    double min_c = std::numeric_limits<double>::max();
-    double max_c = std::numeric_limits<double>::min();
+    // double min_a = std::numeric_limits<double>::max();
+    // double max_a = std::numeric_limits<double>::min();
+    // double min_c = std::numeric_limits<double>::max();
+    // double max_c = std::numeric_limits<double>::min();
+    // double avg_c = 0;
+    // double avg_a = 0;
+    // int num_over_a = 0;
+    // int num_over_c = 0;
+    // int total_a = 0;
+    // int total_c = 0;
+
+    // double OVER_VAL = -25.0;
+
+    
 
     for(auto const& dir_entry: std::filesystem::directory_iterator{train_path}) {
 
@@ -105,7 +119,12 @@ void ExpEEG::LoadData(str fn_train_path, str fn_test_path) {
                         chan_eles.push_back(e);
                     }
 
-                    double reading = READING_SCALAR * ((std::stod(chan_eles[3]) + MIN_READING) / MINMAX_READING);
+                    double reading = std::min(std::max(std::stod(chan_eles[3]),-MIN_READING),MAX_READING);
+
+                    // if(eeg.ac=="a") as[static_cast<int>(reading)+MIN_READING]++;
+                    // if(eeg.ac=="c") cs[static_cast<int>(reading)+MIN_READING]++;
+
+                    reading = READING_SCALAR * ((reading + MIN_READING) / MINMAX_READING);
                     if(reading > READING_SCALAR || reading < 0.0) {
                         std::cout << reading << std::endl;
                     }
@@ -114,17 +133,30 @@ void ExpEEG::LoadData(str fn_train_path, str fn_test_path) {
                     reading_index++;
 
 
-                    if(eeg.ac=="a") {
-                        if(std::stod(chan_eles[3]) < min_a) min_a = std::stod(chan_eles[3]);
-                        if(std::stod(chan_eles[3]) > max_a) max_a = std::stod(chan_eles[3]);
-                    }
-                    else if(eeg.ac=="c") {
-                        if(std::stod(chan_eles[3]) < min_c) min_c = std::stod(chan_eles[3]);
-                        if(std::stod(chan_eles[3]) > max_c) max_c = std::stod(chan_eles[3]);
-                    }
+                    // if(eeg.ac=="a") {
+                    //     if(std::stod(chan_eles[3]) < min_a) min_a = std::stod(chan_eles[3]);
+                    //     if(std::stod(chan_eles[3]) > max_a) max_a = std::stod(chan_eles[3]);
+                    //     if(std::stod(chan_eles[3]) < OVER_VAL) num_over_a++;
+                    //     avg_a += reading;
+                    //     total_a++;
+                    // }
+                    // else if(eeg.ac=="c") {
+                    //     if(std::stod(chan_eles[3]) < min_c) min_c = std::stod(chan_eles[3]);
+                    //     if(std::stod(chan_eles[3]) > max_c) max_c = std::stod(chan_eles[3]);
+                    //     if(std::stod(chan_eles[3]) < OVER_VAL) num_over_c++;
+                    //     avg_c+=reading;
+                    //     total_c++;
+                    // }
+                    
                 
                 }
                 
+                // for(sizet i= 0; i < NUM_READINGS; i++) {
+                //     for(sizet k = 0; k < NUM_CHANNELS; k++) {
+                //         std::cout << eeg.readings[i][k] << " ";
+                //     }
+                //     std::cout << std::endl;
+                // }
                 
                 train_eegs.push_back(std::move(eeg));
 
@@ -134,17 +166,30 @@ void ExpEEG::LoadData(str fn_train_path, str fn_test_path) {
 
     }
 
-    std::cout << "TRAINING: \n";
-    std::cout << "MaxC: " << max_c << std::endl;
-    std::cout << "MinC: " << min_c << std::endl;
-    std::cout << "MaxA: " << max_a << std::endl;
-    std::cout << "MinA: " << min_a << std::endl;
+    // std::cout << "TRAINING: \n";
+    // std::cout << "MaxC: " << max_c << std::endl;
+    // std::cout << "MinC: " << min_c << std::endl;
+    // std::cout << "MaxA: " << max_a << std::endl;
+    // std::cout << "MinA: " << min_a << std::endl;
+    // std::cout << "OvrA: " << num_over_a/static_cast<double>(total_a) << std::endl;
+    // std::cout << "OvrC: " << num_over_c/static_cast<double>(total_c) << std::endl;
+    // std::cout << "AvgC: " << avg_c / total_c << std::endl;
+    // std::cout << "AvgA: " << avg_a / total_a << std::endl;
 
-    min_a = std::numeric_limits<double>::max();
-    max_a = std::numeric_limits<double>::min();
-    min_c = std::numeric_limits<double>::max();
-    max_c = std::numeric_limits<double>::min();
+    // for(int i = 0; i < MAX_READING*2; i++) {
+    //     std::cout << i << "  " << as[i] << "  " << cs[i] << std::endl;
+    // }
 
+    // min_a = std::numeric_limits<double>::max();
+    // max_a = std::numeric_limits<double>::min();
+    // min_c = std::numeric_limits<double>::max();
+    // max_c = std::numeric_limits<double>::min();
+    // num_over_a = 0;
+    // num_over_c = 0;
+    // total_a = 0;
+    // total_c = 0;
+    // avg_c = 0;
+    // avg_a = 0;
     
     for(auto const& dir_entry: std::filesystem::directory_iterator{test_path}) {
 
@@ -219,7 +264,8 @@ void ExpEEG::LoadData(str fn_train_path, str fn_test_path) {
                         chan_eles.push_back(e);
                     }
 
-                    double reading = READING_SCALAR * ((std::stod(chan_eles[3]) + MIN_READING) / MINMAX_READING);
+                    double reading = std::min(std::max(std::stod(chan_eles[3]),-MIN_READING),MAX_READING);
+                    reading = READING_SCALAR * ((reading + MIN_READING) / MINMAX_READING);
                     if(reading > READING_SCALAR || reading < 0.) {
                         std::cout << reading << std::endl;
                     }
@@ -227,14 +273,20 @@ void ExpEEG::LoadData(str fn_train_path, str fn_test_path) {
                     eeg.readings[reading_index][channel_index] = reading;
                     reading_index++;
 
-                    if(eeg.ac=="a") {
-                        if(std::stod(chan_eles[3]) < min_a) min_a = std::stod(chan_eles[3]);
-                        if(std::stod(chan_eles[3]) > max_a) max_a = std::stod(chan_eles[3]);
-                    }
-                    else if(eeg.ac=="c") {
-                        if(std::stod(chan_eles[3]) < min_c) min_c = std::stod(chan_eles[3]);
-                        if(std::stod(chan_eles[3]) > max_c) max_c = std::stod(chan_eles[3]);
-                    }
+                    // if(eeg.ac=="a") {
+                    //     if(std::stod(chan_eles[3]) < min_a) min_a = std::stod(chan_eles[3]);
+                    //     if(std::stod(chan_eles[3]) > max_a) max_a = std::stod(chan_eles[3]);
+                    //     if(std::stod(chan_eles[3]) < OVER_VAL) num_over_a++;
+                    //     avg_a+=reading;
+                    //     total_a++;
+                    // }
+                    // else if(eeg.ac=="c") {
+                    //     if(std::stod(chan_eles[3]) < min_c) min_c = std::stod(chan_eles[3]);
+                    //     if(std::stod(chan_eles[3]) > max_c) max_c = std::stod(chan_eles[3]);
+                    //     if(std::stod(chan_eles[3]) < OVER_VAL) num_over_c++;
+                    //     avg_c+=reading;
+                    //     total_c++;
+                    // }
                 }
                 
                 test_eegs.push_back(std::move(eeg));
@@ -245,11 +297,15 @@ void ExpEEG::LoadData(str fn_train_path, str fn_test_path) {
 
     }
 
-    std::cout << "TRAINING: \n";
-    std::cout << "MaxC: " << max_c << std::endl;
-    std::cout << "MinC: " << min_c << std::endl;
-    std::cout << "MaxA: " << max_a << std::endl;
-    std::cout << "MinA: " << min_a << std::endl;
+    // std::cout << "TESTING: \n";
+    // std::cout << "MaxC: " << max_c << std::endl;
+    // std::cout << "MinC: " << min_c << std::endl;
+    // std::cout << "MaxA: " << max_a << std::endl;
+    // std::cout << "MinA: " << min_a << std::endl;
+    // std::cout << "OvrA: " << num_over_a/static_cast<double>(total_a) << std::endl;
+    // std::cout << "OvrC: " << num_over_c/static_cast<double>(total_c) << std::endl;
+    // std::cout << "AvgC: " << avg_c / total_c << std::endl;
+    // std::cout << "AvgA: " << avg_a / total_a << std::endl;
 
     std::cout << "FINISHED LOADING DATA\n";
 }

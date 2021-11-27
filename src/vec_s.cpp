@@ -52,6 +52,10 @@ double VecS::Distance(const VecS & v) {
     return  2.0 * std::atan2(std::sqrt(a), std::sqrt(1-a));
 }
 
+double VecS::RadDistance(const VecS & v) {
+    return v.rad - rad;
+}
+
 // double VecS::Distance2(const VecS & v) {
 //     // if(alat==0) {
 //     //     alon = fmod(alon+2.0*M_PI,M_PI);

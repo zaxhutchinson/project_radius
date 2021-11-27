@@ -1,3 +1,21 @@
+**Dendrite Output Scalar**
+Currently, with the EEG experiment I've removed all scaling (1). Because I have given the output neuron a baseline of 50. I'm thinking that the scalar can be calculated based on the number of synapses (roughly). Something like 50/NUM_SYNS. So that neurons with smaller fields won't have the strength to push over the threshold.
+
+**Dendrite as Key**
+I've reworked the input function in the Witch version, named after the inspiration:
+witch of agnesi. Input does not come from the pre-syn neuron's alpha spike. Rather, the synapse interprets the cur_spike_time using the witch of agnesi function. Synapses
+enchance each other based on the timing of upstream spikes. This means that an incoming spike is interpreted by all downstream synapses based on when it arrived and how far the downstream synapse is from the point of arrival. With MAX EFFECT being if DIST == TIME_DIFF.
+
+The hope is that this will turn the dendrite into a key hole which is unlocked by the right input. Or rather has degrees of openness. The closer input arrives which matches the current structure of the dendrite the stronger the signal the dendrite produces to its neuron.
+
+**STD::FUNCTION**
+Note to self: they are fucking slow.
+
+**EEG**
+* eeg results after 1000 iterations are inconclusive. The A case spike rate has a slightly higher spike rate (29 vs 28) over the C rate. Added the ability to read through output files and turn them into a network preset. The network is still built at usual, but the preset will rewrite the lat,lon,rad,str of the synapses. Not as robust of code as I would like, but since the networks I'm generating are straightforward, it should work. Reasons: I suspect that following up the initial 1000 iterations with some that regen the trees using shorter compartment limits might help. Or str changes.
+* First try reduced the compartment size to MAX_RAD/2. That separated the two output neurons dramatically (21 vs 16). However, regardless of the input type, A was always stronger.
+* Reduced to MAX_RAD / 4: Separated even more (19 vs 12).
+
 **GENERAL**
 * Randomizing neuron order within a layer removes the orbiting of synapses. They no longer chase each otehr.
 * It is very important to scale input into the network so that the min and max spike rates mesh with the learning rate window. If they are dialed too high, the all activity will be within the windows and cause clustering or strength increase. 0-100 or 0-200 seems to be OK. This also depends on how many inputs one has. In the eeg_ac experiment, the raw values have too large a swing.

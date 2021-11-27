@@ -2040,14 +2040,20 @@ void RunEEG(
         0,1
     };
 
-    sizet num_iterations = 100;
+    sizet num_iterations = 200;
     sizet iteration_size = 0;
     i64 time_per_example = 1000;
     i64 output_layer_index = network->GetOutputLayerIndex();
     Layer * output_layer = network->GetLayer(network->GetOutputLayerIndex());
 
 
-    Neuron * output_neuron = output_layer->GetNeuron(0);
+    for(i64 i = 0; i < output_layer->GetLayerSize(); i++) {
+        Neuron * output_neuron = output_layer->GetNeuron(i);
+
+        output_neuron->SetInputMethod(
+            InputMethod::Full
+        );
+    }
 
     // sizet train_ang_start_it = 0;
     // sizet train_rad_start_it = 0;
@@ -2058,10 +2064,10 @@ void RunEEG(
 
     // str train_or_test = "train";
 
-    vec<double> rates_by_pattern = {
-        zxlb::CORRECT_EXPECTED,
-        zxlb::INCORRECT_EXPECTED,
-    };
+    // vec<double> rates_by_pattern = {
+    //     zxlb::CORRECT_EXPECTED,
+    //     zxlb::INCORRECT_EXPECTED,
+    // };
     vec<double> rate = {
         zxlb::INCORRECT_EXPECTED,
         zxlb::INCORRECT_EXPECTED
@@ -2081,9 +2087,7 @@ void RunEEG(
         network->RandomizeOrder(rng);
 
 
-        output_neuron->SetInputMethod(
-            InputMethod::Full
-        );
+        
         
 
         // if(i >= train_ang_start_it) train_ang=true;
@@ -2096,7 +2100,7 @@ void RunEEG(
         network->RebuildDendrites();
 
 
-
+        /*
         iteration_size = train_indexes.size();
         std::shuffle(train_indexes.begin(), train_indexes.end(), rng);
 
@@ -2139,8 +2143,8 @@ void RunEEG(
             // network->WriteData(writer);
             network->Reset();
         }
-
-
+        */
+        
         /*------------------------------------------
         Test 10 random testing examples.
         --------------------------------------------*/

@@ -5,7 +5,22 @@
 #include"vec_s.hpp"
 #include"writer.hpp"
 #include"data.hpp"
+#include"loader.hpp"
 #include"connection.hpp"
+
+struct DenSig {
+    double D;
+    double Ts;
+    double sig;
+    DenSig()
+        : D(0.0), Ts(0.0), sig(0.0) {}
+    DenSig(double _D, double _Ts, double _sig) 
+        : D(_D), Ts(_Ts), sig(_sig) {}
+    DenSig(const DenSig & d) = default;
+    DenSig(DenSig && d) = default;
+    DenSig& operator=(const DenSig & d) = default;
+    DenSig& operator=(DenSig && d) = default;
+};
 
 struct Synapse {
 
@@ -40,6 +55,9 @@ struct Synapse {
     // neural input process.
     double upstream_signal;
     bool upstream_eval;
+    vec<DenSig> densigs;
+    int compartment_size; // # of syns.
+    double dist_to_parent;
 
 
     Synapse();
@@ -54,7 +72,7 @@ struct Synapse {
     Synapse& operator=(const Synapse & s) = default;
     Synapse& operator=(Synapse && s) = default;
     //------------------------------------------------------------------------
-
+    void LoadPreset(SynData & syndata);
     void Reset();
 
     double GetError();
@@ -68,6 +86,7 @@ struct Synapse {
     void SetConnectionAddress(ConnectionAddress ca);
     void SetSignal(i64 time, double amt);
     void SetCurSpike(i64 time);
+    i64 GetCurSpike();
 
     /* SetPathLength:
         dendrite_path_length is a temporary var that stores how far this
@@ -89,6 +108,9 @@ struct Synapse {
     double GetSignal_Simple(i64 time);
     double GetSignal_In(i64 time);
     double GetSignal_Out(i64 time);
+    double GetSignalWitch_Self(i64 time);
+    double GetSignalWitchMod(i64 time, double dist, double spike_time_diff);
+    // double GetSignalWitchMod_Out(i64 time, double dist, double spike_time_diff);
 
     double GetDendritePathLength();
 
@@ -104,11 +126,20 @@ struct Synapse {
     //------------------------------------------------------------------------
     // Upstream signal
     double GetUpstreamSignal();
+    void SetUpstreamSignal(double sig);
     void ResetUpstreamSignal();
     void AddToUpstreamSignal(double sig);
     bool GetUpstreamEval();
     void SetUpstreamEval(bool b);
 
+    vec<DenSig> GetDendriticSignals();
+    void AddDendriticSignal(DenSig sig);
+    void AddDendriticSignals(vec<DenSig> sigs);
+    void ResetDendriticSignals();
+
+    int GetCompartmentSize();
+    void AddToCompartmentSize(int amt);
+    void ResetCompartmentSize();
     //------------------------------------------------------------------------
     //
     bool Update(i64 time, Writer * writer, ConnectionMatrix & cm);

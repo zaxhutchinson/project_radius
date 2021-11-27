@@ -6,7 +6,7 @@ import numpy as np
 import output
 import defs
 
-NEURON_ID = 1
+NEURON_ID = 0
 LAYER_ID = 1
 SIDS = list(range(64))
 # SIDS = [0,1,2,3,4,5,6,7,8,9]
@@ -39,23 +39,23 @@ for k,v in strs.items():
 ax.legend()
 plt.show()
 
-SIDS = [
-    [0,1,2,3,4],
-    [5,6,7,8,9],
-    [10,11,12,13,14],
-    [15,16,17,18,19],
-    [20,21,22,23,24],
-]
-for s in SIDS:
-    fig = plt.figure()
-    ax = fig.add_subplot()
+# SIDS = [
+#     [0,1,2,3,4],
+#     [5,6,7,8,9],
+#     [10,11,12,13,14],
+#     [15,16,17,18,19],
+#     [20,21,22,23,24],
+# ]
+# for s in SIDS:
+#     fig = plt.figure()
+#     ax = fig.add_subplot()
     
-    for k,v in strs.items():
-        if k in s:
-            ax.plot(v,label=str(k))
-    ax.legend()
-    plt.title("STRENGTH: "+str(s))
-    plt.show()
+#     for k,v in strs.items():
+#         if k in s:
+#             ax.plot(v,label=str(k))
+#     ax.legend()
+#     plt.title("STRENGTH: "+str(s))
+#     plt.show()
 
 
 fig = plt.figure()
@@ -65,12 +65,12 @@ for k,v in radius.items():
 ax.legend()
 plt.show()
 
-for s in SIDS:
-    fig = plt.figure()
-    ax = fig.add_subplot()
-    for k,v in radius.items():
-        if k in s:
-            ax.plot(v,label=str(k))
-    ax.legend()
-    plt.title("RADIUS: "+str(s))
-    plt.show()
+# for s in SIDS:
+#     fig = plt.figure()
+#     ax = fig.add_subplot()
+#     for k,v in radius.items():
+#         if k in s:
+#             ax.plot(v,label=str(k))
+#     ax.legend()
+#     plt.title("RADIUS: "+str(s))
+#     plt.show()

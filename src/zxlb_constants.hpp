@@ -39,6 +39,9 @@ namespace zxlb {
     inline constexpr double POST_LEARNING_RATE {0.001};
     inline constexpr double SYN_STRENGTH_LEARNING_RATE {0.001};
 
+
+    inline constexpr double MAX_TEMPORAL_DIFFERENCE = 100.0;
+
     /* BF: Balancing Factor
         Used in the calculation of dendritic path lengths. Part of the
         dendrite building algorithm developed by Cuntz2007.
@@ -51,21 +54,32 @@ namespace zxlb {
     /* MAX_COMPARTMENT_LENGTH
         Used to determine where compartments begin and end.
     */
-    inline constexpr double MAX_COMPARTMENT_LENGTH = 5*MAX_RADIUS;
+    inline constexpr double MAX_COMPARTMENT_LENGTH = MAX_TEMPORAL_DIFFERENCE;
 
 
     inline constexpr double COMPARTMENT_OUT_EXPONENT = 1.0;
+
+    inline constexpr double MIN_COMPARTMENT_SIGNAL_FOR_SOMA = 1.0;
 
     /* DENDRITE SIGNAL WEIGHT
         Signals moving down the dendrite are clamped to [-1,1].
         This values scales the signal as it enters the soma to boost it
         to a level able to elicit a spike.
     */
-    inline constexpr double DENDRITE_SIGNAL_WEIGHT = 200.0;
+    inline constexpr double DENDRITE_SIGNAL_WEIGHT = 1.0;
 
 
 
     inline constexpr double CORRECT_EXPECTED = 1.0;
     inline constexpr double INCORRECT_EXPECTED = -1.0;
     inline constexpr int64_t TASK_DURATION = 1000;
+
+
+    // Govern the modified Witch of Agnesi function used to determine
+    // synaptic output. A is missing because it is the two distances.
+    inline constexpr double WITCH_B = 5.0;
+    inline constexpr double WITCH_C = 1.0;
+
+
+    
 };

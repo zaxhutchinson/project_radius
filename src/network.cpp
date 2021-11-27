@@ -1,5 +1,20 @@
 #include"network.hpp"
 
+
+void Network::LoadPresets(NetData & netdata) {
+
+    for(
+        umap<i64,LayData>::iterator it = netdata.laydata.begin();
+        it != netdata.laydata.end(); it++
+    ) {
+        layers[it->first].LoadPresets(it->second);
+    }
+
+}
+
+
+
+
 void Network::Reset(bool purge_data) {
     // Reset the layers
     for(

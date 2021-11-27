@@ -28,6 +28,7 @@ Synapse::Synapse()
 
     children.reserve(10);
 
+    dist_to_parent = 0.0;
 
 }
 
@@ -62,6 +63,15 @@ Synapse::Synapse(
     upstream_eval = false;
 
     children.reserve(10);
+
+    dist_to_parent = 0.0;
+}
+
+void Synapse::LoadPreset(SynData & syndata) {
+    location.Lat(syndata.lat);
+    location.Lon(syndata.lon);
+    location.Rad(syndata.rad);
+    cur_strength = syndata.str;
 }
 
 void Synapse::Reset() {
@@ -101,6 +111,10 @@ void Synapse::SetSignal(i64 time, double amt) {
 void Synapse::SetCurSpike(i64 time) {
     time_pre_spike = time_cur_spike;
     time_cur_spike = time;
+}
+
+i64 Synapse::GetCurSpike() {
+    return time_cur_spike;
 }
 
 void Synapse::SetDendritePathLength(double path) {
@@ -216,10 +230,30 @@ double Synapse::GetSignal_Out(i64 time) {
         upstream_signal;
 
     // Compartmental transfer
+    // if(s > zxlb::MIN_COMPARTMENT_SIGNAL_FOR_SOMA) {
+    //     s -= zxlb::MIN_COMPARTMENT_SIGNAL_FOR_SOMA;
     s = 2.0 / (1.0 + std::exp(-s*zxlb::COMPARTMENT_OUT_EXPONENT)) - 1.0;
+    // }
     
     return s;
 }
+
+double Synapse::GetSignalWitch_Self(i64 time) {
+    return zxlb::WITCH_C /
+        (std::pow((time-time_cur_spike)/zxlb::WITCH_B, 2.0) + 1.0);
+}
+
+double Synapse::GetSignalWitchMod(i64 time, double dist, double spike_time_diff) {
+    
+    double mod = GetStrength() * zxlb::WITCH_C /
+        (std::pow(( spike_time_diff - dist) / zxlb::WITCH_B, 2.0) + 1.0);
+
+    return mod+1.0;
+}
+// double Synapse::GetSignalWitchMod_Out(i64 time, double dist, double spike_time_diff) {
+//     double s = GetSignalWitch_In(time,rad_dist,ang_dist,spike_time_diff);
+//     return 2.0 / (1.0 + std::exp(-s*zxlb::COMPARTMENT_OUT_EXPONENT)) - 1.0;
+// }
 
 double Synapse::GetDendritePathLength() {
     return dendrite_path_length;
@@ -255,6 +289,9 @@ i64 Synapse::GetParent() {
 double Synapse::GetUpstreamSignal() {
     return upstream_signal;
 }
+void Synapse::SetUpstreamSignal(double sig) {
+    upstream_signal = sig;
+}
 void Synapse::ResetUpstreamSignal() {
     upstream_signal = 0.0;
 }
@@ -267,6 +304,32 @@ bool Synapse::GetUpstreamEval() {
 void Synapse::SetUpstreamEval(bool b) {
     upstream_eval = b;
 }
+
+
+vec<DenSig> Synapse::GetDendriticSignals() {
+    return densigs;
+}
+void Synapse::AddDendriticSignal(DenSig sig) {
+    densigs.push_back(sig);
+}
+void Synapse::AddDendriticSignals(vec<DenSig> sigs) {
+    densigs = std::move(sigs);
+    // densigs.insert(densigs.end(), sigs.begin(), sigs.end());
+}
+void Synapse::ResetDendriticSignals() {
+    densigs.clear();
+}
+int Synapse::GetCompartmentSize() {
+    return compartment_size;
+}
+void Synapse::AddToCompartmentSize(int amt) {
+    compartment_size += amt;
+}
+void Synapse::ResetCompartmentSize() {
+    compartment_size = 0;
+}
+
+
 
 bool Synapse::Update(i64 time, Writer * writer, ConnectionMatrix & cm) {
     

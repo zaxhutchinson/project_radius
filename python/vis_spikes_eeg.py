@@ -8,7 +8,7 @@ import defs
 
 
 # Need to load them both
-NEURON_ID = [0,1]
+NEURON_ID = 0
 LAYER_ID = 1
 SIDS = []
 
@@ -17,7 +17,8 @@ CORRECT_ID = 'c'
 if NEURON_ID == 0:
     CORRECT_ID = 'a'
 
-out = output.Output(defs.OUTPUT_PATH, lid=LAYER_ID, nid=NEURON_ID, sid=SIDS)
+out0 = output.Output(defs.OUTPUT_PATH, lid=LAYER_ID, nid=0, sid=SIDS)
+out1 = output.Output(defs.OUTPUT_PATH, lid=LAYER_ID, nid=1, sid=SIDS)
 
 spikes_by_nid = {0:[], 1:[]}
 acc = []
@@ -26,27 +27,34 @@ total = 0
 acc_by_pat = {'a':0,'c':0}
 spikes_by_pat = {'a':[],'c':[]}
 
-for name,neu in out.neurons.items():
-    if NEURON_ID and neu.neuron_id in NEURON_ID and neu.layer_id == LAYER_ID:
-        print(name, len(neu.spikes))
+for name,neu in out0.neurons.items():
+    if neu.neuron_id==0 and neu.layer_id == LAYER_ID:
         for s in neu.spikes:
-            spikes_by_nid[neu.neuron_id].append(len(s))
+            spikes_by_nid[0].append(len(s))
 
-print(max(spikes_by_nid[0]), max(spikes_by_nid[1]))
+for name,neu in out1.neurons.items():
+    if neu.neuron_id==1 and neu.layer_id == LAYER_ID:
+        for s in neu.spikes:
+            spikes_by_nid[1].append(len(s))
 
-# avg_spikes = np.mean(spikes)
-# print("AVG SPIKES: ", avg_spikes)
 
-for i in range(0,len(out.examples)):
-    pattern_id = out.examples[i].info
+
+avg0 = sum(spikes_by_nid[0])/len(spikes_by_nid[0])
+avg1 = sum(spikes_by_nid[1])/len(spikes_by_nid[1])
+
+
+for i in range(len(out1.examples)):
+    pattern_id = out1.examples[i].info
     # num_spikes = spikes[i]
     total += 1
     # spikes_by_pat[pattern_id].append(num_spikes)
     if pattern_id == 'a':
+        # if spikes_by_nid[0][i] > avg0 and spikes_by_nid[1][i] < avg1:#spikes_by_nid[1][i]:
         if spikes_by_nid[0][i] > spikes_by_nid[1][i]:
             corr += 1
             acc_by_pat[pattern_id] += 1
     else:
+        #if spikes_by_nid[1][i] > avg1 and spikes_by_nid[0][i] < avg0:#spikes_by_nid[0][i]:
         if spikes_by_nid[1][i] > spikes_by_nid[0][i]:
             corr += 1
             acc_by_pat[pattern_id] += 1
@@ -54,8 +62,8 @@ for i in range(0,len(out.examples)):
 
     acc.append(corr/total)
 
-# for k,v in spikes_by_nid.items():
-#     print(k, v/(total))
+for k,v in spikes_by_nid.items():
+    print(k, sum(v)/total)
 
 
 fig = plt.figure()
@@ -64,6 +72,8 @@ for k,v in spikes_by_nid.items():
     ax.plot(v,label=k)
 plt.legend()
 plt.show()
+
+print(acc_by_pat)
 
 fig = plt.figure()
 ax = fig.add_subplot()
