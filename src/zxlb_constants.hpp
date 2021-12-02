@@ -5,7 +5,7 @@
 namespace zxlb {
 
     inline constexpr double MAJOR_VERSION {0.0};
-    inline constexpr double MINOR_VERSION {0.15};
+    inline constexpr double MINOR_VERSION {0.16};
 
     /* NEURON_SPIKE_TIME_WINDOW
         Determines how long spikes are saved and continue to affect neuronal
@@ -35,8 +35,8 @@ namespace zxlb {
 
     // inline constexpr double RADIUS_TIME_DIFF_SCALAR {1000.0/MAX_RADIUS};
 
-    inline constexpr double PRE_LEARNING_RATE {0.001};
-    inline constexpr double POST_LEARNING_RATE {0.001};
+    inline constexpr double PRE_LEARNING_RATE {0.01};
+    inline constexpr double POST_LEARNING_RATE {0.01};
     inline constexpr double SYN_STRENGTH_LEARNING_RATE {0.001};
 
 
@@ -66,7 +66,7 @@ namespace zxlb {
         This values scales the signal as it enters the soma to boost it
         to a level able to elicit a spike.
     */
-    inline constexpr double DENDRITE_SIGNAL_WEIGHT = 1.0;
+    inline constexpr double DENDRITE_SIGNAL_WEIGHT = 10.0;
 
 
 
@@ -77,8 +77,8 @@ namespace zxlb {
 
     // Govern the modified Witch of Agnesi function used to determine
     // synaptic output. A is missing because it is the two distances.
-    inline constexpr double WITCH_B = 5.0;
-    inline constexpr double WITCH_C = 1.0;
+    inline constexpr double WITCH_B = 0.2;
+    inline constexpr double WITCH_C = 2.0;
 
 
     

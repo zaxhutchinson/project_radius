@@ -118,7 +118,7 @@ int main(int argc, char**argv) {
     zxlog::Init(false);
 
     str OUTPUT_PATH = "/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/project_radius/output/";
-    str PRESET_PATH = "/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/project_radius/EEG_200W/";
+    str PRESET_PATH = "/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/project_radius/preset1000/";
 
     //-------------------------------------------------------------------------
     // RANDOM
@@ -242,7 +242,7 @@ int main(int argc, char**argv) {
 
     //----------------------------------------------------------------------------
     // EEG
-    RunEEG(
+    RunEEG2(
         &writer,
         network.get(),
         rng

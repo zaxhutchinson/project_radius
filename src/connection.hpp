@@ -28,6 +28,7 @@ struct Connection {
     double GetErrorRate();
     double GetErrorRateNorm();
     double GetErrorRateReLU();
+    double GetErrorRateReLU_1();
 };
 
 using ConnectionMatrix = vec<vec<Connection>>;

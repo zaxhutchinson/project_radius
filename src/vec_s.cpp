@@ -53,7 +53,7 @@ double VecS::Distance(const VecS & v) {
 }
 
 double VecS::RadDistance(const VecS & v) {
-    return v.rad - rad;
+    return std::abs(v.rad - rad);
 }
 
 // double VecS::Distance2(const VecS & v) {
@@ -157,6 +157,8 @@ void VecS::Orbit(double heading, double distance) {
     lon = nlon;
     if(lon < -M_PI) lon += MPI2;
     else if(lon > M_PI) lon -= MPI2;
+    if(lat < -MPIOVER2) std::cout << "Lat under pi/2 " << lat << std::endl;
+    else if(lat > MPIOVER2) std::cout << "Lat over pi/2 " << lat << std::endl;
 }
 
 Vec3 VecS::VectorTo(const VecS & v) {

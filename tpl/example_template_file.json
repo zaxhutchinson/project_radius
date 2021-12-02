@@ -511,8 +511,8 @@
                 "min_starting_strength": 1.0,
                 "max_starting_strength": 1.0,
                 "max_strength": 1.0,
-                "min_radius": 100.0,
-                "max_radius": 100.0,
+                "min_radius": 20.0,
+                "max_radius": 20.0,
                 "polarity": 1.0
             }
         }

@@ -37,3 +37,9 @@ double Connection::GetErrorRateReLU() {
     if(err > 0.0) return err;
     else return 0.0;
 }
+
+double Connection::GetErrorRateReLU_1() {
+    double err = GetErrorRateRaw();
+    if(err > 0.0) return err;
+    else return 1.0;
+}

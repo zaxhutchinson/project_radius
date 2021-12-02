@@ -31,4 +31,5 @@ struct InputGenerator_Poisson : public InputGenerator {
     std::uniform_real_distribution<double> dist;
     double GetInput(sizet index, i64 time, RNG & rng) override;
     void Reset() override;
+    void SetRate(vec<double> & _rate);
 };

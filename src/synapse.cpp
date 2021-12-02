@@ -239,16 +239,15 @@ double Synapse::GetSignal_Out(i64 time) {
 }
 
 double Synapse::GetSignalWitch_Self(i64 time) {
-    return zxlb::WITCH_C /
+    return GetStrength() * zxlb::WITCH_C /
         (std::pow((time-time_cur_spike)/zxlb::WITCH_B, 2.0) + 1.0);
 }
 
 double Synapse::GetSignalWitchMod(i64 time, double dist, double spike_time_diff) {
     
-    double mod = GetStrength() * zxlb::WITCH_C /
+    return zxlb::WITCH_C /
         (std::pow(( spike_time_diff - dist) / zxlb::WITCH_B, 2.0) + 1.0);
 
-    return mod+1.0;
 }
 // double Synapse::GetSignalWitchMod_Out(i64 time, double dist, double spike_time_diff) {
 //     double s = GetSignalWitch_In(time,rad_dist,ang_dist,spike_time_diff);

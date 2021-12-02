@@ -24,7 +24,9 @@ spikes_by_nid = {0:[], 1:[]}
 acc = []
 corr = 0
 total = 0
-acc_by_pat = {'a':0,'c':0}
+acc_by_pat = {'a':[],'c':[]}
+corr_by_pat = {'a':0, 'c':0}
+total_by_pat = {'a':0,'c':0}
 spikes_by_pat = {'a':[],'c':[]}
 
 for name,neu in out0.neurons.items():
@@ -47,23 +49,29 @@ for i in range(len(out1.examples)):
     pattern_id = out1.examples[i].info
     # num_spikes = spikes[i]
     total += 1
+    total_by_pat[pattern_id] += 1
     # spikes_by_pat[pattern_id].append(num_spikes)
     if pattern_id == 'a':
+        
         # if spikes_by_nid[0][i] > avg0 and spikes_by_nid[1][i] < avg1:#spikes_by_nid[1][i]:
+        # if spikes_by_nid[0][i] > avg0:
         if spikes_by_nid[0][i] > spikes_by_nid[1][i]:
             corr += 1
-            acc_by_pat[pattern_id] += 1
+            
+            corr_by_pat[pattern_id]+=1
     else:
         #if spikes_by_nid[1][i] > avg1 and spikes_by_nid[0][i] < avg0:#spikes_by_nid[0][i]:
+        #if spikes_by_nid[1][i] > avg1:
         if spikes_by_nid[1][i] > spikes_by_nid[0][i]:
             corr += 1
-            acc_by_pat[pattern_id] += 1
+            corr_by_pat[pattern_id]+=1
 
 
     acc.append(corr/total)
+    acc_by_pat[pattern_id].append(corr_by_pat[pattern_id]/total_by_pat[pattern_id])
 
-for k,v in spikes_by_nid.items():
-    print(k, sum(v)/total)
+# for k,v in spikes_by_nid.items():
+#     print(k, sum(v)/total)
 
 
 fig = plt.figure()
@@ -73,7 +81,14 @@ for k,v in spikes_by_nid.items():
 plt.legend()
 plt.show()
 
-print(acc_by_pat)
+fig = plt.figure()
+ax = fig.add_subplot()
+for k,v in acc_by_pat.items():
+    ax.plot(v,label=k)
+plt.legend()
+plt.show()
+
+# print(acc_by_pat)
 
 fig = plt.figure()
 ax = fig.add_subplot()

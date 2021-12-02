@@ -1,3 +1,17 @@
+**Distance switch**
+I removed the code a few days ago that squashed distance impact on movement (radial or angular); however, this meant that the algorithm favored long distance movement. I have added a different distance squashing method. It decays the effect of distance as distance grows using an exponential decay. The impact of distance on the algorithm seems to be very impactful. And I think this is not quite correct. But it's better.
+
+**BUG and Thoughts**
+Found a bug in that I was calculating distance in the pre function based on the starting syn position and not from the current location of the copy. But this mistake makes me think that movement needs irregularity.
+
+**Alpha Scaling**
+I have removed the scaling in the Pre and Post functions. The pre function scaled angular change by the spike rate at the synapse in question. So low rate patterns produced very little change for even very close inter-synapse spikes.
+
+I also removed it from post which scaled the radial change by the time difference in pre-post spikes. The effect of the scaling meant that short distance changes moved faster than long ones. In practice, it meant that synapses did not move outward if the spike rate was low.
+
+**EEG**
+Reduced the input scalar from 500 to 10. Perhaps with too much input, all spike rates are the same. ?
+
 **Dendrite Output Scalar**
 Currently, with the EEG experiment I've removed all scaling (1). Because I have given the output neuron a baseline of 50. I'm thinking that the scalar can be calculated based on the number of synapses (roughly). Something like 50/NUM_SYNS. So that neurons with smaller fields won't have the strength to push over the threshold.
 

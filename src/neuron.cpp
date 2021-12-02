@@ -205,15 +205,19 @@ void Neuron::PresynapticSpike(i64 time, i64 synapse_id, ConnectionMatrix & cm) {
     double partial_force = 0.0;
     double error = synapses[synapse_id].GetError();
 
-    double time_diff_self = static_cast<double>(
-        synapses[synapse_id].time_cur_spike - synapses[synapse_id].time_pre_spike
-    );
 
-    double force_self = (
-        (time_diff_self+zxlb::PRE_SELF_FORCE_TIME_WINDOW) /
-        zxlb::PRE_SELF_FORCE_TIME_WINDOW *
-        std::exp( - time_diff_self / zxlb::PRE_SELF_FORCE_TIME_WINDOW )
-    ) * error * synapses[synapse_id].polarity;
+    // ORIGINAL KEEP: This scales the force of movement by the spike rate of
+    //  the synapse's neuron.
+    // double time_diff_self = static_cast<double>(
+    //     synapses[synapse_id].time_cur_spike - synapses[synapse_id].time_pre_spike
+    // );
+    // double force_self = (
+    //     (time_diff_self+zxlb::PRE_SELF_FORCE_TIME_WINDOW) /
+    //     zxlb::PRE_SELF_FORCE_TIME_WINDOW *
+    //     std::exp( - time_diff_self / zxlb::PRE_SELF_FORCE_TIME_WINDOW )
+    // ) * error * synapses[synapse_id].polarity;
+
+    double force_self = error * synapses[synapse_id].polarity;
 
     i64 other_id = synapse_id;
     for(i64 i = 0; i < static_cast<i64>(synapse_indexes.size()); i++) {
@@ -226,13 +230,14 @@ void Neuron::PresynapticSpike(i64 time, i64 synapse_id, ConnectionMatrix & cm) {
             // If the difference between cur time (this presyn spike time) and
             // the prev spike time of the other syn is greater than the
             // window, skip
-            // if(time_diff_other > zxlb::PRE_OTHER_FORCE_TIME_WINDOW) {
-            //     continue;
-            // }
+            if(time_diff_other > zxlb::MAX_TEMPORAL_DIFFERENCE) {
+                continue;
+            }
 
             // What percent of the orbit are we aiming for?
             double target_angular_distance = M_PI * (time_diff_other / zxlb::MAX_TEMPORAL_DIFFERENCE);//zxlb::PRE_OTHER_FORCE_TIME_WINDOW);
-            double cur_distance = synapses[synapse_id].location.Distance(synapses[other_id].location);
+            // double cur_distance = synapses[synapse_id].location.Distance(synapses[other_id].location);
+            double cur_distance = direction.Distance(synapses[other_id].location);
             double angular_delta = cur_distance-target_angular_distance;
 
 
@@ -246,7 +251,9 @@ void Neuron::PresynapticSpike(i64 time, i64 synapse_id, ConnectionMatrix & cm) {
             //     (force_self * force_other)
             // ) * error;
 
-            partial_force = force_self * angular_delta * synapses[other_id].polarity;
+            partial_force = force_self * 
+                (1.0 / (std::pow(angular_delta,2.0)+1.0)) * angular_delta *
+                synapses[other_id].polarity;
 
             // VecS temp_direction(direction);
 
@@ -315,6 +322,9 @@ void Neuron::PostsynapticSignal(i64 time, ConnectionMatrix & cm) {
             time_cur_spike - synapses[synapse_indexes[i]].time_cur_spike
         );
 
+        if(time_diff > zxlb::MAX_TEMPORAL_DIFFERENCE) {
+            continue;
+        }
 
         // THIS IS THE WORKING VERSION of time_diff_soma
         // double time_diff_soma = static_cast<double>(
@@ -337,17 +347,27 @@ void Neuron::PostsynapticSignal(i64 time, ConnectionMatrix & cm) {
         double target_radial_distance = zxlb::MAX_RADIUS * (time_diff / zxlb::MAX_TEMPORAL_DIFFERENCE);
         double distance = target_radial_distance - synapses[synapse_indexes[i]].location.Rad();
         
+        // GOOD ORIGINAL: Scales the rate of change by the time_diff using an
+        //  alpha function.
+        // double force = (
+        //         (time_diff + zxlb::POST_SOMA_FORCE_TIME_WINDOW) /
+        //         zxlb::POST_SOMA_FORCE_TIME_WINDOW *
+        //         std::exp( - time_diff / zxlb::POST_SOMA_FORCE_TIME_WINDOW)
+        //     ) * 
+        //     std::tanh(distance) * 
+        //     cm[layer_id][id].GetErrorRateReLU() *
+        //     zxlb::POST_LEARNING_RATE;
 
-        double force = (
-                (time_diff + zxlb::POST_SOMA_FORCE_TIME_WINDOW) /
-                zxlb::POST_SOMA_FORCE_TIME_WINDOW *
-                std::exp( - time_diff / zxlb::POST_SOMA_FORCE_TIME_WINDOW)
-            ) * 
-            std::tanh(distance) * 
+        // Removes alpha function from the one above. All change is equal.
+        double force =  
+            (1.0 / (std::pow(distance,2.0)+1.0)) * distance *
             cm[layer_id][id].GetErrorRateReLU() *
             zxlb::POST_LEARNING_RATE;
 
         synapses[synapse_indexes[i]].location.ChangeRad( force );
+
+        // std::setprecision(10);
+        // std::cout << distance << " "<< force << std::endl;
 
     }
 
@@ -648,7 +668,7 @@ void Neuron::GetInputWitch3(i64 time) {
                 sig = syn->GetSignalWitch_Self(time);
 
                 for(sizet i = 0; i < densigs.size(); i++) {
-                    densigs[i].sig *= syn->GetSignalWitchMod(time,densigs[i].D,densigs[i].Ts);
+                    densigs[i].sig *= 1.0+sig*syn->GetSignalWitchMod(time,densigs[i].D,densigs[i].Ts);
                     densigs[i].D += dist;
                     // sig += densigs[i].sig * 
                     //     syn->GetSignalWitchMod(time,dist,densigs[i].Ts) *
@@ -673,7 +693,7 @@ void Neuron::GetInputWitch3(i64 time) {
 
                 if(parent->GetCompartment()==syn->GetCompartment()) {
                     for(sizet i = 0; i < densigs.size(); i++) {
-                        densigs[i].sig *= syn->GetSignalWitchMod(time,densigs[i].D,densigs[i].Ts);
+                        densigs[i].sig *= 1.0 + sig * syn->GetSignalWitchMod(time,densigs[i].D,densigs[i].Ts);
                         densigs[i].D += dist; // This must be updated after the sig.
                     }
 
@@ -683,7 +703,7 @@ void Neuron::GetInputWitch3(i64 time) {
                 } else {
                     double upstream_sigs = sig;
                     for(sizet i = 0; i < densigs.size(); i++) {
-                        upstream_sigs += densigs[i].sig * syn->GetSignalWitchMod(time,densigs[i].D,densigs[i].Ts);
+                        upstream_sigs += densigs[i].sig * (1.0+sig*syn->GetSignalWitchMod(time,densigs[i].D,densigs[i].Ts));
                     }
 
                     // densigs->size() should be abs in the demoninator;
@@ -719,8 +739,7 @@ void Neuron::GetInputWitch3(i64 time) {
                 (zxlb::WITCH_C / (std::pow((den_terms[i][k].Ts-den_terms[i][k].D)/zxlb::WITCH_B,2.0) + 1.0) + 1.0) ;
         }
         sig = (sig*num) / (std::abs(sig) + num);
-        // if(layer_id==1) std::cout << sig << " " << num << std::endl;
-        input += sig * zxlb::DENDRITE_SIGNAL_WEIGHT;
+        if(sig > 0) input += sig * zxlb::DENDRITE_SIGNAL_WEIGHT;
     }
     
     

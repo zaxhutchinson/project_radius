@@ -62,7 +62,7 @@ void Layer::Reset(bool purge_data) {
     ) {
         it->Reset(purge_data);
     }
-    input_generator = nullptr;
+    //input_generator = nullptr;
 }
 void Layer::RandomizeNeuronOrder(RNG & rng) {
     std::shuffle(

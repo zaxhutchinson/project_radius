@@ -123,9 +123,10 @@ void ExpEEG::LoadData(str fn_train_path, str fn_test_path) {
 
                     // if(eeg.ac=="a") as[static_cast<int>(reading)+MIN_READING]++;
                     // if(eeg.ac=="c") cs[static_cast<int>(reading)+MIN_READING]++;
-
-                    reading = READING_SCALAR * ((reading + MIN_READING) / MINMAX_READING);
-                    if(reading > READING_SCALAR || reading < 0.0) {
+                    //double reading = std::stod(chan_eles[3]);
+                    reading = (READING_SCALAR * ((reading + MIN_READING) / MINMAX_READING));
+                    
+                    if(reading > READING_SCALAR || reading < 0) {
                         std::cout << reading << std::endl;
                     }
 
@@ -265,8 +266,10 @@ void ExpEEG::LoadData(str fn_train_path, str fn_test_path) {
                     }
 
                     double reading = std::min(std::max(std::stod(chan_eles[3]),-MIN_READING),MAX_READING);
-                    reading = READING_SCALAR * ((reading + MIN_READING) / MINMAX_READING);
-                    if(reading > READING_SCALAR || reading < 0.) {
+                    //double reading = std::stod(chan_eles[3]);
+                    reading = (READING_SCALAR * ((reading + MIN_READING) / MINMAX_READING));
+                    
+                    if(reading > READING_SCALAR || reading < 0) {
                         std::cout << reading << std::endl;
                     }
 

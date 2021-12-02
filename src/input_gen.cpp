@@ -29,3 +29,7 @@ void InputGenerator_Poisson::Reset() {
         signal[i] = 0.0;
     }
 }
+
+void InputGenerator_Poisson::SetRate(vec<double> & _rate) {
+    rate = _rate;
+}

@@ -167,3 +167,14 @@ void RunEEG(
     Network * network,
     RNG & rng
 );
+
+/******************************************************************************
+ * ExpEEG2
+ * This experiment will test whether an AD neuron can learn to differentiate
+ * between two types of EEGs.
+ *****************************************************************************/
+void RunEEG2(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+);
