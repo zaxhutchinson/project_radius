@@ -16,6 +16,7 @@
 #include"pattern_maker.hpp"
 #include"exp_beacon.hpp"
 #include"exp_eeg.hpp"
+#include"exp_move.hpp"
 
 
 /******************************************************************************
@@ -174,6 +175,17 @@ void RunEEG(
  * between two types of EEGs.
  *****************************************************************************/
 void RunEEG2(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+);
+
+/******************************************************************************
+ * ExpMove
+ * This experiment will test whether an AD neuron can learn to differentiate
+ * between two types of EEGs.
+ *****************************************************************************/
+void RunMove(
     Writer * writer,
     Network * network,
     RNG & rng

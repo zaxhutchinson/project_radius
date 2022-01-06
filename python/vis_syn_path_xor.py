@@ -8,13 +8,13 @@ import defs
 
 
 
-NEURON_ID = 1
+NEURON_ID = 0
 LAYER_ID = 1
 SYN_IDS = list(range(64))
 
 out = output.Output(defs.OUTPUT_PATH, sid=SYN_IDS, nid=NEURON_ID, lid=LAYER_ID)
 
-colors = []
+colors = {}
 
 #002
 # SYN_IDS = list(range(0,100))
@@ -67,9 +67,18 @@ for sid in SYN_IDS:
     ys[sid] = []
     zs[sid] = []
 
+    if sid<16:
+        colors[sid]='lime'
+    elif sid<32:
+        colors[sid]='green'
+    elif sid<48:
+        colors[sid]='lightcoral'
+    elif sid<64:
+        colors[sid]='firebrick'
+
 
     # Use this to see the final movements
-    # for i in range(len(syn.lats)-1000,len(syn.lats)):
+    # for i in range(len(syn.lats)-10000,len(syn.lats)):
     for i in range(len(syn.lats)):
 
 
@@ -101,7 +110,7 @@ for k,v in xs.items():
         ax.plot3D(xs[k], ys[k], zs[k], label=k, c=colors[k])
     else:
         ax.plot3D(xs[k], ys[k], zs[k], label=k)
-ax.legend()
+# ax.legend()
 plt.show()
 
 

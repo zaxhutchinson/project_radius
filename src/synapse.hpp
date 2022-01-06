@@ -38,6 +38,7 @@ struct Synapse {
     i64 time_error;
     i64 time_cur_spike;
     i64 time_pre_spike;
+    que<i64> spike_queue;
     i64 spikes;
     i64 parent;
     vec<i64> children;
@@ -102,6 +103,7 @@ struct Synapse {
     double GetStrengthDelta();
     void ChangeStrengthPre(i64 time);
     void ChangeStrengthPost(i64 time);
+    void ChangeStrength(i64 time, double _error, ConnectionMatrix & cm);
 
     void SetBAP(i64 time);
 

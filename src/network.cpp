@@ -139,7 +139,7 @@ void Network::UpdateLayerErrorValues(
 vec<double> Network::GetErrorRates(i64 layer_id) {
     vec<double> erates;
     for(sizet i = 0; i < connection_matrix[layer_id].size(); i++) {
-        erates.push_back(connection_matrix[layer_id][i].GetErrorRateRaw());
+        erates.push_back(connection_matrix[layer_id][i].GetDownStreamErrorRate());
     }
     return erates;
 }

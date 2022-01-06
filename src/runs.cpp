@@ -2024,188 +2024,198 @@ void RunEEG(
     RNG & rng
 ) {
 
-    ExpEEG exp_eeg;
-    exp_eeg.LoadData("./exp_eeg/train", "./exp_eeg/test");
-    EEG * eeg = nullptr;
-    vec<sizet> test_indexes;
-    vec<sizet> train_indexes;
-    for(sizet i = 0; i < exp_eeg.GetSizeTestExamples(); i++) {
-        test_indexes.push_back(i);
-    }
-    for(sizet i = 0; i < exp_eeg.GetSizeTrainingExamples(); i++) {
-        train_indexes.push_back(i);
-    }
+    // ExpEEG exp_eeg;
+    // exp_eeg.LoadData("./exp_eeg/train", "./exp_eeg/test");
+    // EEG * eeg = nullptr;
+    // vec<sizet> test_indexes_A;
+    // vec<sizet> test_indexes_C;
+    // vec<sizet> train_indexes_A;
+    // vec<sizet> train_indexes_C;
+    // str A("a");
+    // str C("c");
+    // for(sizet i = 0; i < exp_eeg.GetSizeTestExamples(A); i++) {
+    //     test_indexes_A.push_back(i);
+    // }
+    // for(sizet i = 0; i < exp_eeg.GetSizeTrainingExamples(A); i++) {
+    //     train_indexes_A.push_back(i);
+    // }
+    // for(sizet i = 0; i < exp_eeg.GetSizeTestExamples(C); i++) {
+    //     test_indexes_C.push_back(i);
+    // }
+    // for(sizet i = 0; i < exp_eeg.GetSizeTrainingExamples(C); i++) {
+    //     train_indexes_C.push_back(i);
+    // }
 
-    vec<sizet> patterns = {
-        0,1
-    };
-
-    sizet num_iterations = 500;
-    sizet iteration_size = 0;
-    i64 time_per_example = 1000;
-    i64 output_layer_index = network->GetOutputLayerIndex();
-    Layer * output_layer = network->GetLayer(network->GetOutputLayerIndex());
-
-
-    for(i64 i = 0; i < output_layer->GetLayerSize(); i++) {
-        Neuron * output_neuron = output_layer->GetNeuron(i);
-
-        output_neuron->SetInputMethod(
-            InputMethod::Full
-        );
-    }
-
-    // sizet train_ang_start_it = 0;
-    // sizet train_rad_start_it = 0;
-    // sizet train_str_start_it = 100000000;
-    // bool train_ang = false;
-    // bool train_rad = false;
-    // bool train_str = false;
-
-    // str train_or_test = "train";
-
-    // vec<double> rates_by_pattern = {
-    //     zxlb::CORRECT_EXPECTED,
-    //     zxlb::INCORRECT_EXPECTED,
+    // vec<sizet> patterns = {
+    //     0,1
     // };
-    vec<double> rate = {
-        zxlb::INCORRECT_EXPECTED,
-        zxlb::INCORRECT_EXPECTED
-    };
 
-    writer->StartRecording();
+    // sizet num_iterations = 500;
+    // sizet iteration_size = 100;
+    // i64 time_per_example = 1000;
+    // i64 output_layer_index = network->GetOutputLayerIndex();
+    // Layer * output_layer = network->GetLayer(network->GetOutputLayerIndex());
 
-    // Build the dendrites the first time.
-    network->InitDendrites();
 
-    for(sizet i = 0; i < num_iterations; i++) {
-        std::cout << i << "\r" << std::flush;
+    // for(i64 i = 0; i < output_layer->GetLayerSize(); i++) {
+    //     Neuron * output_neuron = output_layer->GetNeuron(i);
+
+    //     output_neuron->SetInputMethod(
+    //         InputMethod::Full
+    //     );
+    // }
+
+    // // sizet train_ang_start_it = 0;
+    // // sizet train_rad_start_it = 0;
+    // // sizet train_str_start_it = 100000000;
+    // // bool train_ang = false;
+    // // bool train_rad = false;
+    // // bool train_str = false;
+
+    // // str train_or_test = "train";
+
+    // // vec<double> rates_by_pattern = {
+    // //     zxlb::CORRECT_EXPECTED,
+    // //     zxlb::INCORRECT_EXPECTED,
+    // // };
+    // vec<double> rate = {
+    //     zxlb::INCORRECT_EXPECTED,
+    //     zxlb::INCORRECT_EXPECTED
+    // };
+
+    // writer->StartRecording();
+
+    // // Build the dendrites the first time.
+    // network->InitDendrites();
+
+    // for(sizet i = 0; i < num_iterations; i++) {
+    //     std::cout << i << "\r" << std::flush;
 
         
         
 
-        network->RandomizeOrder(rng);
+    //     network->RandomizeOrder(rng);
 
 
         
         
 
-        // if(i >= train_ang_start_it) train_ang=true;
-        // if(i >= train_rad_start_it) train_rad=true;
-        // if(i >= train_str_start_it) train_str=true;
-        output_layer->SetTraining(true, true, false);
+    //     // if(i >= train_ang_start_it) train_ang=true;
+    //     // if(i >= train_rad_start_it) train_rad=true;
+    //     // if(i >= train_str_start_it) train_str=true;
+    //     output_layer->SetTraining(true, true, false);
 
 
 
-        network->RebuildDendrites();
+    //     network->RebuildDendrites();
 
 
         
-        iteration_size = train_indexes.size();
-        std::shuffle(train_indexes.begin(), train_indexes.end(), rng);
+    //     std::shuffle(train_indexes_A.begin(), train_indexes_A.end(), rng);
+    //     std::shuffle(train_indexes_C.begin(), train_indexes_C.end(), rng);
 
-
-        for(sizet k = 0; k < iteration_size; k++) {
-            eeg = exp_eeg.GetTrainingExample(train_indexes[k]);
+    //     for(sizet k = 0; k < iteration_size; k++) {
             
-            if(eeg->ac=="a") {
-                rate[0] = zxlb::CORRECT_EXPECTED;
-                rate[1] = zxlb::INCORRECT_EXPECTED;
-            } else if(eeg->ac=="c") {
-                rate[0] = zxlb::INCORRECT_EXPECTED;
-                rate[1] = zxlb::CORRECT_EXPECTED;
-            }
-            network->UpdateLayerErrorValues(
-                rate, output_layer_index
-            );
+    //         eeg = exp_eeg.GetTrainingExample(train_indexes[k]);
+            
+    //         if(eeg->ac=="a") {
+    //             rate[0] = zxlb::CORRECT_EXPECTED;
+    //             rate[1] = zxlb::INCORRECT_EXPECTED;
+    //         } else if(eeg->ac=="c") {
+    //             rate[0] = zxlb::INCORRECT_EXPECTED;
+    //             rate[1] = zxlb::CORRECT_EXPECTED;
+    //         }
+    //         network->UpdateLayerErrorValues(
+    //             rate, output_layer_index
+    //         );
 
-            sizet reading_index = 0;
-            vec<double> readings = eeg->GetReading(reading_index++);
-            network->SetInputs(readings);
+    //         sizet reading_index = 0;
+    //         vec<double> readings = eeg->GetReading(reading_index++);
+    //         network->SetInputs(readings);
 
-            i64 time = 1;
-            for(; time <= time_per_example; time++) {
+    //         i64 time = 1;
+    //         for(; time <= time_per_example; time++) {
 
-                if(time%4==0) {
-                    readings = eeg->GetReading(reading_index++);
-                    network->SetInputs(readings);
-                }
+    //             if(time%4==0) {
+    //                 readings = eeg->GetReading(reading_index++);
+    //                 network->SetInputs(readings);
+    //             }
 
-                network->Update(
-                    time,
-                    writer,
-                    rng
-                );
-            }
+    //             network->Update(
+    //                 time,
+    //                 writer,
+    //                 rng
+    //             );
+    //         }
 
-            // writer->AddExampleData(std::make_unique<ExampleData>(i,k,eeg->ac));
-            // network->SaveData(-1);
-            // network->WriteData(writer);
-            network->Reset();
-        }
+    //         // writer->AddExampleData(std::make_unique<ExampleData>(i,k,eeg->ac));
+    //         // network->SaveData(-1);
+    //         // network->WriteData(writer);
+    //         network->Reset();
+    //     }
         
         
-        /*------------------------------------------
-        Test 10 random testing examples.
-        --------------------------------------------*/
+    //     /*------------------------------------------
+    //     Test 10 random testing examples.
+    //     --------------------------------------------*/
 
-        // The training cycle produced data. We don't want to store it.
-        // Purge.
-        network->Reset(true);
+    //     // The training cycle produced data. We don't want to store it.
+    //     // Purge.
+    //     network->Reset(true);
 
-        output_layer->SetTraining(false, false, false);
+    //     output_layer->SetTraining(false, false, false);
 
-        network->RebuildDendrites();
+    //     network->RebuildDendrites();
 
-        iteration_size = 10;
-        std::shuffle(test_indexes.begin(), test_indexes.end(), rng);
+    //     iteration_size = 10;
+    //     std::shuffle(test_indexes.begin(), test_indexes.end(), rng);
 
-        for(sizet k = 0; k < iteration_size; k++) {
-            eeg = exp_eeg.GetTestingExample(test_indexes[k]);
+    //     for(sizet k = 0; k < iteration_size; k++) {
+    //         eeg = exp_eeg.GetTestingExample(test_indexes[k]);
 
             
             
-            if(eeg->ac=="a") {
-                rate[0] = zxlb::CORRECT_EXPECTED;
-                rate[1] = zxlb::INCORRECT_EXPECTED;
-            } else if(eeg->ac=="c") {
-                rate[0] = zxlb::INCORRECT_EXPECTED;
-                rate[1] = zxlb::CORRECT_EXPECTED;
-            }
-            network->UpdateLayerErrorValues(
-                rate, output_layer_index
-            );
+    //         if(eeg->ac=="a") {
+    //             rate[0] = zxlb::CORRECT_EXPECTED;
+    //             rate[1] = zxlb::INCORRECT_EXPECTED;
+    //         } else if(eeg->ac=="c") {
+    //             rate[0] = zxlb::INCORRECT_EXPECTED;
+    //             rate[1] = zxlb::CORRECT_EXPECTED;
+    //         }
+    //         network->UpdateLayerErrorValues(
+    //             rate, output_layer_index
+    //         );
 
-            sizet reading_index = 0;
-            vec<double> readings = eeg->GetReading(reading_index++);
-            network->SetInputs(readings);
+    //         sizet reading_index = 0;
+    //         vec<double> readings = eeg->GetReading(reading_index++);
+    //         network->SetInputs(readings);
 
-            i64 time = 1;
-            for(; time <= time_per_example; time++) {
+    //         i64 time = 1;
+    //         for(; time <= time_per_example; time++) {
 
-                if(time%4==0) {
-                    readings = eeg->GetReading(reading_index++);
-                    network->SetInputs(readings);
-                }
+    //             if(time%4==0) {
+    //                 readings = eeg->GetReading(reading_index++);
+    //                 network->SetInputs(readings);
+    //             }
 
-                network->Update(
-                    time,
-                    writer,
-                    rng
-                );
-            }
+    //             network->Update(
+    //                 time,
+    //                 writer,
+    //                 rng
+    //             );
+    //         }
 
-            writer->AddExampleData(std::make_unique<ExampleData>(i,k,eeg->ac));
-            network->SaveData(-1);
-            network->WriteData(writer);
-            network->Reset();
-        }
+    //         writer->AddExampleData(std::make_unique<ExampleData>(i,k,eeg->ac));
+    //         network->SaveData(-1);
+    //         network->WriteData(writer);
+    //         network->Reset();
+    //     }
 
-    }
+    // }
 
-    network->CleanUpData(writer);
+    // network->CleanUpData(writer);
 
-    writer->StopRecording();
+    // writer->StopRecording();
 }
 
 
@@ -2219,22 +2229,32 @@ void RunEEG2(
     ExpEEG exp_eeg;
     exp_eeg.LoadData("./exp_eeg/train", "./exp_eeg/test");
     EEG * eeg = nullptr;
-    vec<sizet> test_indexes;
-    vec<sizet> train_indexes;
-    for(sizet i = 0; i < exp_eeg.GetSizeTestExamples(); i++) {
-        test_indexes.push_back(i);
+    vec<sizet> test_indexes_A;
+    vec<sizet> train_indexes_A;
+    vec<sizet> test_indexes_C;
+    vec<sizet> train_indexes_C;
+    str A("a");
+    str C("c");
+    for(sizet i = 0; i < exp_eeg.GetSizeTestExamples(A); i++) {
+        test_indexes_A.push_back(i);
     }
-    for(sizet i = 0; i < exp_eeg.GetSizeTrainingExamples(); i++) {
-        train_indexes.push_back(i);
+    for(sizet i = 0; i < exp_eeg.GetSizeTrainingExamples(A); i++) {
+        train_indexes_A.push_back(i);
+    }
+    for(sizet i = 0; i < exp_eeg.GetSizeTestExamples(C); i++) {
+        test_indexes_C.push_back(i);
+    }
+    for(sizet i = 0; i < exp_eeg.GetSizeTrainingExamples(C); i++) {
+        train_indexes_C.push_back(i);
     }
 
     vec<sizet> patterns = {
         0,1
     };
 
-    sizet num_iterations = 1000;
+    sizet num_iterations = 10000;
     sizet iteration_size = 0;
-    i64 time_per_example = 1000;
+    i64 time_per_example = zxlb::EEG_TASK_DURATION;
     i64 output_layer_index = network->GetOutputLayerIndex();
     Layer * output_layer = network->GetLayer(network->GetOutputLayerIndex());
     Layer * input_layer = network->GetLayer(network->GetInputLayerIndex());
@@ -2248,19 +2268,6 @@ void RunEEG2(
         );
     }
 
-    // sizet train_ang_start_it = 0;
-    // sizet train_rad_start_it = 0;
-    // sizet train_str_start_it = 100000000;
-    // bool train_ang = false;
-    // bool train_rad = false;
-    // bool train_str = false;
-
-    // str train_or_test = "train";
-
-    // vec<double> rates_by_pattern = {
-    //     zxlb::CORRECT_EXPECTED,
-    //     zxlb::INCORRECT_EXPECTED,
-    // };
     vec<double> rate = {
         zxlb::INCORRECT_EXPECTED,
         zxlb::INCORRECT_EXPECTED
@@ -2277,7 +2284,7 @@ void RunEEG2(
         igen->rate.push_back(0.0);
     }
 
-    input_layer->AddInputGenerator(igen.get());
+    // input_layer->AddInputGenerator(igen.get());
 
     writer->StartRecording();
 
@@ -2299,7 +2306,7 @@ void RunEEG2(
         // if(i >= train_ang_start_it) train_ang=true;
         // if(i >= train_rad_start_it) train_rad=true;
         // if(i >= train_str_start_it) train_str=true;
-        output_layer->SetTraining(true, true, false);
+        output_layer->SetTraining(true, true, true);
 
 
 
@@ -2307,40 +2314,45 @@ void RunEEG2(
 
 
         
-        iteration_size = train_indexes.size();
-        std::shuffle(train_indexes.begin(), train_indexes.end(), rng);
-
+        iteration_size = train_indexes_A.size()+train_indexes_C.size();
+        std::shuffle(train_indexes_A.begin(), train_indexes_A.end(), rng);
+        std::shuffle(train_indexes_C.begin(), train_indexes_C.end(), rng);
 
         for(sizet k = 0; k < 50; k++) {
-
-            eeg = exp_eeg.GetTrainingExample(train_indexes[k]);
-            
-            if(eeg->ac=="a") {
+            if(k%2==0) {
+                eeg = exp_eeg.GetTrainingExample(A,train_indexes_A[k]);
                 rate[0] = zxlb::CORRECT_EXPECTED;
                 rate[1] = zxlb::INCORRECT_EXPECTED;
-            } else if(eeg->ac=="c") {
+            }
+            else {
+                eeg = exp_eeg.GetTrainingExample(C,train_indexes_C[k]);
                 rate[0] = zxlb::INCORRECT_EXPECTED;
                 rate[1] = zxlb::CORRECT_EXPECTED;
             }
+            
+            // if(eeg->ac=="a") {
+                
+            // } else if(eeg->ac=="c") {
+                
+            // }
             network->UpdateLayerErrorValues(
                 rate, output_layer_index
             );
 
             sizet reading_index = 0;
-            vec<double> readings = eeg->GetReading(reading_index++);
-            //network->SetInputs(readings);
-            igen->SetRate(readings);
+            vec<double> readings;// = eeg->GetReading(reading_index++);
+            // network->SetInputs(readings);
+            //igen->SetRate(readings);
 
-            i64 time = 1;
-            for(; time <= time_per_example; time++) {
+            i64 time = 0;
+            for(; time < time_per_example; time++) {
 
                 if(time%4==0) {
                     readings = eeg->GetReading(reading_index++);
-                    //network->SetInputs(readings);
-                    igen->SetRate(readings);
-                    //for(sizet r = 0; r < readings.size(); r++) std::cout << readings[r] << " ";
+                    network->SetInputs(readings);
+                    //igen->SetRate(readings);
+                    
                 }
-                //std::cout << std::endl;
 
                 network->Update(
                     time,
@@ -2371,36 +2383,45 @@ void RunEEG2(
         network->RebuildDendrites();
 
         iteration_size = 10;
-        std::shuffle(test_indexes.begin(), test_indexes.end(), rng);
+        std::shuffle(test_indexes_A.begin(), test_indexes_A.end(), rng);
+        std::shuffle(test_indexes_C.begin(), test_indexes_C.end(), rng);
 
         for(sizet k = 0; k < iteration_size; k++) {
-            eeg = exp_eeg.GetTestingExample(test_indexes[k]);
 
-            
-            
-            if(eeg->ac=="a") {
+            if(k%2==0) {
+                eeg = exp_eeg.GetTrainingExample(A,test_indexes_A[k]);
                 rate[0] = zxlb::CORRECT_EXPECTED;
                 rate[1] = zxlb::INCORRECT_EXPECTED;
-            } else if(eeg->ac=="c") {
+            }
+            else {
+                eeg = exp_eeg.GetTrainingExample(C,test_indexes_C[k]);
                 rate[0] = zxlb::INCORRECT_EXPECTED;
                 rate[1] = zxlb::CORRECT_EXPECTED;
             }
+            
+            // if(eeg->ac=="a") {
+            //     rate[0] = zxlb::CORRECT_EXPECTED;
+            //     rate[1] = zxlb::INCORRECT_EXPECTED;
+            // } else if(eeg->ac=="c") {
+            //     rate[0] = zxlb::INCORRECT_EXPECTED;
+            //     rate[1] = zxlb::CORRECT_EXPECTED;
+            // }
             network->UpdateLayerErrorValues(
                 rate, output_layer_index
             );
 
             sizet reading_index = 0;
-            vec<double> readings = eeg->GetReading(reading_index++);
+            vec<double> readings;// = eeg->GetReading(reading_index++);
             // network->SetInputs(readings);
-            igen->SetRate(readings);
+            // igen->SetRate(readings);
 
-            i64 time = 1;
-            for(; time <= time_per_example; time++) {
+            i64 time = 0;
+            for(; time < time_per_example; time++) {
 
                 if(time%4==0) {
                     readings = eeg->GetReading(reading_index++);
-                    // network->SetInputs(readings);
-                    igen->SetRate(readings);
+                    network->SetInputs(readings);
+                    // igen->SetRate(readings);
                 }
 
                 network->Update(
@@ -2418,6 +2439,109 @@ void RunEEG2(
             network->Reset();
         }
 
+    }
+
+    network->CleanUpData(writer);
+
+    writer->StopRecording();
+}
+
+
+
+/******************************************************************************
+ * ExpMove
+ * This experiment will test whether an AD neuron can learn to differentiate
+ * between two types of EEGs.
+ *****************************************************************************/
+
+void RunMove(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+) {
+
+    ExpMove exp_move(
+        10,
+        10,
+        0.5,
+        200.0,
+        1000,
+        true,
+        true
+    );
+    vec<ExpMoveInstance> instances = exp_move.GetAllInstances();
+
+    vec<sizet> patterns = {
+        0,1
+    };
+
+    sizet num_iterations = 1000;
+    i64 time_per_example = zxlb::TASK_DURATION;
+    i64 output_layer_index = network->GetOutputLayerIndex();
+    Layer * output_layer = network->GetLayer(network->GetOutputLayerIndex());
+    // Layer * input_layer = network->GetLayer(network->GetInputLayerIndex());
+
+    vec<double> rate = {
+        -1,
+        -1
+    };
+
+    // input_layer->AddInputGenerator(igen.get());
+
+    writer->StartRecording();
+
+    // Build the dendrites the first time.
+    network->InitDendrites();
+
+    output_layer->SetTraining(true, true, true);
+
+    for(sizet i = 0; i < num_iterations; i++) {
+        std::cout << i << "\r" << std::flush;
+
+        std::shuffle(instances.begin(), instances.end(), rng);
+
+        network->RandomizeOrder(rng);
+
+        network->RebuildDendrites();
+
+        for(sizet k = 0; k < instances.size(); k++) {
+
+            ExpMoveInstance * emi = &(instances[k]);
+            str type;
+
+            if(emi->type==MoveType::HORIZONTAL) {
+                type = "H";
+                rate[0] = zxlb::CORRECT_EXPECTED;
+                rate[1] = zxlb::INCORRECT_EXPECTED;
+            }
+            else {
+                type = "V";
+                rate[0] = zxlb::INCORRECT_EXPECTED;
+                rate[1] = zxlb::CORRECT_EXPECTED;
+            }
+            
+            network->UpdateLayerErrorValues(
+                rate, output_layer_index
+            );
+
+            i64 time = 0;
+            for(; time < time_per_example; time++) {
+
+                network->SetInputs(emi->signals[time]);
+
+
+                network->Update(
+                    time,
+                    writer,
+                    rng
+                );
+            }
+
+            writer->AddExampleData(std::make_unique<ExampleData>(i,k,type));
+            network->SaveData(-1);
+            network->WriteData(writer);
+            network->Reset();
+        }
     }
 
     network->CleanUpData(writer);

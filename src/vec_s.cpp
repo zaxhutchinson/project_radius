@@ -47,8 +47,11 @@ double VecS::Distance(const VecS & v) {
     double a = std::pow( std::sin(alat/2.0), 2.0 ) +
         std::cos(lat) * std::cos(v.lat) *
         std::pow(std::sin(alon/2.0), 2.0);
-    if(a>1) a = 1; 
-    if(a<0) a = 0;
+
+    // Correct for precision errors.
+    if(a>1) a = 1.0; 
+    if(a<0) a = 0.0;
+    
     return  2.0 * std::atan2(std::sqrt(a), std::sqrt(1-a));
 }
 
@@ -145,20 +148,20 @@ double VecS::HeadingTo(const VecS & v) {
 }
 
 void VecS::Orbit(double heading, double distance) {
-    double delta = distance / rad;
+    // double delta = distance / rad;
     double nlat = asin(
-        sin(lat) * cos(delta) + cos(lat) * sin(delta) * cos(heading)
+        sin(lat) * cos(distance) + cos(lat) * sin(distance) * cos(heading)
     );
     double nlon = lon + atan2(
-        sin(heading) * sin(delta) * cos(lat),
-        cos(delta) - sin(lat) * sin(nlat)
+        sin(heading) * sin(distance) * cos(lat),
+        cos(distance) - sin(lat) * sin(nlat)
     );
     lat = nlat;
     lon = nlon;
     if(lon < -M_PI) lon += MPI2;
     else if(lon > M_PI) lon -= MPI2;
-    if(lat < -MPIOVER2) std::cout << "Lat under pi/2 " << lat << std::endl;
-    else if(lat > MPIOVER2) std::cout << "Lat over pi/2 " << lat << std::endl;
+    // if(lat < -MPIOVER2) std::cout << "Lat under pi/2 " << lat << std::endl;
+    // else if(lat > MPIOVER2) std::cout << "Lat over pi/2 " << lat << std::endl;
 }
 
 Vec3 VecS::VectorTo(const VecS & v) {

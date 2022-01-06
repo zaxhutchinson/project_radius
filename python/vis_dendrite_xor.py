@@ -7,7 +7,7 @@ import numpy as np
 import output
 import defs
 
-NEURON_ID = 1
+NEURON_ID = 0
 LAYER_ID = 1
 SIDS = list(range(64))
 
@@ -20,9 +20,10 @@ ys = []
 zs = []
 
 comps = []
-colors = {}
+comp_colors = {}
+syn_colors = {}
 
-points = []
+points = {}
 
 class Point:
     ID = None
@@ -40,7 +41,8 @@ soma = Point()
 soma.ID = -1
 soma.comp = -1
 points = {-1:soma}
-colors[soma.comp]=(0.0,0.0,0.0)
+comp_colors[soma.comp]=(0.0,0.0,0.0)
+syn_colors[soma.ID]=(0.0,0.0,0.0)
 
 for name,syn in out.synapses.items():
     if syn.neuron_id == NEURON_ID and syn.layer_id == LAYER_ID and syn.synapse_id in SIDS:
@@ -54,7 +56,16 @@ for name,syn in out.synapses.items():
 
         if comp not in comps:
             comps.append(comp)
-            colors[comp]=(random.uniform(0.2,0.8),random.uniform(0.2,0.8),random.uniform(0.2,0.8))
+            comp_colors[comp]=(random.uniform(0.2,0.8),random.uniform(0.2,0.8),random.uniform(0.2,0.8))
+
+        if int(syn.synapse_id)<16:
+            syn_colors[syn.synapse_id]='lime'
+        elif int(syn.synapse_id)<32:
+            syn_colors[syn.synapse_id]='green'
+        elif int(syn.synapse_id)<48:
+            syn_colors[syn.synapse_id]='lightcoral'
+        elif int(syn.synapse_id)<64:
+            syn_colors[syn.synapse_id]='firebrick'
 
         x = rad * math.cos(lat) * math.cos(lon)
         y = rad * math.cos(lat) * math.sin(lon)
@@ -76,6 +87,7 @@ for name,syn in out.synapses.items():
         p.lat = lat
         p.lon = lon
         p.comp = comp
+        # if p.ID!=-1 and p.ID<16:
         points[p.ID] = p
 
         xs.append(x)
@@ -90,17 +102,19 @@ ax.set_xlim3d(-a,a)
 ax.set_ylim3d(-a,a)
 ax.set_zlim3d(-a,a)
 for k,v in points.items():
-    ax.scatter(v.x, v.y, v.z, color=colors[v.comp], cmap='jet')
+
+    ax.scatter(v.x, v.y, v.z, color=syn_colors[v.ID], cmap='jet')
     label = str(v.ID)
-    ax.text(v.x, v.y, v.z, '%s' % (label), size=10, zorder=1 )
-# ax.scatter(xs_max, ys_max, zs_max, marker='o')
+    # ax.text(v.x, v.y, v.z, '%s' % (label), size=10, zorder=1 )
+
 
 for k,v in points.items():
     if v.pid!=None:
+        # if v.pid==-1:
+        #     continue
 
         parent = points[v.pid]
-        # if v.pid==-1:
-        #     print(v.ID, v.lat, v.lon, v.rad, v.x, v.y, v.z)    
+ 
         ax.plot3D([v.x, parent.x], [v.y, parent.y], [v.z, parent.z], 'gray')
 
 plt.title("Synaptic Locations and Dendritic Connections")

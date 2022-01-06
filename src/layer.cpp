@@ -144,7 +144,7 @@ void Layer::Update(i64 time, Writer * writer, ConnectionMatrix & cm, RNG & rng) 
             neurons[i].SetRawInput(input_generator->GetInput(i, time, rng));
             if(neurons[i].Update(time, writer, id, cm, train_str, train_ang)) {
                 if(train_rad) neurons[i].PostsynapticSignal(time, cm);
-                neurons[i].bAP(time,1.0, train_str);
+                neurons[i].bAP(time,1.0, train_str, cm);
             }
         }
     } else {
@@ -153,7 +153,7 @@ void Layer::Update(i64 time, Writer * writer, ConnectionMatrix & cm, RNG & rng) 
             i = neuron_indexes[j];
             if(neurons[i].Update(time, writer, id, cm, train_str, train_ang)) {
                 if(train_rad) neurons[i].PostsynapticSignal(time, cm);
-                neurons[i].bAP(time,1.0, train_str);
+                neurons[i].bAP(time,1.0, train_str, cm);
             }
         }
     }

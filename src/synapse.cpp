@@ -84,6 +84,7 @@ void Synapse::Reset() {
     spikes = 0;
     upstream_eval = false;
     upstream_signal =0.0;
+    spike_queue = {};
 }
 
 double Synapse::GetError() {
@@ -109,11 +110,13 @@ void Synapse::SetSignal(i64 time, double amt) {
 }
 
 void Synapse::SetCurSpike(i64 time) {
+    // spike_queue.push(time);
     time_pre_spike = time_cur_spike;
     time_cur_spike = time;
 }
 
 i64 Synapse::GetCurSpike() {
+    // return spike_queue.back();
     return time_cur_spike;
 }
 
@@ -149,7 +152,7 @@ void Synapse::ChangeStrengthPre(i64 time) {
 
     if(bap==-1) return;
 
-    double time_diff = static_cast<double>(time_cur_spike - bap);
+    double time_diff = static_cast<double>(GetCurSpike() - bap);
     double abs_time_diff = std::abs(time_diff);
     //if(abs_time_diff<=zxlb::LEARNING_WINDOW_SYN_STRENGTH) {
         double time_delta = (
@@ -191,7 +194,7 @@ void Synapse::ChangeStrengthPost(i64 time) {
     if(bap==-1) return;
 
     //(location.Rad() / zxlb::MAX_RADIUS) * zxlb::LEARNING_WINDOW_SYN_STRENGTH;
-    double time_diff = static_cast<double>(bap - time_cur_spike);
+    double time_diff = static_cast<double>(bap - GetCurSpike());
     double abs_time_diff = std::abs(time_diff);
     //if(abs_time_diff<=zxlb::LEARNING_WINDOW_SYN_STRENGTH) {
         double time_delta = (
@@ -207,6 +210,15 @@ void Synapse::ChangeStrengthPost(i64 time) {
             polarity;
         cur_strength += GetStrengthDelta() * str_delta;
     //}
+}
+
+void Synapse::ChangeStrength(i64 time, double _error, ConnectionMatrix & cm) {
+    this->error = _error;
+    double delta = zxlb::WITCH_C / 
+        (std::pow((time_cur_spike - dendrite_path_length) / zxlb::WITCH_B, 2.0) + 1.0);
+    delta *= _error;
+    cur_strength = cur_strength + delta;
+    cm[ca.pre_layer][ca.pre_neuron].SetDownStreamErrorRate(neuron_id,delta);
 }
 
 void Synapse::SetBAP(i64 time) {
@@ -240,7 +252,7 @@ double Synapse::GetSignal_Out(i64 time) {
 
 double Synapse::GetSignalWitch_Self(i64 time) {
     return GetStrength() * zxlb::WITCH_C /
-        (std::pow((time-time_cur_spike)/zxlb::WITCH_B, 2.0) + 1.0);
+        (std::pow((time-GetCurSpike())/zxlb::WITCH_B, 2.0) + 1.0);
 }
 
 double Synapse::GetSignalWitchMod(i64 time, double dist, double spike_time_diff) {
@@ -335,7 +347,7 @@ bool Synapse::Update(i64 time, Writer * writer, ConnectionMatrix & cm) {
 
     SetSignal(time, cm[ca.pre_layer][ca.pre_neuron].output);
 
-    error = cm[ca.post_layer][ca.post_neuron].GetErrorRateRaw();
+    //error = cm[ca.post_layer][ca.post_neuron].GetErrorRateRaw();
 
     //SaveData(time);
 
@@ -346,6 +358,12 @@ bool Synapse::Update(i64 time, Writer * writer, ConnectionMatrix & cm) {
     } else {
         return false;
     }
+
+
+    // while(spike_queue.size() > 2 && spike_queue.front() > zxlb::MAX_TEMPORAL_DIFFERENCE) {
+    //     spike_queue.pop();
+    // }
+
 }
 
 void Synapse::ResetWriteData() {

@@ -7,9 +7,9 @@ import numpy as np
 import output
 import defs
 
-NEURON_ID = 1
+NEURON_ID = 0
 LAYER_ID = 1
-SIDS = list(range(64))
+SIDS = list(range(100))
 
 out = output.Output(defs.OUTPUT_PATH, lid=LAYER_ID, nid=NEURON_ID, sid=SIDS)
 
@@ -76,6 +76,7 @@ for name,syn in out.synapses.items():
         p.lat = lat
         p.lon = lon
         p.comp = comp
+        print(p.ID)
         points[p.ID] = p
 
         xs.append(x)

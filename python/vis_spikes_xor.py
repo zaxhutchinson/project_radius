@@ -48,8 +48,9 @@ for i in range(0,len(out.examples)):
 
     acc.append(corr/total)
 
-for k,v in acc_by_pat.items():
-    print(k, v/(total/3))
+for k,v in spikes_by_pat.items():
+
+    print(k, sum(v[:2000])/len(v[:2000]), sum(v[5000:])/len(v[5000:]))
 
 fig = plt.figure()
 ax = fig.add_subplot()
@@ -61,11 +62,13 @@ ax = fig.add_subplot()
 ax.plot(acc)
 plt.show()
 
+labels = ['A\u0305B','AB\u0305','AB']
+
 fig = plt.figure()
 ax = fig.add_subplot()
 plt.xlabel("Iteration")
 plt.ylabel("Num Spikes")
 for k,v in spikes_by_pat.items():
-    ax.plot(v, label=k)
+    ax.plot(v, label=labels[k])
 plt.legend()
 plt.show()

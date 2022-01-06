@@ -1,3 +1,6 @@
+**BF in the EEG**
+Playing around with the BF to get targeted silencing. If it's too low, too many synapses end up in the same compartment. If it's too large, one synapse per dendrite.
+
 **Distance switch**
 I removed the code a few days ago that squashed distance impact on movement (radial or angular); however, this meant that the algorithm favored long distance movement. I have added a different distance squashing method. It decays the effect of distance as distance grows using an exponential decay. The impact of distance on the algorithm seems to be very impactful. And I think this is not quite correct. But it's better.
 

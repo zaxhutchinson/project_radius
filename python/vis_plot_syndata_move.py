@@ -8,7 +8,7 @@ import defs
 
 NEURON_ID = 1
 LAYER_ID = 1
-SIDS = list(range(64))
+SIDS = list(range(100))
 # SIDS = [0,1,2,3,4,5,6,7,8,9]
 out = output.Output(defs.OUTPUT_PATH, lid=LAYER_ID, nid=NEURON_ID)
 

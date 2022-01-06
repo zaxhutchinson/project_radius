@@ -71,13 +71,15 @@ struct Neuron {
 
     i64 AddSynapse(Synapse synapse);
     Synapse * GetSynapse(i64 index);
+    i64 GetNumSynapses();
 
     void SetBaseline(double amt);
     void SetRawInput(double amt);
     // void PresynapticSignal(i64 time, i64 synapse_id, double signal, bool pre_spike);
     void PresynapticSpike(i64 time, i64 synapse_id, ConnectionMatrix & cm);
     void PostsynapticSignal(i64 time, ConnectionMatrix & cm);
-    void bAP(i64 time, double signal, bool train_str);
+    void bAP(i64 time, double signal, bool train_str, ConnectionMatrix & cm);
+    double GetError(ConnectionMatrix & cm);
    
     bool Update(i64 time, Writer * writer, i64 layer_id, ConnectionMatrix & cm, bool train_str, bool train_ang);
     void InitWriteData();
@@ -95,6 +97,8 @@ struct Neuron {
     void PrintDendrite();
 
     void SetInputMethod(InputMethod im);
+
+    
 
 private:
      /* GetInput:

@@ -181,6 +181,9 @@ i64 Neuron::AddSynapse(Synapse synapse) {
 Synapse * Neuron::GetSynapse(i64 index) {
     return &(synapses[index]);
 }
+i64 Neuron::GetNumSynapses() {
+    return synapses.size();
+}
 
 void Neuron::SetBaseline(double amt) {
     baseline = amt;
@@ -199,13 +202,30 @@ void Neuron::SetRawInput(double amt) {
 
 void Neuron::PresynapticSpike(i64 time, i64 synapse_id, ConnectionMatrix & cm) {
 
-    
+    // Don't bother if we have only one spike.
+    if(time_pre_spike==0) return;
+
+    // double Rt = cm[layer_id][id].GetDownStreamErrorRate();
+    // double Ra = time_cur_spike - time_pre_spike;
+    // double RaRt = Ra - Rt;
+    // double error =  RaRt / std::abs(RaRt);
 
     VecS direction = synapses[synapse_id].location;
     double partial_force = 0.0;
-    double error = synapses[synapse_id].GetError();
 
+    double Rt = cm[layer_id][id].GetDownStreamErrorRate();
+    double Ra = time_cur_spike - time_pre_spike;
+    double RaRt = Ra - Rt;
+    double error =  0.0;
+    if(Rt != 0.) error = RaRt / Rt;
+    
+    //double error = synapses[synapse_id].GetError();
 
+    // double Rt = cm[layer_id][id].GetDownStreamErrorRate();
+    // double Ra = time_cur_spike - time_pre_spike;
+    // double RaRt = Ra - Rt;
+    // double error =  (RaRt) / (zxlb::PRE_LEARNING_RATE + std::abs(RaRt));
+    
     // ORIGINAL KEEP: This scales the force of movement by the spike rate of
     //  the synapse's neuron.
     // double time_diff_self = static_cast<double>(
@@ -217,7 +237,9 @@ void Neuron::PresynapticSpike(i64 time, i64 synapse_id, ConnectionMatrix & cm) {
     //     std::exp( - time_diff_self / zxlb::PRE_SELF_FORCE_TIME_WINDOW )
     // ) * error * synapses[synapse_id].polarity;
 
-    double force_self = error * synapses[synapse_id].polarity;
+    double force_self = zxlb::PRE_LEARNING_RATE * 
+                        synapses[synapse_id].polarity *
+                        error;
 
     i64 other_id = synapse_id;
     for(i64 i = 0; i < static_cast<i64>(synapse_indexes.size()); i++) {
@@ -230,9 +252,9 @@ void Neuron::PresynapticSpike(i64 time, i64 synapse_id, ConnectionMatrix & cm) {
             // If the difference between cur time (this presyn spike time) and
             // the prev spike time of the other syn is greater than the
             // window, skip
-            if(time_diff_other > zxlb::MAX_TEMPORAL_DIFFERENCE) {
-                continue;
-            }
+            // if(time_diff_other > zxlb::MAX_TEMPORAL_DIFFERENCE) {
+            //     continue;
+            // }
 
             // What percent of the orbit are we aiming for?
             double target_angular_distance = M_PI * (time_diff_other / zxlb::MAX_TEMPORAL_DIFFERENCE);//zxlb::PRE_OTHER_FORCE_TIME_WINDOW);
@@ -241,7 +263,7 @@ void Neuron::PresynapticSpike(i64 time, i64 synapse_id, ConnectionMatrix & cm) {
             double angular_delta = cur_distance-target_angular_distance;
 
 
-            // double force_other = (
+            // double force_distance = (
             //     (time_diff_other + zxlb::PRE_OTHER_FORCE_TIME_WINDOW) /
             //     zxlb::PRE_OTHER_FORCE_TIME_WINDOW *
             //     std::exp( - time_diff_other / zxlb::PRE_OTHER_FORCE_TIME_WINDOW )
@@ -252,8 +274,7 @@ void Neuron::PresynapticSpike(i64 time, i64 synapse_id, ConnectionMatrix & cm) {
             // ) * error;
 
             partial_force = force_self * 
-                (1.0 / (std::pow(angular_delta,2.0)+1.0)) * angular_delta *
-                synapses[other_id].polarity;
+                            angular_delta;
 
             // VecS temp_direction(direction);
 
@@ -283,7 +304,7 @@ void Neuron::PresynapticSpike(i64 time, i64 synapse_id, ConnectionMatrix & cm) {
     }
     synapses[synapse_id].location.Orbit(
         synapses[synapse_id].location.HeadingTo(direction),
-        synapses[synapse_id].location.Distance(direction) * zxlb::PRE_LEARNING_RATE
+        synapses[synapse_id].location.Distance(direction)
     );
     // if(synapse_id==0)
     // std::cout << synapses[synapse_id].location.HeadingTo(direction) << "  "
@@ -310,7 +331,10 @@ void Neuron::PresynapticSpike(i64 time, i64 synapse_id, ConnectionMatrix & cm) {
 
 void Neuron::PostsynapticSignal(i64 time, ConnectionMatrix & cm) {
 
-    
+    // double Rt = cm[layer_id][id].GetDownStreamErrorRate();
+    // double Ra = time_cur_spike - time_pre_spike;
+    // double RaRt = Ra - Rt;
+    // double error =  (RaRt) / (zxlb::POST_LEARNING_RATE + std::abs(RaRt));
 
     #pragma omp parallel for
     for(std::size_t i = 0; i < synapse_indexes.size(); i++) {
@@ -322,9 +346,9 @@ void Neuron::PostsynapticSignal(i64 time, ConnectionMatrix & cm) {
             time_cur_spike - synapses[synapse_indexes[i]].time_cur_spike
         );
 
-        if(time_diff > zxlb::MAX_TEMPORAL_DIFFERENCE) {
-            continue;
-        }
+        // if(time_diff > zxlb::MAX_TEMPORAL_DIFFERENCE) {
+        //     continue;
+        // }
 
         // THIS IS THE WORKING VERSION of time_diff_soma
         // double time_diff_soma = static_cast<double>(
@@ -360,8 +384,7 @@ void Neuron::PostsynapticSignal(i64 time, ConnectionMatrix & cm) {
 
         // Removes alpha function from the one above. All change is equal.
         double force =  
-            (1.0 / (std::pow(distance,2.0)+1.0)) * distance *
-            cm[layer_id][id].GetErrorRateReLU() *
+            std::tanh(distance) * //(1.0 / (std::pow(distance,2.0)+1.0)) * distance *
             zxlb::POST_LEARNING_RATE;
 
         synapses[synapse_indexes[i]].location.ChangeRad( force );
@@ -374,7 +397,19 @@ void Neuron::PostsynapticSignal(i64 time, ConnectionMatrix & cm) {
 }
 
 
-void Neuron::bAP(i64 time, double signal, bool train_str) {
+void Neuron::bAP(i64 time, double signal, bool train_str, ConnectionMatrix & cm) {
+
+    // Don't process if we haven't had two spikes.
+    // If this function is called, then time_cur_spike is set, so we
+    // just need to worry about the pre.
+    if(time_pre_spike==0) return;
+
+    double Rt = cm[layer_id][id].GetDownStreamErrorRate();
+    double Ra = time_cur_spike - time_pre_spike;
+    double RaRt = Ra - Rt;
+    double error =  0.0;
+    if(Rt != 0.) error = RaRt / Rt;
+    
 
     stk<i64> synstk;
     for(
@@ -391,12 +426,19 @@ void Neuron::bAP(i64 time, double signal, bool train_str) {
         syn = GetSynapse(synstk.top());
         synstk.pop();
         syn->SetBAP(time);
-        if(train_str) syn->ChangeStrengthPost(time);
+        if(train_str) syn->ChangeStrength(time,error,cm);
         children = syn->GetChildren();
         for(sizet i = 0; i < children->size(); i++) {
             synstk.push(children->at(i));
         }
     }
+}
+
+double Neuron::GetError(ConnectionMatrix & cm) {
+    double Rt = cm[layer_id][id].GetDownStreamErrorRate();
+    double Ra = time_cur_spike - time_pre_spike;
+    double RaRt = Ra - Rt;
+    return RaRt / zxlb::dEEG_TASK_DURATION;
 }
 
 void Neuron::GetInput(i64 time) {
@@ -668,7 +710,7 @@ void Neuron::GetInputWitch3(i64 time) {
                 sig = syn->GetSignalWitch_Self(time);
 
                 for(sizet i = 0; i < densigs.size(); i++) {
-                    densigs[i].sig *= 1.0+sig*syn->GetSignalWitchMod(time,densigs[i].D,densigs[i].Ts);
+                    densigs[i].sig += sig*syn->GetSignalWitchMod(time,densigs[i].D,densigs[i].Ts);
                     densigs[i].D += dist;
                     // sig += densigs[i].sig * 
                     //     syn->GetSignalWitchMod(time,dist,densigs[i].Ts) *
@@ -693,7 +735,7 @@ void Neuron::GetInputWitch3(i64 time) {
 
                 if(parent->GetCompartment()==syn->GetCompartment()) {
                     for(sizet i = 0; i < densigs.size(); i++) {
-                        densigs[i].sig *= 1.0 + sig * syn->GetSignalWitchMod(time,densigs[i].D,densigs[i].Ts);
+                        densigs[i].sig += sig * syn->GetSignalWitchMod(time,densigs[i].D,densigs[i].Ts);
                         densigs[i].D += dist; // This must be updated after the sig.
                     }
 
@@ -703,17 +745,20 @@ void Neuron::GetInputWitch3(i64 time) {
                 } else {
                     double upstream_sigs = sig;
                     for(sizet i = 0; i < densigs.size(); i++) {
-                        upstream_sigs += densigs[i].sig * (1.0+sig*syn->GetSignalWitchMod(time,densigs[i].D,densigs[i].Ts));
+                        upstream_sigs += densigs[i].sig + (sig*syn->GetSignalWitchMod(time,densigs[i].D,densigs[i].Ts));
                     }
 
                     // densigs->size() should be abs in the demoninator;
                     // however, it cannot be < 0, so save an op.
-                    upstream_sigs = (upstream_sigs*(densigs.size()+1)) /
-                        (std::abs(upstream_sigs) + densigs.size() + 1);
+                    upstream_sigs = (upstream_sigs*(densigs.size())) /
+                        (std::abs(upstream_sigs) + densigs.size() + 0.001);
 
                     DenSig densig(dist,time_diff,upstream_sigs);
 
                     parent->AddDendriticSignal(densig);
+
+                    DenSig syn_densig(dist,time_diff,sig);
+                    parent->AddDendriticSignal(syn_densig);
                 }
                 
             }
@@ -740,6 +785,7 @@ void Neuron::GetInputWitch3(i64 time) {
         }
         sig = (sig*num) / (std::abs(sig) + num);
         if(sig > 0) input += sig * zxlb::DENDRITE_SIGNAL_WEIGHT;
+        // input += sig * zxlb::DENDRITE_SIGNAL_WEIGHT;
     }
     
     
@@ -893,7 +939,7 @@ bool Neuron::Update(i64 time, Writer * writer, i64 layer_id, ConnectionMatrix & 
     // further down the vector.
     for(sizet i = 0; i < syns_with_pre_spikes.size(); i++) {
         // Change strength
-        if(train_str) synapses[syns_with_pre_spikes[i]].ChangeStrengthPre(time);
+        //if(train_str) synapses[syns_with_pre_spikes[i]].ChangeStrengthPre(time);
         if(train_ang) PresynapticSpike(time, syns_with_pre_spikes[i], cm);
     }
 
@@ -992,7 +1038,7 @@ void Neuron::SaveData(i64 time, ConnectionMatrix & cm) {
         spike_times_data.clear();   // Clear out spike times.
         data->output.push_back(output);
         data->input.push_back(input);
-        data->error.push_back(cm[layer_id][id].GetErrorRate());
+        data->error.push_back(cm[layer_id][id].GetDownStreamErrorRate());
     //}
 
     for(sizet i = 0; i < synapses.size(); i++) {

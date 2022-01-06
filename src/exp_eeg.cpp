@@ -41,6 +41,10 @@ void ExpEEG::LoadData(str fn_train_path, str fn_test_path) {
 
     // double OVER_VAL = -25.0;
 
+    train_eegs.emplace("a",vec<EEG>());
+    train_eegs.emplace("c",vec<EEG>());
+    test_eegs.emplace("a",vec<EEG>());
+    test_eegs.emplace("c",vec<EEG>());
     
 
     for(auto const& dir_entry: std::filesystem::directory_iterator{train_path}) {
@@ -158,8 +162,8 @@ void ExpEEG::LoadData(str fn_train_path, str fn_test_path) {
                 //     }
                 //     std::cout << std::endl;
                 // }
-                
-                train_eegs.push_back(std::move(eeg));
+                str key = eeg.ac;
+                train_eegs[key].push_back(std::move(eeg));
 
             }
             ifs.close();
@@ -291,8 +295,8 @@ void ExpEEG::LoadData(str fn_train_path, str fn_test_path) {
                     //     total_c++;
                     // }
                 }
-                
-                test_eegs.push_back(std::move(eeg));
+                str key = eeg.ac;
+                test_eegs[key].push_back(std::move(eeg));
 
             }
             ifs.close();
@@ -314,16 +318,16 @@ void ExpEEG::LoadData(str fn_train_path, str fn_test_path) {
 }
 
 
-sizet ExpEEG::GetSizeTrainingExamples() {
-    return train_eegs.size();
+sizet ExpEEG::GetSizeTrainingExamples(str & key) {
+    return train_eegs[key].size();
 }
-sizet ExpEEG::GetSizeTestExamples() {
-    return test_eegs.size();
+sizet ExpEEG::GetSizeTestExamples(str & key) {
+    return test_eegs[key].size();
 }
 
-EEG * ExpEEG::GetTrainingExample(sizet index) {
-    return &(train_eegs[index]);
+EEG * ExpEEG::GetTrainingExample(str & key,sizet index) {
+    return &(train_eegs[key][index]);
 }
-EEG * ExpEEG::GetTestingExample(sizet index) {
-    return &(test_eegs[index]);
+EEG * ExpEEG::GetTestingExample(str & key,sizet index) {
+    return &(test_eegs[key][index]);
 }

@@ -16,6 +16,7 @@
 #include"runs.hpp"
 #include"exp_eeg.hpp"
 #include"loader.hpp"
+#include"exp_move.hpp"
 
 // #ifdef DEBUG
 //     #define RUN_TEST 1
@@ -109,6 +110,19 @@ int main(int argc, char**argv) {
     // std::cout << "V3B: " << v3b.to_string() << std::endl;
     // std::cout << "VSB: " << vSb.to_string() << std::endl;
 
+
+    // ExpMove em(
+    //     10,
+    //     10,
+    //     1.0,
+    //     100.0,
+    //     1000,
+    //     true,
+    //     true
+    // );
+    // return 0;
+
+
     // return 0;
     //-------------------------------------------------------------------------
     // INIT STUFF
@@ -118,7 +132,7 @@ int main(int argc, char**argv) {
     zxlog::Init(false);
 
     str OUTPUT_PATH = "/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/project_radius/output/";
-    str PRESET_PATH = "/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/project_radius/preset1000/";
+    str PRESET_PATH = "/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/project_radius/preset_15000/";
 
     //-------------------------------------------------------------------------
     // RANDOM
@@ -133,7 +147,7 @@ int main(int argc, char**argv) {
 
     //-------------------------------------------------------------------------
     // Process command line args.
-    str network_id = "eeg";
+    str network_id = "move";
     bool load_preset = false;
 
     zxlog::Debug("MAIN: Processing cmd line args.");
@@ -242,7 +256,15 @@ int main(int argc, char**argv) {
 
     //----------------------------------------------------------------------------
     // EEG
-    RunEEG2(
+    // RunEEG2(
+    //     &writer,
+    //     network.get(),
+    //     rng
+    // );
+
+    //----------------------------------------------------------------------------
+    // Move
+    RunMove(
         &writer,
         network.get(),
         rng

@@ -35,9 +35,9 @@ namespace zxlb {
 
     // inline constexpr double RADIUS_TIME_DIFF_SCALAR {1000.0/MAX_RADIUS};
 
-    inline constexpr double PRE_LEARNING_RATE {0.01};
-    inline constexpr double POST_LEARNING_RATE {0.01};
-    inline constexpr double SYN_STRENGTH_LEARNING_RATE {0.001};
+    inline constexpr double PRE_LEARNING_RATE {0.001};
+    inline constexpr double POST_LEARNING_RATE {0.001};
+    inline constexpr double SYN_STRENGTH_LEARNING_RATE {1000.0}; // Equates to 0.001
 
 
     inline constexpr double MAX_TEMPORAL_DIFFERENCE = 100.0;
@@ -66,19 +66,22 @@ namespace zxlb {
         This values scales the signal as it enters the soma to boost it
         to a level able to elicit a spike.
     */
-    inline constexpr double DENDRITE_SIGNAL_WEIGHT = 10.0;
+    inline constexpr double DENDRITE_SIGNAL_WEIGHT = 100.0;
 
 
 
-    inline constexpr double CORRECT_EXPECTED = 1.0;
-    inline constexpr double INCORRECT_EXPECTED = -1.0;
+    inline constexpr double CORRECT_EXPECTED = 100.0;
+    inline constexpr double INCORRECT_EXPECTED = 200.0;
     inline constexpr int64_t TASK_DURATION = 1000;
+
+    inline constexpr int64_t EEG_TASK_DURATION = 1024;
+    inline constexpr double dEEG_TASK_DURATION = 1024.0;
 
 
     // Govern the modified Witch of Agnesi function used to determine
     // synaptic output. A is missing because it is the two distances.
-    inline constexpr double WITCH_B = 0.2;
-    inline constexpr double WITCH_C = 2.0;
+    inline constexpr double WITCH_B = 10.0;
+    inline constexpr double WITCH_C = 1.0;
 
 
     
