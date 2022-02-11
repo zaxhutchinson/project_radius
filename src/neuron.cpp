@@ -12,8 +12,8 @@ Neuron::Neuron()
     record_data = false;
     record_interval = 1;
     record_interval = 1000;
-    time_cur_spike = 0;
-    time_pre_spike = 0;
+    time_cur_spike = std::numeric_limits<i64>::min();
+    time_pre_spike = std::numeric_limits<i64>::min();
     just_spiked = false;
     output = 0.0;
     input = 0.0;
@@ -35,8 +35,8 @@ Neuron::Neuron(
     record_data = false;
     record_interval = 1;
     record_interval = 1000;
-    time_cur_spike = 0;
-    time_pre_spike = 0;
+    time_cur_spike = std::numeric_limits<i64>::min();
+    time_pre_spike = std::numeric_limits<i64>::min();
     just_spiked = false;
     output = 0.0;
     input = 0.0;
@@ -121,8 +121,8 @@ void Neuron::Reset(bool purge_data) {
     vpre = vcur = nt.c;
     upre = ucur = nt.d;
     raw_input = 0.0;
-    time_cur_spike = 0;
-    time_pre_spike = 0;
+    time_cur_spike = std::numeric_limits<i64>::min();
+    time_pre_spike = std::numeric_limits<i64>::min();
     just_spiked = false;
     output = 0.0;
     input = 0.0;
@@ -203,28 +203,22 @@ void Neuron::SetRawInput(double amt) {
 void Neuron::PresynapticSpike(i64 time, i64 synapse_id, ConnectionMatrix & cm) {
 
     // Don't bother if we have only one spike.
-    if(time_pre_spike==0) return;
-
-    // double Rt = cm[layer_id][id].GetDownStreamErrorRate();
-    // double Ra = time_cur_spike - time_pre_spike;
-    // double RaRt = Ra - Rt;
-    // double error =  RaRt / std::abs(RaRt);
+    //if(time_pre_spike==0) return;
 
     VecS direction = synapses[synapse_id].location;
     double partial_force = 0.0;
 
-    double Rt = cm[layer_id][id].GetDownStreamErrorRate();
-    double Ra = time_cur_spike - time_pre_spike;
-    double RaRt = Ra - Rt;
-    double error =  0.0;
-    if(Rt != 0.) error = RaRt / Rt;
-    
-    //double error = synapses[synapse_id].GetError();
-
     // double Rt = cm[layer_id][id].GetDownStreamErrorRate();
     // double Ra = time_cur_spike - time_pre_spike;
     // double RaRt = Ra - Rt;
-    // double error =  (RaRt) / (zxlb::PRE_LEARNING_RATE + std::abs(RaRt));
+    // double error =  0.0;
+    // if(Rt != 0.0) error = RaRt / Rt;
+
+    
+    double error = cm[layer_id][id].GetTargetErrorRate();
+    if(error==0.0) return;
+
+    // std::cout << error << std::endl;
     
     // ORIGINAL KEEP: This scales the force of movement by the spike rate of
     //  the synapse's neuron.
@@ -240,11 +234,12 @@ void Neuron::PresynapticSpike(i64 time, i64 synapse_id, ConnectionMatrix & cm) {
     double force_self = zxlb::PRE_LEARNING_RATE * 
                         synapses[synapse_id].polarity *
                         error;
+    
 
     i64 other_id = synapse_id;
     for(i64 i = 0; i < static_cast<i64>(synapse_indexes.size()); i++) {
         other_id = synapse_indexes[i];
-        if(other_id != synapse_id) {
+        if(other_id != synapse_id && synapses[other_id].time_cur_spike >= 0) {
             double time_diff_other = static_cast<double>(
                 time - synapses[other_id].time_cur_spike
             );
@@ -252,17 +247,17 @@ void Neuron::PresynapticSpike(i64 time, i64 synapse_id, ConnectionMatrix & cm) {
             // If the difference between cur time (this presyn spike time) and
             // the prev spike time of the other syn is greater than the
             // window, skip
-            // if(time_diff_other > zxlb::MAX_TEMPORAL_DIFFERENCE) {
+            // if(std::abs(time_diff_other) > zxlb::MAX_ANG_TEMPORAL_DIFFERENCE) {
             //     continue;
             // }
 
             // What percent of the orbit are we aiming for?
-            double target_angular_distance = M_PI * (time_diff_other / zxlb::MAX_TEMPORAL_DIFFERENCE);//zxlb::PRE_OTHER_FORCE_TIME_WINDOW);
+            double target_angular_distance = M_PI * (time_diff_other / zxlb::MAX_ANG_TEMPORAL_DIFFERENCE);//zxlb::PRE_OTHER_FORCE_TIME_WINDOW);
             // double cur_distance = synapses[synapse_id].location.Distance(synapses[other_id].location);
             double cur_distance = direction.Distance(synapses[other_id].location);
             double angular_delta = cur_distance-target_angular_distance;
 
-
+            
             // double force_distance = (
             //     (time_diff_other + zxlb::PRE_OTHER_FORCE_TIME_WINDOW) /
             //     zxlb::PRE_OTHER_FORCE_TIME_WINDOW *
@@ -273,7 +268,7 @@ void Neuron::PresynapticSpike(i64 time, i64 synapse_id, ConnectionMatrix & cm) {
             //     (force_self * force_other)
             // ) * error;
 
-            partial_force = force_self * 
+            partial_force = error * synapses[synapse_id].polarity * 
                             angular_delta;
 
             // VecS temp_direction(direction);
@@ -302,14 +297,20 @@ void Neuron::PresynapticSpike(i64 time, i64 synapse_id, ConnectionMatrix & cm) {
             // }
         }
     }
+    double dist = synapses[synapse_id].location.Distance(direction);
+    double head = synapses[synapse_id].location.HeadingTo(direction);
+    // if(dist > 0.01) {
     synapses[synapse_id].location.Orbit(
-        synapses[synapse_id].location.HeadingTo(direction),
-        synapses[synapse_id].location.Distance(direction)
+        head,
+        dist*zxlb::PRE_LEARNING_RATE
     );
     // if(synapse_id==0)
-    // std::cout << synapses[synapse_id].location.HeadingTo(direction) << "  "
-    //     << synapses[synapse_id].location.Distance(direction) << "  "
-    //     << synapses[synapse_id].location.to_string() << std::endl;
+
+    //     std::cout  << zxlb::PRE_LEARNING_RATE << " " << head << "  "
+    //         << dist << "  "
+    //         << synapses[synapse_id].location.to_string() << std::endl;
+    // }
+    
 
 
     // force /= static_cast<double>(synapses.size()-1);
@@ -339,6 +340,8 @@ void Neuron::PostsynapticSignal(i64 time, ConnectionMatrix & cm) {
     #pragma omp parallel for
     for(std::size_t i = 0; i < synapse_indexes.size(); i++) {
 
+        if(synapses[synapse_indexes[i]].time_cur_spike < 0) continue;
+
         // double time_diff_synapse = static_cast<double>(
         //     synapses[i].time_cur_spike - synapses[i].time_pre_spike
         // );
@@ -346,9 +349,9 @@ void Neuron::PostsynapticSignal(i64 time, ConnectionMatrix & cm) {
             time_cur_spike - synapses[synapse_indexes[i]].time_cur_spike
         );
 
-        // if(time_diff > zxlb::MAX_TEMPORAL_DIFFERENCE) {
-        //     continue;
-        // }
+        if(std::abs(time_diff) > zxlb::MAX_RAD_TEMPORAL_DIFFERENCE) {
+            continue;
+        }
 
         // THIS IS THE WORKING VERSION of time_diff_soma
         // double time_diff_soma = static_cast<double>(
@@ -368,7 +371,7 @@ void Neuron::PostsynapticSignal(i64 time, ConnectionMatrix & cm) {
         //     time_cur_spike - time_pre_spike
         // );
 
-        double target_radial_distance = zxlb::MAX_RADIUS * (time_diff / zxlb::MAX_TEMPORAL_DIFFERENCE);
+        double target_radial_distance = zxlb::MAX_RADIUS * (time_diff / zxlb::MAX_RAD_TEMPORAL_DIFFERENCE);
         double distance = target_radial_distance - synapses[synapse_indexes[i]].location.Rad();
         
         // GOOD ORIGINAL: Scales the rate of change by the time_diff using an
@@ -402,43 +405,50 @@ void Neuron::bAP(i64 time, double signal, bool train_str, ConnectionMatrix & cm)
     // Don't process if we haven't had two spikes.
     // If this function is called, then time_cur_spike is set, so we
     // just need to worry about the pre.
-    if(time_pre_spike==0) return;
-
-    double Rt = cm[layer_id][id].GetDownStreamErrorRate();
-    double Ra = time_cur_spike - time_pre_spike;
-    double RaRt = Ra - Rt;
-    double error =  0.0;
-    if(Rt != 0.) error = RaRt / Rt;
     
+    // if(time_pre_spike==0) return;
+    // double Rt = cm[layer_id][id].GetDownStreamErrorRate();
+    // double Ra = time_cur_spike - time_pre_spike;
+    // double RaRt = Ra - Rt;
+    // double error =  0.0;
+    // if(Rt != 0.) error = RaRt / Rt;
+    
+    double error = cm[layer_id][id].GetTargetErrorRate();
 
-    stk<i64> synstk;
-    for(
-        vec<i64>::iterator it = dendrites.begin();
-        it != dendrites.end();
-        it++
-    ) {
-        synstk.push(*it);
+    for(sizet i = 0; i < synapse_indexes.size(); i++) {
+        synapses[synapse_indexes[i]].SetBAP(time);
+        if(train_str) synapses[synapse_indexes[i]].ChangeStrengthPost_Simple(time,error,cm);
+
     }
 
-    Synapse * syn;
-    vec<i64> * children;
-    while(!synstk.empty()) {
-        syn = GetSynapse(synstk.top());
-        synstk.pop();
-        syn->SetBAP(time);
-        if(train_str) syn->ChangeStrength(time,error,cm);
-        children = syn->GetChildren();
-        for(sizet i = 0; i < children->size(); i++) {
-            synstk.push(children->at(i));
-        }
-    }
+    // stk<i64> synstk;
+    // for(
+    //     vec<i64>::iterator it = dendrites.begin();
+    //     it != dendrites.end();
+    //     it++
+    // ) {
+    //     synstk.push(*it);
+    // }
+
+    // Synapse * syn;
+    // vec<i64> * children;
+    // while(!synstk.empty()) {
+    //     syn = GetSynapse(synstk.top());
+    //     synstk.pop();
+    //     syn->SetBAP(time);
+    //     if(train_str) syn->ChangeStrengthPost_Simple(time,error,cm);
+    //     children = syn->GetChildren();
+    //     for(sizet i = 0; i < children->size(); i++) {
+    //         synstk.push(children->at(i));
+    //     }
+    // }
 }
 
 double Neuron::GetError(ConnectionMatrix & cm) {
     double Rt = cm[layer_id][id].GetDownStreamErrorRate();
     double Ra = time_cur_spike - time_pre_spike;
     double RaRt = Ra - Rt;
-    return RaRt / zxlb::dEEG_TASK_DURATION;
+    return RaRt / zxlb::TASK_DURATION;
 }
 
 void Neuron::GetInput(i64 time) {
@@ -524,7 +534,7 @@ void Neuron::GetInputWitch(i64 time) {
                 rad_dist = location.RadDistance(syn->location);
                 time_diff = time - syn->GetCurSpike();
                 // Convert dendritic field dists to temporal dists.
-                rad_dist = (zxlb::MAX_TEMPORAL_DIFFERENCE * rad_dist) / zxlb::MAX_RADIUS;
+                rad_dist = (zxlb::MAX_RAD_TEMPORAL_DIFFERENCE * rad_dist) / zxlb::MAX_RADIUS;
 
                 // Witch out: For the soma, we pass in time_diff for the
                 // ang_dist as well so that its calculation is 1 and
@@ -549,8 +559,8 @@ void Neuron::GetInputWitch(i64 time) {
                 rad_dist = parent->location.RadDistance(syn->location);
                 time_diff = parent->GetCurSpike() - syn->GetCurSpike();
                 // Convert dendritic field dists to temporal dists.
-                ang_dist = (zxlb::MAX_TEMPORAL_DIFFERENCE * ang_dist) / M_PI;
-                rad_dist = (zxlb::MAX_TEMPORAL_DIFFERENCE * rad_dist) / zxlb::MAX_RADIUS;
+                ang_dist = (zxlb::MAX_ANG_TEMPORAL_DIFFERENCE * ang_dist) / M_PI;
+                rad_dist = (zxlb::MAX_RAD_TEMPORAL_DIFFERENCE * rad_dist) / zxlb::MAX_RADIUS;
                 dist = std::sqrt(ang_dist*ang_dist + rad_dist*rad_dist);
 
                 // Same or diff compartment?
@@ -606,7 +616,7 @@ void Neuron::GetInputWitch2(i64 time) {
             if(pid==-1) {
                 ang_dist = 0.0;
                 rad_dist = syn->location.Rad();
-                rad_dist = (zxlb::MAX_TEMPORAL_DIFFERENCE * rad_dist) / zxlb::MAX_RADIUS;
+                rad_dist = (zxlb::MAX_RAD_TEMPORAL_DIFFERENCE * rad_dist) / zxlb::MAX_RADIUS;
                 time_diff = time - syn->GetCurSpike();
                 dist = rad_dist;
                 sig = syn->GetSignalWitch_Self(time);
@@ -624,8 +634,8 @@ void Neuron::GetInputWitch2(i64 time) {
                 ang_dist = parent->location.Distance(syn->location);
                 rad_dist = parent->location.RadDistance(syn->location);
                 time_diff = time - syn->GetCurSpike();
-                ang_dist = (zxlb::MAX_TEMPORAL_DIFFERENCE * ang_dist) / M_PI;
-                rad_dist = (zxlb::MAX_TEMPORAL_DIFFERENCE * rad_dist) / zxlb::MAX_RADIUS;
+                ang_dist = (zxlb::MAX_ANG_TEMPORAL_DIFFERENCE * ang_dist) / M_PI;
+                rad_dist = (zxlb::MAX_RAD_TEMPORAL_DIFFERENCE * rad_dist) / zxlb::MAX_RADIUS;
                 dist = std::sqrt(ang_dist*ang_dist + rad_dist*rad_dist); // Simplified from the spherical triangle pythag.
                 sig = syn->GetSignalWitch_Self(time);
 
@@ -704,7 +714,7 @@ void Neuron::GetInputWitch3(i64 time) {
             if(pid==-1) {
                 // ang_dist = 0.0;
                 // rad_dist = syn->location.Rad();
-                // rad_dist = (zxlb::MAX_TEMPORAL_DIFFERENCE * rad_dist) / zxlb::MAX_RADIUS;
+                // rad_dist = (zxlb::MAX_RAD_TEMPORAL_DIFFERENCE * rad_dist) / zxlb::MAX_RADIUS;
                 time_diff = time - syn->GetCurSpike();
                 dist = syn->dist_to_parent;
                 sig = syn->GetSignalWitch_Self(time);
@@ -727,8 +737,8 @@ void Neuron::GetInputWitch3(i64 time) {
                 // ang_dist = parent->location.Distance(syn->location);
                 // rad_dist = parent->location.RadDistance(syn->location);
                 
-                // ang_dist = (zxlb::MAX_TEMPORAL_DIFFERENCE * ang_dist) / M_PI;
-                // rad_dist = (zxlb::MAX_TEMPORAL_DIFFERENCE * rad_dist) / zxlb::MAX_RADIUS;
+                // ang_dist = (zxlb::MAX_ANG_TEMPORAL_DIFFERENCE * ang_dist) / M_PI;
+                // rad_dist = (zxlb::MAX_RAD_TEMPORAL_DIFFERENCE * rad_dist) / zxlb::MAX_RADIUS;
                 time_diff = time - syn->GetCurSpike();
                 dist = syn->dist_to_parent; //std::sqrt(ang_dist*ang_dist + rad_dist*rad_dist); // Simplified from the spherical triangle pythag.
                 sig = syn->GetSignalWitch_Self(time);
@@ -781,10 +791,25 @@ void Neuron::GetInputWitch3(i64 time) {
         double num = den_terms[i].size();
         for(sizet k = 0; k < num; k++) {
             sig += den_terms[i][k].sig * 
-                (zxlb::WITCH_C / (std::pow((den_terms[i][k].Ts-den_terms[i][k].D)/zxlb::WITCH_B,2.0) + 1.0) + 1.0) ;
+                (
+                    zxlb::C_NEU_DEN_OUT / 
+                        (
+                            std::pow(
+                                (den_terms[i][k].Ts-den_terms[i][k].D) / zxlb::B_NEU_DEN_OUT,
+                                2.0) 
+                            + 1.0
+                        ) + 1.0
+                );
         }
         sig = (sig*num) / (std::abs(sig) + num);
-        if(sig > 0) input += sig * zxlb::DENDRITE_SIGNAL_WEIGHT;
+
+        // RELU
+        // if(sig > 0) input += sig * zxlb::DENDRITE_SIGNAL_WEIGHT;
+        
+        // SLIDE INPUT
+        if(sig > 0) input += (std::tanh(10.0*sig-7.5)/2.0 + 0.5) * zxlb::DENDRITE_SIGNAL_WEIGHT;
+
+        // NEGATIVE SIGNALS REACH THE SOMA
         // input += sig * zxlb::DENDRITE_SIGNAL_WEIGHT;
     }
     
@@ -915,7 +940,7 @@ void Neuron::GetInputSimple(i64 time) {
         it != synapses.end();
         it++
     ) {
-        input += it->GetSignal_Out(time);
+        input += it->GetSignalWitch_Self(time);
     }
     input *=  zxlb::DENDRITE_SIGNAL_WEIGHT;
 }
@@ -939,12 +964,15 @@ bool Neuron::Update(i64 time, Writer * writer, i64 layer_id, ConnectionMatrix & 
     // further down the vector.
     for(sizet i = 0; i < syns_with_pre_spikes.size(); i++) {
         // Change strength
-        //if(train_str) synapses[syns_with_pre_spikes[i]].ChangeStrengthPre(time);
+        if(train_str) synapses[syns_with_pre_spikes[i]].ChangeStrengthPre_Simple(time,cm[layer_id][id].GetTargetErrorRate(),cm);
         if(train_ang) PresynapticSpike(time, syns_with_pre_spikes[i], cm);
     }
 
-    // get_input(time);
-    GetInputWitch3(time);
+    // For AD neuron
+    // GetInputWitch3(time);
+
+    // For point neuron
+    GetInputSimple(time);
 
     // Calculate voltage
     vcur = vpre +
@@ -965,7 +993,7 @@ bool Neuron::Update(i64 time, Writer * writer, i64 layer_id, ConnectionMatrix & 
         upre = ucur = ucur + nt.d;
         time_pre_spike = time_cur_spike;
         time_cur_spike = time;
-        spike_times_live.push_back(time);
+        //spike_times_live.push_back(time);
         spike_times_data.push_back(time);
         just_spiked = true;
     
@@ -975,23 +1003,21 @@ bool Neuron::Update(i64 time, Writer * writer, i64 layer_id, ConnectionMatrix & 
         just_spiked = false;
     }
 
-    output = 0.0;
-    double diff = 0.0;
-    for(
-        lst<i64>::iterator it = spike_times_live.begin();
-        it != spike_times_live.end();
-    ) {
-        diff = time - (*it);
-        if(diff > zxlb::NEURON_SPIKE_TIME_WINDOW) {
-            it = spike_times_live.erase(it);
-        } else {
-            output += diff * std::exp( -(diff - 1.0) );
-            it++;
-        }
-    }
-    
-
-    output = std::tanh(output);
+    // output = 0.0;
+    // double diff = 0.0;
+    // for(
+    //     lst<i64>::iterator it = spike_times_live.begin();
+    //     it != spike_times_live.end();
+    // ) {
+    //     diff = time - (*it);
+    //     if(diff > zxlb::NEURON_SPIKE_TIME_WINDOW) {
+    //         it = spike_times_live.erase(it);
+    //     } else {
+    //         output += diff * std::exp( -(diff - 1.0) );
+    //         it++;
+    //     }
+    // }
+    // output = std::tanh(output);
 
     // Update connection matrix.
     cm[layer_id][id].Update(just_spiked, output);
@@ -1068,6 +1094,127 @@ void Neuron::InitDendrites() {
         synapses[i].compartment_length = 0;
         dendrites.push_back(i);
     }
+}
+
+void Neuron::BuildDendrite4() {
+
+
+    //-------------------------------------
+    // Init lists.
+    lst<i64> unconnected;
+    lst<i64> connected = {-1};
+    i64 comp_id = 0;
+    double ang_dist = 0.0;
+    double rad_dist = 0.0;
+    //-------------------------------------
+    // Disconnect
+
+    // Disconnect the dendrites.
+    dendrites.clear();
+
+    // Disconnect all synapses.
+    // Complexity: Num Syns
+    for(sizet i = 0; i < synapses.size(); i++) {
+        synapses[i].parent = -1;
+        synapses[i].children.clear();
+        synapses[i].dendrite_path_length = 0.0;
+        synapses[i].compartment = 0;
+        synapses[i].compartment_length = 0;
+        synapses[i].dist_to_parent = 0;
+        unconnected.push_back(i);
+    }
+    // std::cout << "NEWBUILD\n";
+    while(!unconnected.empty()) {
+
+        lst<i64>::iterator min_uit = unconnected.begin();
+        lst<i64>::iterator min_cit = connected.begin();
+        double min_dist = std::numeric_limits<double>::max();
+
+        for(
+            lst<i64>::iterator uit = unconnected.begin();
+            uit != unconnected.end();
+            uit++ 
+        ) {
+
+            for(
+                lst<i64>::iterator cit = connected.begin();
+                cit != connected.end();
+                cit++
+            ) {
+
+                double uc_dist = 0.0;
+
+                if(*cit==-1) {
+
+                    uc_dist = synapses[*uit].location.Rad();
+                    // uc_dist = (zxlb::MAX_RAD_TEMPORAL_DIFFERENCE * uc_dist) / zxlb::MAX_RADIUS;
+
+                } else {
+                    // ang_dist = synapses[*cit].location.Distance(synapses[*uit].location);
+                    // rad_dist = synapses[*cit].location.RadDistance(synapses[*uit].location);
+                    // ang_dist = (zxlb::MAX_ANG_TEMPORAL_DIFFERENCE * ang_dist) / M_PI;
+                    // rad_dist = (zxlb::MAX_RAD_TEMPORAL_DIFFERENCE * rad_dist) / zxlb::MAX_RADIUS;
+                    // uc_dist = std::sqrt(ang_dist*ang_dist + rad_dist*rad_dist);
+                    uc_dist = synapses[*cit].location.DistanceStraightLine(synapses[*uit].location);
+                    uc_dist += zxlb::BF * synapses[*cit].straightline_path_length;
+                }
+
+                if(uc_dist < min_dist) {
+                    min_cit = cit;
+                    min_uit = uit;
+                    min_dist = uc_dist;
+                }
+
+            }
+
+        }
+
+        if((*min_cit)==-1) {
+            dendrites.push_back(*min_uit);
+            synapses[*min_uit].parent = -1;
+            double min_path_len = synapses[*min_uit].location.Rad();
+            min_path_len = (zxlb::MAX_RAD_TEMPORAL_DIFFERENCE * min_path_len) / zxlb::MAX_RADIUS;
+            synapses[*min_uit].dist_to_parent = min_path_len;
+            synapses[*min_uit].SetDendritePathLength(min_path_len);
+            synapses[*min_uit].SetStraightLinePathLength(synapses[*min_uit].location.Rad());
+            synapses[*min_uit].SetCompartmentLength(min_path_len);
+            // Since it is connected to soma, new compartment.
+            //std::cout << "SOMA " << min_path_len << std::endl;
+            synapses[*min_uit].SetCompartment(comp_id++);
+        } else {
+            synapses[*min_cit].children.push_back(*min_uit);
+            synapses[*min_uit].parent = *min_cit;
+            ang_dist = synapses[*min_cit].location.Distance(synapses[*min_uit].location);
+            rad_dist = synapses[*min_cit].location.RadDistance(synapses[*min_uit].location);
+            ang_dist = (zxlb::MAX_ANG_TEMPORAL_DIFFERENCE * ang_dist) / M_PI;
+            rad_dist = (zxlb::MAX_RAD_TEMPORAL_DIFFERENCE * rad_dist) / zxlb::MAX_RADIUS;
+            double min_path_len = std::sqrt(ang_dist*ang_dist + rad_dist*rad_dist);
+            double strln_path_len = synapses[*min_cit].location.DistanceStraightLine(synapses[*min_uit].location);
+            synapses[*min_uit].dist_to_parent = min_path_len;
+            //std::cout << "SYNSYN " << min_path_len << std::endl;
+            synapses[*min_uit].SetDendritePathLength(min_path_len+synapses[*min_cit].dendrite_path_length);
+            synapses[*min_uit].SetStraightLinePathLength(strln_path_len+synapses[*min_cit].straightline_path_length);
+            // Parent is another syn...
+            double cur_comp_length = synapses[*min_cit].GetCompartmentLength();
+            double add_comp_length = min_path_len;
+            
+            if(cur_comp_length+add_comp_length <= zxlb::MAX_COMPARTMENT_LENGTH) {
+                synapses[*min_uit].SetCompartmentLength(cur_comp_length+add_comp_length);
+                synapses[*min_uit].SetCompartment(synapses[*min_cit].GetCompartment());
+            } else {
+                synapses[*min_uit].SetCompartment(comp_id++);
+                synapses[*min_uit].SetCompartmentLength(0.0);
+            }
+        }
+
+        // Update connected/unconnected lists.
+        connected.push_back(*min_uit);
+
+        unconnected.erase(min_uit);
+
+
+    }
+
 }
 
 void Neuron::BuildDendrite() {
@@ -1222,13 +1369,13 @@ void Neuron::BuildDendrite2() {
                 if(*cit==-1) {
 
                     uc_dist = synapses[*uit].location.Rad();
-                    uc_dist = (zxlb::MAX_TEMPORAL_DIFFERENCE * uc_dist) / zxlb::MAX_RADIUS;
+                    uc_dist = (zxlb::MAX_RAD_TEMPORAL_DIFFERENCE * uc_dist) / zxlb::MAX_RADIUS;
 
                 } else {
                     ang_dist = synapses[*cit].location.Distance(synapses[*uit].location);
                     rad_dist = synapses[*cit].location.RadDistance(synapses[*uit].location);
-                    ang_dist = (zxlb::MAX_TEMPORAL_DIFFERENCE * ang_dist) / M_PI;
-                    rad_dist = (zxlb::MAX_TEMPORAL_DIFFERENCE * rad_dist) / zxlb::MAX_RADIUS;
+                    ang_dist = (zxlb::MAX_ANG_TEMPORAL_DIFFERENCE * ang_dist) / M_PI;
+                    rad_dist = (zxlb::MAX_RAD_TEMPORAL_DIFFERENCE * rad_dist) / zxlb::MAX_RADIUS;
                     uc_dist = std::sqrt(ang_dist*ang_dist + rad_dist*rad_dist);
                     uc_dist += zxlb::BF * synapses[*cit].dendrite_path_length;
                 }
@@ -1247,7 +1394,7 @@ void Neuron::BuildDendrite2() {
             dendrites.push_back(*min_uit);
             synapses[*min_uit].parent = -1;
             double min_path_len = synapses[*min_uit].location.Rad();
-            min_path_len = (zxlb::MAX_TEMPORAL_DIFFERENCE * min_path_len) / zxlb::MAX_RADIUS;
+            min_path_len = (zxlb::MAX_RAD_TEMPORAL_DIFFERENCE * min_path_len) / zxlb::MAX_RADIUS;
             synapses[*min_uit].dist_to_parent = min_path_len;
             synapses[*min_uit].SetDendritePathLength(min_path_len);
             synapses[*min_uit].SetCompartmentLength(min_path_len);
@@ -1259,8 +1406,144 @@ void Neuron::BuildDendrite2() {
             synapses[*min_uit].parent = *min_cit;
             ang_dist = synapses[*min_cit].location.Distance(synapses[*min_uit].location);
             rad_dist = synapses[*min_cit].location.RadDistance(synapses[*min_uit].location);
-            ang_dist = (zxlb::MAX_TEMPORAL_DIFFERENCE * ang_dist) / M_PI;
-            rad_dist = (zxlb::MAX_TEMPORAL_DIFFERENCE * rad_dist) / zxlb::MAX_RADIUS;
+            ang_dist = (zxlb::MAX_ANG_TEMPORAL_DIFFERENCE * ang_dist) / M_PI;
+            rad_dist = (zxlb::MAX_RAD_TEMPORAL_DIFFERENCE * rad_dist) / zxlb::MAX_RADIUS;
+            double min_path_len = std::sqrt(ang_dist*ang_dist + rad_dist*rad_dist);
+            synapses[*min_uit].dist_to_parent = min_path_len;
+            //std::cout << "SYNSYN " << min_path_len << std::endl;
+            synapses[*min_uit].SetDendritePathLength(min_path_len+synapses[*min_cit].dendrite_path_length);
+
+            // Parent is another syn...
+            double cur_comp_length = synapses[*min_cit].GetCompartmentLength();
+            double add_comp_length = min_path_len;
+            
+            if(cur_comp_length+add_comp_length <= zxlb::MAX_COMPARTMENT_LENGTH) {
+                synapses[*min_uit].SetCompartmentLength(cur_comp_length+add_comp_length);
+                synapses[*min_uit].SetCompartment(synapses[*min_cit].GetCompartment());
+            } else {
+                synapses[*min_uit].SetCompartment(comp_id++);
+                synapses[*min_uit].SetCompartmentLength(0.0);
+            }
+        }
+
+        // Update connected/unconnected lists.
+        connected.push_back(*min_uit);
+
+        unconnected.erase(min_uit);
+
+
+    }
+
+}
+
+
+void Neuron::BuildDendrite3() {
+
+
+    //-------------------------------------
+    // Init lists.
+    lst<i64> unconnected;
+    lst<i64> connected = {-1};
+    i64 comp_id = 0;
+    double ang_dist = 0.0;
+    double rad_dist = 0.0;
+    int cur_dendrites = 0;
+    //-------------------------------------
+    // Disconnect
+
+    // Disconnect the dendrites.
+    dendrites.clear();
+
+    // Disconnect all synapses.
+    // Complexity: Num Syns
+    for(sizet i = 0; i < synapses.size(); i++) {
+        synapses[i].parent = -1;
+        synapses[i].children.clear();
+        synapses[i].dendrite_path_length = 0.0;
+        synapses[i].compartment = 0;
+        synapses[i].compartment_length = 0;
+        synapses[i].dist_to_parent = 0;
+        unconnected.push_back(i);
+    }
+    // std::cout << "NEWBUILD\n";
+    while(!unconnected.empty()) {
+
+        lst<i64>::iterator min_uit = unconnected.begin();
+        lst<i64>::iterator min_cit = connected.begin();
+        double min_dist = std::numeric_limits<double>::max();
+
+        for(
+            lst<i64>::iterator uit = unconnected.begin();
+            uit != unconnected.end();
+            uit++ 
+        ) {
+
+            for(
+                lst<i64>::iterator cit = connected.begin();
+                cit != connected.end();
+                cit++
+            ) {
+
+                double uc_dist = 0.0;
+
+                if(*cit==-1) {
+
+                    uc_dist = synapses[*uit].location.Rad();
+                    uc_dist = (zxlb::MAX_RAD_TEMPORAL_DIFFERENCE * uc_dist) / zxlb::MAX_RADIUS;
+
+                } else {
+                    ang_dist = synapses[*cit].location.Distance(synapses[*uit].location);
+                    rad_dist = synapses[*cit].location.RadDistance(synapses[*uit].location);
+                    ang_dist = (zxlb::MAX_ANG_TEMPORAL_DIFFERENCE * ang_dist) / M_PI;
+                    rad_dist = (zxlb::MAX_RAD_TEMPORAL_DIFFERENCE * rad_dist) / zxlb::MAX_RADIUS;
+                    uc_dist = std::sqrt(ang_dist*ang_dist + rad_dist*rad_dist);
+                    uc_dist += zxlb::BF * synapses[*cit].dendrite_path_length;
+                }
+
+                if(uc_dist < min_dist) {
+                    min_cit = cit;
+                    min_uit = uit;
+                    min_dist = uc_dist;
+                }
+
+            }
+
+        }
+
+        if((*min_cit)==-1) {
+            dendrites.push_back(*min_uit);
+            synapses[*min_uit].parent = -1;
+            double min_path_len = synapses[*min_uit].location.Rad();
+            min_path_len = (zxlb::MAX_RAD_TEMPORAL_DIFFERENCE * min_path_len) / zxlb::MAX_RADIUS;
+            synapses[*min_uit].dist_to_parent = min_path_len;
+            synapses[*min_uit].SetDendritePathLength(min_path_len);
+            synapses[*min_uit].SetCompartmentLength(min_path_len);
+            // Since it is connected to soma, new compartment.
+            //std::cout << "SOMA " << min_path_len << std::endl;
+            synapses[*min_uit].SetCompartment(comp_id++);
+
+            cur_dendrites += 1;
+            if(cur_dendrites==max_dendrites) {
+                for(
+                    lst<i64>::iterator cit = connected.begin();
+                    cit != connected.end();
+                ) {
+                    if(*cit==-1) {
+                        cit = connected.erase(cit);
+                    } else {
+                        cit++;
+                    }
+                
+                }
+            }
+
+        } else {
+            synapses[*min_cit].children.push_back(*min_uit);
+            synapses[*min_uit].parent = *min_cit;
+            ang_dist = synapses[*min_cit].location.Distance(synapses[*min_uit].location);
+            rad_dist = synapses[*min_cit].location.RadDistance(synapses[*min_uit].location);
+            ang_dist = (zxlb::MAX_ANG_TEMPORAL_DIFFERENCE * ang_dist) / M_PI;
+            rad_dist = (zxlb::MAX_RAD_TEMPORAL_DIFFERENCE * rad_dist) / zxlb::MAX_RADIUS;
             double min_path_len = std::sqrt(ang_dist*ang_dist + rad_dist*rad_dist);
             synapses[*min_uit].dist_to_parent = min_path_len;
             //std::cout << "SYNSYN " << min_path_len << std::endl;

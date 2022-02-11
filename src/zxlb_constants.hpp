@@ -1,11 +1,83 @@
 #pragma once
 
+#include"json.hpp"
 #include<cstdint>
+#include<fstream>
+#include"zxlb_templates.hpp"
 
 namespace zxlb {
 
-    inline constexpr double MAJOR_VERSION {0.0};
-    inline constexpr double MINOR_VERSION {0.16};
+    inline double MAJOR_VERSION {0.0};
+    inline double MINOR_VERSION {0.16};
+
+
+
+    inline double MAX_RADIUS {100.0};
+
+    inline double PRE_LEARNING_RATE {0.001};
+    inline double POST_LEARNING_RATE {0.001};
+    inline double SYN_STRENGTH_LEARNING_RATE {0.001}; // Equates to 0.001
+
+
+    inline double MAX_ANG_TEMPORAL_DIFFERENCE = 100.0;
+    inline double MAX_RAD_TEMPORAL_DIFFERENCE = 100.0;
+    inline double MAX_STR_TEMPORAL_DIFFERENCE = 100.0;
+    inline double STR_LEARNING_DECAY_PRE = 11.0;
+    inline double STR_LEARNING_DECAY_POST = 10.0;
+
+    /* BF: Balancing Factor
+        Used in the calculation of dendritic path lengths. Part of the
+        dendrite building algorithm developed by Cuntz2007.
+
+        It represents the effect the total path length to an unconnected
+        synapse has on calculating distance for Prim's Algorithm.
+    */
+    inline double BF = 0.75;
+
+    /* MAX_COMPARTMENT_LENGTH
+        Used to determine where compartments begin and end.
+    */
+    inline double MAX_COMPARTMENT_LENGTH = 1000.0;
+
+    /* DENDRITE SIGNAL WEIGHT
+        Signals moving down the dendrite are clamped to [-1,1].
+        This values scales the signal as it enters the soma to boost it
+        to a level able to elicit a spike.
+    */
+    inline double DENDRITE_SIGNAL_WEIGHT = 100.0;
+
+    inline bool TRAIN_ANG = false;
+    inline bool TRAIN_RAD = false;
+    inline bool TRAIN_STR = false;
+
+    inline double CORRECT_EXPECTED = 100.0;
+    inline double INCORRECT_EXPECTED = 200.0;
+
+    inline i64 TASK_DURATION = 1000;
+    inline i64 NUM_ITERATIONS = 1000;
+
+    // SYNAPSE Witch of Agnesi constants.
+    inline double B_SYN_SIG = 10.0;
+    inline double C_SYN_SIG = 1.0;
+
+    inline double B_SYN_STR = 4.0;
+    inline double C_SYN_STR = 1.0;
+    inline double B_SYN_STR_PRE = 4.0;
+    inline double C_SYN_STR_PRE = 1.0;
+    inline double B_SYN_STR_POST = 4.0;
+    inline double C_SYN_STR_POST = 1.0;
+
+    // NEURON Witch of Agnesi constants
+    inline double B_NEU_DEN_OUT = 10.0;
+    inline double C_NEU_DEN_OUT = 1.0;
+
+    void LoadConstants(str filename);
+
+
+
+
+
+
 
     /* NEURON_SPIKE_TIME_WINDOW
         Determines how long spikes are saved and continue to affect neuronal
@@ -19,70 +91,25 @@ namespace zxlb {
         one. At least for neurons. Plateau potentials will warrant saving spikes
         ...maybe.
     */
-    inline constexpr int64_t NEURON_SPIKE_TIME_WINDOW { 30 };
+    // inline int64_t NEURON_SPIKE_TIME_WINDOW { 30 };
 
 
-    inline constexpr double PRE_SELF_FORCE_TIME_WINDOW { 10.0 };
-    inline constexpr double PRE_OTHER_FORCE_TIME_WINDOW { 10.0 };
+    // inline double PRE_SELF_FORCE_TIME_WINDOW { 10.0 };
+    // inline double PRE_OTHER_FORCE_TIME_WINDOW { 10.0 };
 
-    inline constexpr double POST_SYNAPSE_FORCE_TIME_WINDOW { 10.0 }; // UNUSED
-    inline constexpr double POST_SOMA_FORCE_TIME_WINDOW { 10.0 };
+    // inline double POST_SYNAPSE_FORCE_TIME_WINDOW { 10.0 }; // UNUSED
+    // inline double POST_SOMA_FORCE_TIME_WINDOW { 10.0 };
 
-    // inline constexpr double LEARNING_TIME_WINDOW { 100.0 };
-    inline constexpr double LEARNING_WINDOW_SYN_STRENGTH {10.0};
+    // inline double LEARNING_TIME_WINDOW { 100.0 };
+    // inline double LEARNING_WINDOW_SYN_STRENGTH {10.0};
 
-    inline constexpr double MAX_RADIUS {100.0};
-
-    // inline constexpr double RADIUS_TIME_DIFF_SCALAR {1000.0/MAX_RADIUS};
-
-    inline constexpr double PRE_LEARNING_RATE {0.001};
-    inline constexpr double POST_LEARNING_RATE {0.001};
-    inline constexpr double SYN_STRENGTH_LEARNING_RATE {1000.0}; // Equates to 0.001
+    // inline double RADIUS_TIME_DIFF_SCALAR {1000.0/MAX_RADIUS};
 
 
-    inline constexpr double MAX_TEMPORAL_DIFFERENCE = 100.0;
+    inline double COMPARTMENT_OUT_EXPONENT = 1.0; // NOT USED
 
-    /* BF: Balancing Factor
-        Used in the calculation of dendritic path lengths. Part of the
-        dendrite building algorithm developed by Cuntz2007.
-
-        It represents the effect the total path length to an unconnected
-        synapse has on calculating distance for Prim's Algorithm.
-    */
-    inline constexpr double BF = 0.5;
-
-    /* MAX_COMPARTMENT_LENGTH
-        Used to determine where compartments begin and end.
-    */
-    inline constexpr double MAX_COMPARTMENT_LENGTH = MAX_TEMPORAL_DIFFERENCE;
-
-
-    inline constexpr double COMPARTMENT_OUT_EXPONENT = 1.0;
-
-    inline constexpr double MIN_COMPARTMENT_SIGNAL_FOR_SOMA = 1.0;
-
-    /* DENDRITE SIGNAL WEIGHT
-        Signals moving down the dendrite are clamped to [-1,1].
-        This values scales the signal as it enters the soma to boost it
-        to a level able to elicit a spike.
-    */
-    inline constexpr double DENDRITE_SIGNAL_WEIGHT = 100.0;
-
-
-
-    inline constexpr double CORRECT_EXPECTED = 100.0;
-    inline constexpr double INCORRECT_EXPECTED = 200.0;
-    inline constexpr int64_t TASK_DURATION = 1000;
-
-    inline constexpr int64_t EEG_TASK_DURATION = 1024;
-    inline constexpr double dEEG_TASK_DURATION = 1024.0;
-
-
-    // Govern the modified Witch of Agnesi function used to determine
-    // synaptic output. A is missing because it is the two distances.
-    inline constexpr double WITCH_B = 10.0;
-    inline constexpr double WITCH_C = 1.0;
-
-
+    inline int64_t EEG_TASK_DURATION = 1024;
+    inline double dEEG_TASK_DURATION = 1024.0;
     
+    // inline double MIN_COMPARTMENT_SIGNAL_FOR_SOMA = 1.0;
 };

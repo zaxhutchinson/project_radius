@@ -181,6 +181,17 @@ void RunEEG2(
 );
 
 /******************************************************************************
+ * ExpMove_Hand
+ * This experiment will test whether an AD neuron can learn to differentiate
+ * between two types of EEGs.
+ *****************************************************************************/
+void RunMove_Hand(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+);
+
+/******************************************************************************
  * ExpMove
  * This experiment will test whether an AD neuron can learn to differentiate
  * between two types of EEGs.

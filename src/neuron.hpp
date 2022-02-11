@@ -1,6 +1,7 @@
 #pragma once
 
 #include<iostream>
+#include<iomanip>
 #include<utility>
 #include<functional>
 #include<omp.h>
@@ -48,6 +49,7 @@ struct Neuron {
     double input;
     InputMethod input_method;
     std::function<void(i64)> get_input;
+    int max_dendrites;
 
     Neuron();
     Neuron(
@@ -91,6 +93,8 @@ struct Neuron {
     void InitDendrites();
     void BuildDendrite();
     void BuildDendrite2();
+    void BuildDendrite3();
+    void BuildDendrite4();
     void BuildCompartments();
     void BuildDendriteParallel();
 

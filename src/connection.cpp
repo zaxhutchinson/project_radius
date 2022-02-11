@@ -22,6 +22,10 @@ double Connection::GetDownStreamErrorRate() {
         return rate;
 }
 
+double Connection::GetTargetErrorRate() {
+    return target_rate;
+}
+
 void Connection::Update(bool _just_spiked, double _output) {
     just_spiked = _just_spiked;
     output = _output;

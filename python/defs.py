@@ -38,3 +38,9 @@ OUTPUT_PATH = "/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/projec
 
 # XOR
 # OUTPUT_PATH = "/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/project_radius/XOR_20000_32per/"
+
+# MOVE
+# OUTPUT_PATH = "/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/project_radius/MOVE_001_TEST_E/"
+
+# EEG
+# OUTPUT_PATH = "/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/done_radius/EEG/preset_10000/"

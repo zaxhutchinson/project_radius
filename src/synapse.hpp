@@ -34,6 +34,7 @@ struct Synapse {
     double cur_strength;
     VecS location;
     double dendrite_path_length;
+    double straightline_path_length;
     double error;
     i64 time_error;
     i64 time_cur_spike;
@@ -94,6 +95,7 @@ struct Synapse {
         synapse is from the soma when distanse is measured by the dendrite.
     */
     void SetDendritePathLength(double path);
+    void SetStraightLinePathLength(double path);
 
     /* GetStrength
         Returns the current strength of the synapse
@@ -101,9 +103,20 @@ struct Synapse {
     */
     double GetStrength();
     double GetStrengthDelta();
-    void ChangeStrengthPre(i64 time);
-    void ChangeStrengthPost(i64 time);
+    void ChangeStrengthPre(
+        i64 pre_spike_time,
+        i64 post_spike_time,
+        ConnectionMatrix & cm
+    );
+    void ChangeStrengthPost(
+        i64 pre_spike_time,
+        i64 post_spike_time_cur,
+        i64 post_spike_time_prev,
+        ConnectionMatrix & cm
+    );
     void ChangeStrength(i64 time, double _error, ConnectionMatrix & cm);
+    void ChangeStrengthPre_Simple(i64 time, double _error, ConnectionMatrix & cm);
+    void ChangeStrengthPost_Simple(i64 time, double _error, ConnectionMatrix & cm);
 
     void SetBAP(i64 time);
 

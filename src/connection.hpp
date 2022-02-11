@@ -30,6 +30,8 @@ struct Connection {
     void SetDownStreamErrorRate(i64 index, double rate);
     double GetDownStreamErrorRate();
 
+    double GetTargetErrorRate();
+
     void Update(bool _just_spiked, double _output);
     void SetErrorRate(double rate);
     void Reset(

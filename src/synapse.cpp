@@ -14,13 +14,14 @@ Synapse::Synapse()
     bap = -1;
     error = 0.0;
     time_error = 0;
-    time_cur_spike = 0;
-    time_pre_spike = 0;
+    time_cur_spike = std::numeric_limits<i64>::min();
+    time_pre_spike = std::numeric_limits<i64>::min();
     spikes = 0;
     record_data = false;
     record_interval = 1;
     record_data_size = 1000;
     dendrite_path_length = 0.0;
+    straightline_path_length = 0.0;
     compartment = 0;
     compartment_length = 0;
     upstream_signal = 0.0;
@@ -50,13 +51,14 @@ Synapse::Synapse(
     bap = -1;
     error = 0.0;
     time_error = 0;
-    time_cur_spike = 0;
-    time_pre_spike = 0;
+    time_cur_spike = std::numeric_limits<i64>::min();
+    time_pre_spike = std::numeric_limits<i64>::min();
     spikes = 0;
     record_data = false;
     record_interval = 1;
     record_data_size = 1000;
     dendrite_path_length = 0.0;
+    straightline_path_length = 0.0;
     compartment = 0;
     compartment_length = 0;
     upstream_signal = 0.0;
@@ -79,8 +81,8 @@ void Synapse::Reset() {
     bap = -1;
     error = 0.0;
     time_error = 0;
-    time_cur_spike = 0;
-    time_pre_spike = 0;
+    time_cur_spike = std::numeric_limits<i64>::min();
+    time_pre_spike = std::numeric_limits<i64>::min();
     spikes = 0;
     upstream_eval = false;
     upstream_signal =0.0;
@@ -124,6 +126,10 @@ void Synapse::SetDendritePathLength(double path) {
     dendrite_path_length = path;
 }
 
+void Synapse::SetStraightLinePathLength(double path) {
+    straightline_path_length = path;
+}
+
 double Synapse::GetStrength() {
     return cur_strength / 
         (std::abs(cur_strength) + abs_max_strength);
@@ -132,93 +138,175 @@ double Synapse::GetStrengthDelta() {
     return abs_max_strength - (std::abs(cur_strength) * abs_max_strength) / (abs_max_strength + std::abs(cur_strength));
 }
 
-void Synapse::ChangeStrengthPre(i64 time) {
+// void Synapse::ChangeStrengthPre(i64 time) {
     
-    // double time_diff = static_cast<double>(bap - time_cur_spike);
-    // double abs_time_diff = std::abs(time_diff);
-    // if(abs_time_diff<=zxlb::LEARNING_WINDOW_SYN_STRENGTH) {
-    //     double time_delta = (
-    //         (abs_time_diff + zxlb::LEARNING_WINDOW_SYN_STRENGTH) / 
-    //                 zxlb::LEARNING_WINDOW_SYN_STRENGTH
-    //         ) *
-    //         std::exp(-abs_time_diff / zxlb::LEARNING_WINDOW_SYN_STRENGTH);
-    //     if(abs_time_diff != 0.0)
-    //         time_delta *= (time_diff / abs_time_diff);
-    //     double str_delta = time_delta *
-    //         GetError() *
-    //         zxlb::SYN_STRENGTH_LEARNING_RATE;
-    //     cur_strength += GetStrengthDelta() * str_delta;
-    // }
+//     // double time_diff = static_cast<double>(bap - time_cur_spike);
+//     // double abs_time_diff = std::abs(time_diff);
+//     // if(abs_time_diff<=zxlb::LEARNING_WINDOW_SYN_STRENGTH) {
+//     //     double time_delta = (
+//     //         (abs_time_diff + zxlb::LEARNING_WINDOW_SYN_STRENGTH) / 
+//     //                 zxlb::LEARNING_WINDOW_SYN_STRENGTH
+//     //         ) *
+//     //         std::exp(-abs_time_diff / zxlb::LEARNING_WINDOW_SYN_STRENGTH);
+//     //     if(abs_time_diff != 0.0)
+//     //         time_delta *= (time_diff / abs_time_diff);
+//     //     double str_delta = time_delta *
+//     //         GetError() *
+//     //         zxlb::SYN_STRENGTH_LEARNING_RATE;
+//     //     cur_strength += GetStrengthDelta() * str_delta;
+//     // }
 
-    if(bap==-1) return;
+//     if(bap==-1) return;
 
-    double time_diff = static_cast<double>(GetCurSpike() - bap);
-    double abs_time_diff = std::abs(time_diff);
-    //if(abs_time_diff<=zxlb::LEARNING_WINDOW_SYN_STRENGTH) {
-        double time_delta = (
-            2.0 * (abs_time_diff + zxlb::LEARNING_WINDOW_SYN_STRENGTH) / 
-                    zxlb::LEARNING_WINDOW_SYN_STRENGTH
-            ) *
-            std::exp(-abs_time_diff / zxlb::LEARNING_WINDOW_SYN_STRENGTH) -
-            1.0;
-        // if(abs_time_diff != 0.0)
-        //     time_delta *= (time_diff / abs_time_diff);
-        double str_delta = time_delta *
-            GetError() *
-            zxlb::SYN_STRENGTH_LEARNING_RATE *
-            polarity;
-        cur_strength += GetStrengthDelta() * str_delta;
-    //}
+//     double time_diff = static_cast<double>(GetCurSpike() - bap);
+//     double abs_time_diff = std::abs(time_diff);
+//     //if(abs_time_diff<=zxlb::LEARNING_WINDOW_SYN_STRENGTH) {
+//         double time_delta = (
+//             2.0 * (abs_time_diff + zxlb::LEARNING_WINDOW_SYN_STRENGTH) / 
+//                     zxlb::LEARNING_WINDOW_SYN_STRENGTH
+//             ) *
+//             std::exp(-abs_time_diff / zxlb::LEARNING_WINDOW_SYN_STRENGTH) -
+//             1.0;
+//         // if(abs_time_diff != 0.0)
+//         //     time_delta *= (time_diff / abs_time_diff);
+//         double str_delta = time_delta *
+//             GetError() *
+//             zxlb::SYN_STRENGTH_LEARNING_RATE *
+//             polarity;
+//         cur_strength += GetStrengthDelta() * str_delta;
+//     //}
+// }
+
+// void Synapse::ChangeStrengthPost(i64 time) {
+//     // lw: learning window based on distance from soma
+//     // See: Fromke 2005: Spike-timing-dependent synaptic plasticity depends on dendritic location
+//     // double lw = zxlb::LEARNING_WINDOW_SYN_STRENGTH; //(location.Rad() / zxlb::MAX_RADIUS) * zxlb::LEARNING_WINDOW_SYN_STRENGTH;
+//     // double time_diff = static_cast<double>(bap - time_cur_spike);
+//     // double abs_time_diff = std::abs(time_diff);
+//     // if(abs_time_diff<=zxlb::LEARNING_WINDOW_SYN_STRENGTH) {
+//     //     double time_delta = (
+//     //         (abs_time_diff + lw) / 
+//     //                 lw
+//     //         ) *
+//     //         std::exp(-abs_time_diff / lw);
+//     //     if(abs_time_diff != 0.0)
+//     //         time_delta *= (time_diff / abs_time_diff);
+//     //     double str_delta = time_delta *
+//     //         GetError() *
+//     //         zxlb::SYN_STRENGTH_LEARNING_RATE;
+//     //     cur_strength += GetStrengthDelta() * str_delta;
+//     // }
+
+//     if(bap==-1) return;
+
+//     //(location.Rad() / zxlb::MAX_RADIUS) * zxlb::LEARNING_WINDOW_SYN_STRENGTH;
+//     double time_diff = static_cast<double>(bap - GetCurSpike());
+//     double abs_time_diff = std::abs(time_diff);
+//     //if(abs_time_diff<=zxlb::LEARNING_WINDOW_SYN_STRENGTH) {
+//         double time_delta = (
+//             -2.0*(abs_time_diff + zxlb::LEARNING_WINDOW_SYN_STRENGTH) / 
+//                     zxlb::LEARNING_WINDOW_SYN_STRENGTH
+//             ) *
+//             std::exp(-abs_time_diff / zxlb::LEARNING_WINDOW_SYN_STRENGTH) + 1.0;
+//         // if(abs_time_diff != 0.0)
+//         //     time_delta *= (time_diff / abs_time_diff);
+//         double str_delta = time_delta *
+//             GetError() *
+//             zxlb::SYN_STRENGTH_LEARNING_RATE *
+//             polarity;
+//         cur_strength += GetStrengthDelta() * str_delta;
+//     //}
+// }
+
+void Synapse::ChangeStrengthPre(
+    i64 pre_spike_time,
+    i64 post_spike_time,
+    ConnectionMatrix & cm
+) {
+    if(!pre_spike_time || !post_spike_time) return;
+
+    double delta = zxlb::C_SYN_STR_PRE /
+        (
+            std::pow(( (pre_spike_time-post_spike_time) - dendrite_path_length ) / zxlb::B_SYN_STR_PRE, 2.0) +
+            1.0
+        ) - 1.0;
+    cur_strength -= delta*error;
 }
 
-void Synapse::ChangeStrengthPost(i64 time) {
-    // lw: learning window based on distance from soma
-    // See: Fromke 2005: Spike-timing-dependent synaptic plasticity depends on dendritic location
-    // double lw = zxlb::LEARNING_WINDOW_SYN_STRENGTH; //(location.Rad() / zxlb::MAX_RADIUS) * zxlb::LEARNING_WINDOW_SYN_STRENGTH;
-    // double time_diff = static_cast<double>(bap - time_cur_spike);
-    // double abs_time_diff = std::abs(time_diff);
-    // if(abs_time_diff<=zxlb::LEARNING_WINDOW_SYN_STRENGTH) {
-    //     double time_delta = (
-    //         (abs_time_diff + lw) / 
-    //                 lw
-    //         ) *
-    //         std::exp(-abs_time_diff / lw);
-    //     if(abs_time_diff != 0.0)
-    //         time_delta *= (time_diff / abs_time_diff);
-    //     double str_delta = time_delta *
-    //         GetError() *
-    //         zxlb::SYN_STRENGTH_LEARNING_RATE;
-    //     cur_strength += GetStrengthDelta() * str_delta;
-    // }
+void Synapse::ChangeStrengthPost(
+    i64 pre_spike_time,
+    i64 post_spike_time_cur,
+    i64 post_spike_time_prev,
+    ConnectionMatrix & cm
+) {
+    if(
+        !pre_spike_time ||
+        !post_spike_time_prev ||
+        !post_spike_time_cur
+    ) return;
+    
+    // Enforces the order of post-pre-post vs pre-post-post.
+    if(pre_spike_time >= post_spike_time_prev) {
+        double delta_prev = zxlb::C_SYN_STR_POST /
+            (
+                std::pow(
+                    (( pre_spike_time - post_spike_time_prev) - dendrite_path_length) /
+                        zxlb::B_SYN_STR_POST,
+                    2.0
+                ) + 1.0
+            );
 
-    if(bap==-1) return;
+        double delta_cur = zxlb::C_SYN_STR_POST /
+            (
+                std::pow(
+                    (( post_spike_time_cur - pre_spike_time) - dendrite_path_length) /
+                        zxlb::B_SYN_STR_POST,
+                    2.0
+                ) + 1.0
+            );
 
-    //(location.Rad() / zxlb::MAX_RADIUS) * zxlb::LEARNING_WINDOW_SYN_STRENGTH;
-    double time_diff = static_cast<double>(bap - GetCurSpike());
-    double abs_time_diff = std::abs(time_diff);
-    //if(abs_time_diff<=zxlb::LEARNING_WINDOW_SYN_STRENGTH) {
-        double time_delta = (
-            -2.0*(abs_time_diff + zxlb::LEARNING_WINDOW_SYN_STRENGTH) / 
-                    zxlb::LEARNING_WINDOW_SYN_STRENGTH
-            ) *
-            std::exp(-abs_time_diff / zxlb::LEARNING_WINDOW_SYN_STRENGTH) + 1.0;
-        // if(abs_time_diff != 0.0)
-        //     time_delta *= (time_diff / abs_time_diff);
-        double str_delta = time_delta *
-            GetError() *
-            zxlb::SYN_STRENGTH_LEARNING_RATE *
-            polarity;
-        cur_strength += GetStrengthDelta() * str_delta;
-    //}
+        cur_strength += delta_cur*delta_prev;
+    }
+
+    
 }
 
 void Synapse::ChangeStrength(i64 time, double _error, ConnectionMatrix & cm) {
     this->error = _error;
-    double delta = zxlb::WITCH_C / 
-        (std::pow((time_cur_spike - dendrite_path_length) / zxlb::WITCH_B, 2.0) + 1.0);
+    double delta = zxlb::C_SYN_STR / 
+        (std::pow((time_cur_spike - dendrite_path_length) / zxlb::B_SYN_STR, 2.0) + 1.0);
     delta *= _error;
     cur_strength = cur_strength + delta;
     cm[ca.pre_layer][ca.pre_neuron].SetDownStreamErrorRate(neuron_id,delta);
+}
+
+void Synapse::ChangeStrengthPre_Simple(i64 time, double _error, ConnectionMatrix & cm) {
+    if(bap<0) return;
+
+    double time_diff = static_cast<double>(time - bap);
+
+    if(time_diff <= zxlb::MAX_STR_TEMPORAL_DIFFERENCE) {
+        double delta =
+            std::exp(-zxlb::STR_LEARNING_DECAY_PRE * time_diff) *
+            _error * 
+            zxlb::SYN_STRENGTH_LEARNING_RATE;
+        
+        cur_strength = cur_strength - delta;
+    }
+}
+void Synapse::ChangeStrengthPost_Simple(i64 time, double _error, ConnectionMatrix & cm) {
+    if(time_cur_spike<0) return;
+
+    double time_diff = static_cast<double>(time - time_cur_spike);
+
+    if(time_diff <= zxlb::MAX_STR_TEMPORAL_DIFFERENCE) {
+        double delta =
+            std::exp(-zxlb::STR_LEARNING_DECAY_POST * time_diff) *
+            _error * 
+            zxlb::SYN_STRENGTH_LEARNING_RATE;
+
+        cur_strength = cur_strength + delta;
+    }
 }
 
 void Synapse::SetBAP(i64 time) {
@@ -251,14 +339,15 @@ double Synapse::GetSignal_Out(i64 time) {
 }
 
 double Synapse::GetSignalWitch_Self(i64 time) {
-    return GetStrength() * zxlb::WITCH_C /
-        (std::pow((time-GetCurSpike())/zxlb::WITCH_B, 2.0) + 1.0);
+    if(GetCurSpike()<0) return 0.0;
+    else return GetStrength() * zxlb::C_SYN_SIG /
+            (std::pow((time-GetCurSpike())/zxlb::B_SYN_SIG, 2.0) + 1.0);
 }
 
 double Synapse::GetSignalWitchMod(i64 time, double dist, double spike_time_diff) {
     
-    return zxlb::WITCH_C /
-        (std::pow(( spike_time_diff - dist) / zxlb::WITCH_B, 2.0) + 1.0);
+    return zxlb::C_SYN_SIG /
+        (std::pow(( spike_time_diff - dist) / zxlb::B_SYN_SIG, 2.0) + 1.0);
 
 }
 // double Synapse::GetSignalWitchMod_Out(i64 time, double dist, double spike_time_diff) {
@@ -345,7 +434,7 @@ void Synapse::ResetCompartmentSize() {
 bool Synapse::Update(i64 time, Writer * writer, ConnectionMatrix & cm) {
     
 
-    SetSignal(time, cm[ca.pre_layer][ca.pre_neuron].output);
+    // SetSignal(time, cm[ca.pre_layer][ca.pre_neuron].output);
 
     //error = cm[ca.post_layer][ca.post_neuron].GetErrorRateRaw();
 
@@ -358,12 +447,6 @@ bool Synapse::Update(i64 time, Writer * writer, ConnectionMatrix & cm) {
     } else {
         return false;
     }
-
-
-    // while(spike_queue.size() > 2 && spike_queue.front() > zxlb::MAX_TEMPORAL_DIFFERENCE) {
-    //     spike_queue.pop();
-    // }
-
 }
 
 void Synapse::ResetWriteData() {

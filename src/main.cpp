@@ -116,7 +116,8 @@ int main(int argc, char**argv) {
     //     10,
     //     1.0,
     //     100.0,
-    //     1000,
+    //     -200,
+    //     1300,
     //     true,
     //     true
     // );
@@ -128,11 +129,13 @@ int main(int argc, char**argv) {
     // INIT STUFF
     omp_set_num_threads(7);
 
+    zxlb::LoadConstants("ds_point.json");
+
     // LOGS
     zxlog::Init(false);
 
     str OUTPUT_PATH = "/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/project_radius/output/";
-    str PRESET_PATH = "/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/project_radius/preset_15000/";
+    str PRESET_PATH = "/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/project_radius/DS_K_1000/";
 
     //-------------------------------------------------------------------------
     // RANDOM

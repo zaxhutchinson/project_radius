@@ -2446,6 +2446,143 @@ void RunEEG2(
     writer->StopRecording();
 }
 
+/******************************************************************************
+ * ExpMove_Hand
+ * This experiment will test whether an AD neuron can learn to differentiate
+ * between two types of EEGs.
+ *****************************************************************************/
+
+void RunMove_Hand(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+) {
+
+    int time_start = -200;
+    int time_end = 1300;
+
+    vec<MoveType> move_types = {
+        MoveType::LEFT,
+        MoveType::RIGHT
+    };
+
+    ExpMove exp_move(
+        10,
+        10,
+        0.5,
+        200.0,
+        time_start,
+        time_end,
+        move_types
+    );
+    vec<ExpMoveInstance> instances = exp_move.GetAllInstances();
+
+    vec<sizet> patterns = {
+        0,1
+    };
+
+    sizet num_iterations = 1000;
+    i64 time_per_example = time_end-time_start;
+    i64 output_layer_index = network->GetOutputLayerIndex();
+    Layer * output_layer = network->GetLayer(network->GetOutputLayerIndex());
+    // Layer * input_layer = network->GetLayer(network->GetInputLayerIndex());
+
+    vec<double> rate = {
+        0,
+        0
+    };
+
+    // input_layer->AddInputGenerator(igen.get());
+
+    writer->StartRecording();
+
+    // Build the dendrites the first time.
+    //network->InitDendrites();
+
+    Neuron * n0 = output_layer->GetNeuron(0);
+    Neuron * n1 = output_layer->GetNeuron(1);
+
+    double lon = -M_PI;
+    for(sizet i = 0; i < 10; i++) {
+        for(sizet j = 0; j < 10; j++) {
+            n0->synapses[i*10+j].location.Lon(lon);
+            n1->synapses[j*10+i].location.Lon(lon);
+
+            n0->synapses[i*10+j].location.Rad((10-j)*100);
+            n1->synapses[j*10+i].location.Rad((10-i)*100);
+
+            if(j<9) {
+                n0->synapses[i*10+j].parent=i*10+j+1;
+            } else {
+                n0->synapses[i*10+j].parent=-1;
+            }
+
+            if(i<9) {
+                n1->synapses[j*10+i].parent=j*10+i+1;
+            } else {
+                n1->synapses[j*10+i].parent=-1;
+            }
+        }
+        lon+=M_PI/10.0;
+
+
+    }
+
+    output_layer->SetTraining(false, false, false);
+
+    for(sizet i = 0; i < num_iterations; i++) {
+        std::cout << i << "\r" << std::flush;
+
+        std::shuffle(instances.begin(), instances.end(), rng);
+
+        network->RandomizeOrder(rng);
+
+        //network->RebuildDendrites();
+
+        for(sizet k = 0; k < instances.size(); k++) {
+
+            ExpMoveInstance * emi = &(instances[k]);
+            str type;
+
+            if(emi->type==MoveType::LEFT) {
+                type = "H";
+                rate[0] = 1;
+                rate[1] = 0;
+            }
+            else if(emi->type==MoveType::RIGHT) {
+                type = "V";
+                rate[0] = 0;
+                rate[1] = 1;
+            }
+            
+            network->UpdateLayerErrorValues(
+                rate, output_layer_index
+            );
+
+            i64 time = 0;
+            for(; time < time_per_example; time++) {
+
+                network->SetInputs(emi->signals[time]);
+
+
+                network->Update(
+                    time,
+                    writer,
+                    rng
+                );
+            }
+
+            writer->AddExampleData(std::make_unique<ExampleData>(i,k,type));
+            network->SaveData(-1);
+            network->WriteData(writer);
+            network->Reset();
+        }
+    }
+
+    network->CleanUpData(writer);
+
+    writer->StopRecording();
+}
 
 
 /******************************************************************************
@@ -2460,14 +2597,22 @@ void RunMove(
     RNG & rng
 ) {
 
+    int time_start = -200;
+    int time_end = 1300;
+
+    vec<MoveType> move_types = {
+        MoveType::DOWN,
+        MoveType::RIGHT
+    };
+
     ExpMove exp_move(
         10,
         10,
         0.5,
         200.0,
-        1000,
-        true,
-        true
+        time_start,
+        time_end,
+        move_types
     );
     vec<ExpMoveInstance> instances = exp_move.GetAllInstances();
 
@@ -2475,15 +2620,16 @@ void RunMove(
         0,1
     };
 
-    sizet num_iterations = 1000;
+    sizet num_iterations = zxlb::NUM_ITERATIONS;
     i64 time_per_example = zxlb::TASK_DURATION;
+
     i64 output_layer_index = network->GetOutputLayerIndex();
     Layer * output_layer = network->GetLayer(network->GetOutputLayerIndex());
     // Layer * input_layer = network->GetLayer(network->GetInputLayerIndex());
 
     vec<double> rate = {
-        -1,
-        -1
+        0,
+        0
     };
 
     // input_layer->AddInputGenerator(igen.get());
@@ -2493,7 +2639,11 @@ void RunMove(
     // Build the dendrites the first time.
     network->InitDendrites();
 
-    output_layer->SetTraining(true, true, true);
+    output_layer->SetTraining(
+        zxlb::TRAIN_RAD,
+        zxlb::TRAIN_ANG,
+        zxlb::TRAIN_STR
+    );
 
     for(sizet i = 0; i < num_iterations; i++) {
         std::cout << i << "\r" << std::flush;
@@ -2509,13 +2659,13 @@ void RunMove(
             ExpMoveInstance * emi = &(instances[k]);
             str type;
 
-            if(emi->type==MoveType::HORIZONTAL) {
-                type = "H";
+            if(emi->type==MoveType::RIGHT) {
+                type = "RIGHT";
                 rate[0] = zxlb::CORRECT_EXPECTED;
                 rate[1] = zxlb::INCORRECT_EXPECTED;
             }
-            else {
-                type = "V";
+            else if(emi->type==MoveType::DOWN) {
+                type = "DOWN";
                 rate[0] = zxlb::INCORRECT_EXPECTED;
                 rate[1] = zxlb::CORRECT_EXPECTED;
             }

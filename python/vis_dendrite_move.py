@@ -76,7 +76,6 @@ for name,syn in out.synapses.items():
         p.lat = lat
         p.lon = lon
         p.comp = comp
-        print(p.ID)
         points[p.ID] = p
 
         xs.append(x)

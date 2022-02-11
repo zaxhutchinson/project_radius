@@ -148,7 +148,7 @@ double VecS::HeadingTo(const VecS & v) {
 }
 
 void VecS::Orbit(double heading, double distance) {
-    // double delta = distance / rad;
+    // distance = distance * rad;
     double nlat = asin(
         sin(lat) * cos(distance) + cos(lat) * sin(distance) * cos(heading)
     );
