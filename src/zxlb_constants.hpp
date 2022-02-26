@@ -10,7 +10,11 @@ namespace zxlb {
     inline double MAJOR_VERSION {0.0};
     inline double MINOR_VERSION {0.16};
 
-
+    /* NEURON TYPE: Which type of neuron is this?
+        0 = AD neuron
+        1 = POINT neuron
+    */
+    inline int NEURON_TYPE = 0;
 
     inline double MAX_RADIUS {100.0};
 

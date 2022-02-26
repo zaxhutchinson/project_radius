@@ -114,7 +114,8 @@ struct Synapse {
         i64 post_spike_time_prev,
         ConnectionMatrix & cm
     );
-    void ChangeStrength(i64 time, double _error, ConnectionMatrix & cm);
+    void ChangeStrengthPre_AD(i64 time, i64 cur_neuron_spike, double _error, ConnectionMatrix & cm);
+    void ChangeStrengthPost_AD(i64 time, double _error, ConnectionMatrix & cm);
     void ChangeStrengthPre_Simple(i64 time, double _error, ConnectionMatrix & cm);
     void ChangeStrengthPost_Simple(i64 time, double _error, ConnectionMatrix & cm);
 

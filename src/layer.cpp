@@ -180,7 +180,7 @@ void Layer::InitDendrites() {
 void Layer::RebuildDendrites() {
     #pragma omp parallel for
     for(sizet i = 0; i < neurons.size(); i++) {
-        neurons[i].BuildDendrite4();
+        neurons[i].BuildDendrite2();
     }
 }
 

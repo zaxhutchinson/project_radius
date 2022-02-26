@@ -271,7 +271,16 @@ void Synapse::ChangeStrengthPost(
     
 }
 
-void Synapse::ChangeStrength(i64 time, double _error, ConnectionMatrix & cm) {
+void Synapse::ChangeStrengthPre_AD(i64 time, i64 cur_neuron_spike, double _error, ConnectionMatrix & cm) {
+    this->error = _error;
+    double delta = zxlb::C_SYN_STR / 
+        (std::pow((cur_neuron_spike - dendrite_path_length) / zxlb::B_SYN_STR, 2.0) + 1.0);
+    delta *= _error;
+    cur_strength = cur_strength + delta;
+    cm[ca.pre_layer][ca.pre_neuron].SetDownStreamErrorRate(neuron_id,delta);
+}
+
+void Synapse::ChangeStrengthPost_AD(i64 time, double _error, ConnectionMatrix & cm) {
     this->error = _error;
     double delta = zxlb::C_SYN_STR / 
         (std::pow((time_cur_spike - dendrite_path_length) / zxlb::B_SYN_STR, 2.0) + 1.0);

@@ -2609,7 +2609,7 @@ void RunMove(
         10,
         10,
         0.5,
-        200.0,
+        1.0,
         time_start,
         time_end,
         move_types
@@ -2625,7 +2625,7 @@ void RunMove(
 
     i64 output_layer_index = network->GetOutputLayerIndex();
     Layer * output_layer = network->GetLayer(network->GetOutputLayerIndex());
-    // Layer * input_layer = network->GetLayer(network->GetInputLayerIndex());
+    Layer * input_layer = network->GetLayer(network->GetInputLayerIndex());
 
     vec<double> rate = {
         0,
@@ -2644,6 +2644,18 @@ void RunMove(
         zxlb::TRAIN_ANG,
         zxlb::TRAIN_STR
     );
+
+    /* REMOVE TO STOP IGEN */
+    uptr<InputGenerator_Poisson> igen = std::make_unique<InputGenerator_Poisson>();
+    igen->id = "0";
+    igen->dist = std::uniform_real_distribution<double>(0.0,1.0);
+    for(int i = 0; i < input_layer->GetLayerSize(); i++) {
+        igen->decay.push_back(std::exp(-1.0/10.0));
+        igen->strength.push_back(200.0);
+        igen->signal.push_back(0.0);
+        igen->rate.push_back(0.0);
+    }
+    input_layer->AddInputGenerator(igen.get());
 
     for(sizet i = 0; i < num_iterations; i++) {
         std::cout << i << "\r" << std::flush;
@@ -2677,7 +2689,11 @@ void RunMove(
             i64 time = 0;
             for(; time < time_per_example; time++) {
 
-                network->SetInputs(emi->signals[time]);
+                // IGEN VERSION
+                igen->SetRate(emi->signals[time]);
+
+                // NON-IGEN
+                // network->SetInputs(emi->signals[time]);
 
 
                 network->Update(

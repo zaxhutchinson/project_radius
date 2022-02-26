@@ -5,6 +5,7 @@ namespace zxlb {
         nlohmann::json j;
         ifs >> j;
 
+        NEURON_TYPE = j.at("NEURON_TYPE");
         MAX_RADIUS = j.at("MAX_RADIUS");
         PRE_LEARNING_RATE = j.at("PRE_LEARNING_RATE");
         POST_LEARNING_RATE = j.at("POST_LEARNING_RATE");

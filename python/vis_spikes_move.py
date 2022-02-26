@@ -2,13 +2,15 @@ import math
 
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy.interpolate import interp1d
+from scipy.signal import savgol_filter
 
 import output
 import defs
 
 
 # Need to load them both
-NEURON_ID = 0
+NEURON_ID = 1
 LAYER_ID = 1
 SIDS = []
 
@@ -18,8 +20,8 @@ RIGHT=0
 DOWN=1
 
 LABELS = {
-    RIGHT:'Right',
-    DOWN:'Down'
+    RIGHT:'Horizontal',
+    DOWN:'Vertical'
 }
 
 outH = output.Output(defs.OUTPUT_PATH, lid=LAYER_ID, nid=RIGHT, sid=SIDS)
@@ -78,6 +80,8 @@ print(f"DOWN {corrD_avg} {incorrD_avg}")
 # midD = (corrD_avg+incorrD_avg)/2.0
 # print(midR, midD)
 
+corr_ratio_R = []
+corr_ratio_D = []
 corr_mag_R = []
 corr_mag_D = []
 
@@ -85,23 +89,48 @@ for i in range(len(outH.examples)):
     pattern_id = outH.examples[i].info
 
     if pattern_id == 'RIGHT':
+        if incorrR_avg:
+            y = spikes_by_nid[RIGHT][i] / incorrR_avg
+        else: 
+            y = spikes_by_nid[RIGHT][i]
 
-        y = spikes_by_nid[RIGHT][i] / incorrR_avg
-        n = spikes_by_nid[DOWN][i] / incorrD_avg
+        if incorrD_avg:
+            n = spikes_by_nid[DOWN][i] / incorrD_avg
+        else:
+            n = spikes_by_nid[DOWN][i]
 
         corr[RIGHT].append(int(y>n))
 
-        corr_mag_R.append(y)
+        corr_mag_R.append(spikes_by_nid[RIGHT][i] - incorrR_avg)
+        corr_ratio_R.append(y)
              
 
     elif pattern_id=='DOWN':
 
-        n = spikes_by_nid[RIGHT][i] / incorrR_avg
-        y = spikes_by_nid[DOWN][i] / incorrD_avg
+        if incorrR_avg:
+            n = spikes_by_nid[RIGHT][i] / incorrR_avg
+        else:
+            n = spikes_by_nid[RIGHT][i]
+        
+        if incorrD_avg:
+            y = spikes_by_nid[DOWN][i] / incorrD_avg
+        else:
+            y = spikes_by_nid[DOWN][i]
 
         corr[DOWN].append(int(y > n))
 
-        corr_mag_D.append(y)
+        corr_mag_D.append(spikes_by_nid[DOWN][i] - incorrD_avg)
+        corr_ratio_D.append(y)
+
+
+# xR = np.linspace(0,len(corr_mag_R), num=len(corr_mag_R),endpoint='True')
+# xD = np.linspace(0,len(corr_mag_D), num=len(corr_mag_D),endpoint='True')
+# fR = interp1d(xR,corr_mag_R,kind='cubic')
+# fD = interp1d(xD,corr_mag_D,kind='cubic')
+# xnewR = np.linspace(0, len(corr_mag_R), num=100,endpoint='True')
+# xnewD = np.linspace(0, len(corr_mag_D), num=100,endpoint='True')
+
+
 
 fig = plt.figure()
 ax = fig.add_subplot()
@@ -112,10 +141,23 @@ plt.show()
 
 fig = plt.figure()
 ax = fig.add_subplot()
-ax.plot(corr_mag_R,label='R',color='red')
-ax.plot(corr_mag_D,label='D',color='green')
+# ax.plot(corr_mag_R,label='R',color='red')
+# ax.plot(corr_mag_D,label='D',color='blue')
+ax.plot(savgol_filter(corr_ratio_R,501,3),color='red',label='Horizontal')
+ax.plot(savgol_filter(corr_ratio_D,501,3),color='blue',label='Vertical')
 plt.xlabel("Task")
-plt.ylabel("Percent of mean incorrect spike rate")
+plt.ylabel("Correct/AvgIncorrect")
+plt.legend()
+plt.show()
+
+fig = plt.figure()
+ax = fig.add_subplot()
+# ax.plot(corr_mag_R,label='R',color='red')
+# ax.plot(corr_mag_D,label='D',color='blue')
+ax.plot(savgol_filter(corr_mag_R,501,3),color='red',label='Horizontal')
+ax.plot(savgol_filter(corr_mag_D,501,3),color='blue',label='Vertical')
+plt.xlabel("Task")
+plt.ylabel("Correct - AvgIncorrect")
 plt.legend()
 plt.show()
 
@@ -154,10 +196,16 @@ for k,v in corr.items():
         total+=1
         correct+=d
         acc.append(correct/total)
-        
-    ax.plot(acc,label=LABELS[k])
+    
+    if k==RIGHT:
+        color='red'
+    elif k==DOWN:
+        color='blue'
+    ax.plot(acc,label=LABELS[k],color=color)
 
 plt.xlabel("Examples")
 plt.ylabel("Accuracy")
 plt.legend()
 plt.show()
+
+

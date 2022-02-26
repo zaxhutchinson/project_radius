@@ -7,6 +7,8 @@ import numpy as np
 import output
 import defs
 
+
+
 NEURON_ID = 0
 LAYER_ID = 1
 SIDS = list(range(100))
@@ -21,6 +23,9 @@ zs = []
 
 comps = []
 colors = {}
+
+for i in range(10):
+    colors[i]=(random.uniform(0.2,0.8),random.uniform(0.2,0.8),random.uniform(0.2,0.8))
 
 points = []
 
@@ -49,12 +54,14 @@ for name,syn in out.synapses.items():
         rad = syn.rads[-1][-1]
         pid = syn.parents[-1][-1]
         comp = syn.compartments[-1][-1]
-        if comp==None:
-            print(pid,comp)
+        
+        # if comp==None:
+        #     print(pid,comp)
+        # if comp not in comps:
+        #     comps.append(comp)
+        #     colors[comp]=(random.uniform(0.2,0.8),random.uniform(0.2,0.8),random.uniform(0.2,0.8))
 
-        if comp not in comps:
-            comps.append(comp)
-            colors[comp]=(random.uniform(0.2,0.8),random.uniform(0.2,0.8),random.uniform(0.2,0.8))
+
 
         x = rad * math.cos(lat) * math.cos(lon)
         y = rad * math.cos(lat) * math.sin(lon)
@@ -90,7 +97,14 @@ ax.set_xlim3d(-a,a)
 ax.set_ylim3d(-a,a)
 ax.set_zlim3d(-a,a)
 for k,v in points.items():
-    ax.scatter(v.x, v.y, v.z, color=colors[v.comp], cmap='jet')
+    clr = 'black'
+    if v.ID==-1:
+        clr = 'black'
+    elif NEURON_ID==0:
+        clr = colors[v.ID%10]
+    else:
+        clr = colors[v.ID//10]
+    ax.scatter(v.x, v.y, v.z, color=clr, cmap='jet')
     label = str(v.ID)
     ax.text(v.x, v.y, v.z, '%s' % (label), size=10, zorder=1 )
 # ax.scatter(xs_max, ys_max, zs_max, marker='o')
@@ -103,7 +117,55 @@ for k,v in points.items():
         #     print(v.ID, v.lat, v.lon, v.rad, v.x, v.y, v.z)    
         ax.plot3D([v.x, parent.x], [v.y, parent.y], [v.z, parent.z], 'gray')
 
-plt.title("Synaptic Locations and Dendritic Connections")
+# if NEURON_ID==0:
+#     plt.title("Dendritic Tree (Horizontal)")
+# else:
+#     plt.title("Dendritic Tree (Vertical)")
 plt.show()
 
 
+fig=plt.figure()
+ax = fig.add_subplot()
+
+for k,v in points.items():
+    clr = 'black'
+    if v.ID==-1:
+        continue
+    elif NEURON_ID==0:
+        clr = colors[v.ID%10]
+    else:
+        clr = colors[v.ID//10]
+    ax.scatter(v.lon,v.lat,color=clr)
+    label = str(v.ID)
+    ax.text(v.lon+0.01, v.lat+0.01, '%s' % (label), size=10, zorder=1 )
+
+plt.xlabel("Latitude")
+plt.ylabel("Longitude")
+plt.show()
+
+
+
+fig = plt.figure()
+ax = fig.add_subplot()
+
+IDS = ['']*100
+radii = [None]*100
+clrs = [None]*100
+
+for k,v in points.items():
+    if k != -1:
+        if k%10==4:
+            IDS[k]=str(k//10)
+        radii[k] = v.rad
+        if NEURON_ID==0:
+            clrs[k] = colors[v.ID%10]
+        else:
+            clrs[k] = colors[v.ID//10]
+
+x = np.arange(len(IDS))
+width = 1.0
+ax.bar(x,radii,width,color=clrs)
+ax.set_xticks(x,IDS)
+plt.xlabel("Synapses by pattern")
+plt.ylabel("Radius")
+plt.show()
