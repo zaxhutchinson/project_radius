@@ -27,8 +27,10 @@ namespace zxlb {
         INCORRECT_EXPECTED = j.at("INCORRECT_EXPECTED");
         TASK_DURATION = j.at("TASK_DURATION");
         NUM_ITERATIONS = j.at("NUM_ITERATIONS");
-        B_SYN_SIG = j.at("B_SYN_SIG");
-        C_SYN_SIG = j.at("C_SYN_SIG");
+        B_SYN_SIG_MOD = j.at("B_SYN_SIG_MOD");
+        C_SYN_SIG_MOD = j.at("C_SYN_SIG_MOD");
+        B_SYN_SIG_SELF = j.at("B_SYN_SIG_SELF");
+        C_SYN_SIG_SELF = j.at("C_SYN_SIG_SELF");
         B_SYN_STR = j.at("B_SYN_STR");
         C_SYN_STR = j.at("C_SYN_STR");
         B_SYN_STR_PRE = j.at("B_SYN_STR_PRE");

@@ -349,14 +349,14 @@ double Synapse::GetSignal_Out(i64 time) {
 
 double Synapse::GetSignalWitch_Self(i64 time) {
     if(GetCurSpike()<0) return 0.0;
-    else return GetStrength() * zxlb::C_SYN_SIG /
-            (std::pow((time-GetCurSpike())/zxlb::B_SYN_SIG, 2.0) + 1.0);
+    else return GetStrength() * zxlb::C_SYN_SIG_SELF /
+            (std::pow((time-GetCurSpike())/zxlb::B_SYN_SIG_SELF, 2.0) + 1.0);
 }
 
 double Synapse::GetSignalWitchMod(i64 time, double dist, double spike_time_diff) {
     
-    return zxlb::C_SYN_SIG /
-        (std::pow(( spike_time_diff - dist) / zxlb::B_SYN_SIG, 2.0) + 1.0);
+    return zxlb::C_SYN_SIG_MOD /
+        (std::pow(( spike_time_diff - dist) / zxlb::B_SYN_SIG_MOD, 2.0) + 1.0);
 
 }
 // double Synapse::GetSignalWitchMod_Out(i64 time, double dist, double spike_time_diff) {

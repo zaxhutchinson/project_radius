@@ -753,6 +753,7 @@ void Neuron::GetInputWitch3(i64 time) {
 
                 if(parent->GetCompartment()==syn->GetCompartment()) {
                     for(sizet i = 0; i < densigs.size(); i++) {
+
                         densigs[i].sig += sig * syn->GetSignalWitchMod(time,densigs[i].D,densigs[i].Ts);
                         densigs[i].D += dist; // This must be updated after the sig.
                     }
@@ -763,6 +764,7 @@ void Neuron::GetInputWitch3(i64 time) {
                 } else {
                     double upstream_sigs = sig;
                     for(sizet i = 0; i < densigs.size(); i++) {
+
                         upstream_sigs += densigs[i].sig + (sig*syn->GetSignalWitchMod(time,densigs[i].D,densigs[i].Ts));
                     }
 
@@ -808,19 +810,24 @@ void Neuron::GetInputWitch3(i64 time) {
                             + 1.0
                         ) + 1.0
                 );
+            // std::cout << den_terms[i][k].D << std::endl;
         }
-        sig = (sig*num) / (std::abs(sig) + num);
+        // std::cout << time << " " << sig << std::endl;
+        // sig = (sig*num) / (std::abs(sig) + num);
 
         // RELU
         // if(sig > 0) input += sig * zxlb::DENDRITE_SIGNAL_WEIGHT;
         
         // SLIDE INPUT
-        if(sig > 0) input += (std::tanh(10.0*sig-7.5)/2.0 + 0.5) * zxlb::DENDRITE_SIGNAL_WEIGHT;
+        // if(sig > 0) input += (std::tanh(10.0*sig-7.5)/2.0 + 0.5) * zxlb::DENDRITE_SIGNAL_WEIGHT;
+
+        // NEW SLIDE INPUT
+        if(sig > 0) input += (std::tanh(sig-0.5*num)/2.0 + 0.5) * zxlb::DENDRITE_SIGNAL_WEIGHT;
 
         // NEGATIVE SIGNALS REACH THE SOMA
         // input += sig * zxlb::DENDRITE_SIGNAL_WEIGHT;
+
     }
-    
     
 }
 

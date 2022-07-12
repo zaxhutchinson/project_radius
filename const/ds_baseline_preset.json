@@ -16,10 +16,10 @@
     "BF": 0.75,
 
     "MAX_COMPARTMENT_LENGTH": 2000.0,
-    "DENDRITE_SIGNAL_WEIGHT":100.0,
+    "DENDRITE_SIGNAL_WEIGHT":10.0,
 
-    "TRAIN_ANG": true,
-    "TRAIN_RAD": true,
+    "TRAIN_ANG": false,
+    "TRAIN_RAD": false,
     "TRAIN_STR": false,
 
     "CORRECT_EXPECTED":1.0,
@@ -28,8 +28,8 @@
     "TASK_DURATION":1500,
     "NUM_ITERATIONS":2000,
 
-    "B_SYN_SIG_MOD": 8.0,
-    "C_SYN_SIG_MOD": 1.0,
+    "B_SYN_SIG_MOD": 50.0,
+    "C_SYN_SIG_MOD": 10.0,
     "B_SYN_SIG_SELF": 1.0,
     "C_SYN_SIG_SELF": 1.0,
 
@@ -40,6 +40,6 @@
     "B_SYN_STR_POST":4.0,
     "C_SYN_STR_POST":1.0,
 
-    "B_NEU_DEN_OUT":8.0,
+    "B_NEU_DEN_OUT":10.0,
     "C_NEU_DEN_OUT":1.0
 }

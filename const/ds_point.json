@@ -29,8 +29,10 @@
     "TASK_DURATION":1500,
     "NUM_ITERATIONS":2000,
 
-    "B_SYN_SIG": 10.0,
-    "C_SYN_SIG": 1.0,
+    "B_SYN_SIG_MOD": 10.0,
+    "C_SYN_SIG_MOD": 1.0,
+    "B_SYN_SIG_SELF": 1.0,
+    "C_SYN_SIG_SELF": 1.0,
 
     "B_SYN_STR":4.0,
     "C_SYN_STR":1.0,

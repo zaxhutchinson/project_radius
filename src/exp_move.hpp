@@ -14,6 +14,7 @@ enum class MoveType {
 struct ExpMoveInstance {
     MoveType type;
     vec<vec<double>> signals;
+    int rc;
 };
 
 class ExpMove {

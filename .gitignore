@@ -40,7 +40,6 @@ out
 \obj
 \log
 \output
-\tst
 \exp_beacon
 \exp_mnist
 \exp_dota2

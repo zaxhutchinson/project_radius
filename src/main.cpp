@@ -129,7 +129,7 @@ int main(int argc, char**argv) {
     // INIT STUFF
     omp_set_num_threads(7);
 
-    zxlb::LoadConstants("ds_baseline.json");
+    zxlb::LoadConstants("ds_baseline_preset.json");
 
     // LOGS
     zxlog::Init(false);
@@ -267,7 +267,13 @@ int main(int argc, char**argv) {
 
     //----------------------------------------------------------------------------
     // Move
-    RunMove(
+    // RunMove(
+    //     &writer,
+    //     network.get(),
+    //     rng
+    // );
+
+    RunMove_Hand(
         &writer,
         network.get(),
         rng

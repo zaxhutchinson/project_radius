@@ -61,8 +61,8 @@ plt.show()
 fig = plt.figure()
 ax = fig.add_subplot()
 for k,v in radius.items():
-    if k >= 10 and k < 20:
-        ax.plot(v,label=str(k))
+
+    ax.plot(v,label=str(k))
 ax.legend()
 plt.show()
 

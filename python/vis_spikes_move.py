@@ -10,7 +10,7 @@ import defs
 
 
 # Need to load them both
-NEURON_ID = 1
+NEURON_ID = 0
 LAYER_ID = 1
 SIDS = []
 
@@ -84,6 +84,11 @@ corr_ratio_R = []
 corr_ratio_D = []
 corr_mag_R = []
 corr_mag_D = []
+yR = []
+nR = []
+yD = []
+nD = []
+
 
 for i in range(len(outH.examples)):
     pattern_id = outH.examples[i].info
@@ -99,7 +104,13 @@ for i in range(len(outH.examples)):
         else:
             n = spikes_by_nid[DOWN][i]
 
+        yR.append(y)
+        nD.append(n)
+
         corr[RIGHT].append(int(y>n))
+
+        if n>=y:
+            print("RIGHT",outH.examples[i].example, spikes_by_nid[RIGHT][i], spikes_by_nid[DOWN][i])
 
         corr_mag_R.append(spikes_by_nid[RIGHT][i] - incorrR_avg)
         corr_ratio_R.append(y)
@@ -117,7 +128,13 @@ for i in range(len(outH.examples)):
         else:
             y = spikes_by_nid[DOWN][i]
 
+        yD.append(y)
+        nR.append(n)
+
         corr[DOWN].append(int(y > n))
+
+        if n>=y:
+            print("DOWN",outH.examples[i].example, spikes_by_nid[DOWN][i], spikes_by_nid[RIGHT][i])
 
         corr_mag_D.append(spikes_by_nid[DOWN][i] - incorrD_avg)
         corr_ratio_D.append(y)
@@ -130,6 +147,16 @@ for i in range(len(outH.examples)):
 # xnewR = np.linspace(0, len(corr_mag_R), num=100,endpoint='True')
 # xnewD = np.linspace(0, len(corr_mag_D), num=100,endpoint='True')
 
+fig = plt.figure()
+ax = fig.add_subplot()
+ax.plot(savgol_filter(spikes_corr[RIGHT],501,3),color='red',label='Horizontal')
+ax.plot(savgol_filter(spikes_corr[DOWN],501,3),color='blue',label='Vertical')
+ax.plot(savgol_filter(spikes_incorr[RIGHT],501,3),color='red',label='Horizontal',linestyle='--')
+ax.plot(savgol_filter(spikes_incorr[DOWN],501,3),color='blue',label='Vertical',linestyle='--')
+plt.xlabel("Examples")
+plt.ylabel("Spike Rate - Correct")
+plt.legend()
+plt.show()
 
 
 fig = plt.figure()
@@ -209,3 +236,22 @@ plt.legend()
 plt.show()
 
 
+
+fig = plt.figure()
+ax = fig.add_subplot()
+ax.plot(savgol_filter(yR,501,3),color='red',label='Correct: Horizontal')
+ax.plot(savgol_filter(nD,501,3),color='blue',label='Incorrect: Vertical')
+plt.xlabel("Examples")
+plt.ylabel("Sp")
+plt.legend()
+plt.show()
+
+
+fig = plt.figure()
+ax = fig.add_subplot()
+ax.plot(savgol_filter(nR,501,3),color='red',label='Incorrect: Horizontal')
+ax.plot(savgol_filter(yD,501,3),color='blue',label='Correct: Vertical')
+plt.xlabel("Examples")
+plt.ylabel("Correct/AvgIncorrect")
+plt.legend()
+plt.show()

@@ -11,7 +11,7 @@ import defs
 
 NEURON_ID = 0
 LAYER_ID = 1
-SIDS = list(range(100))
+SIDS = list(range(0,100))
 
 out = output.Output(defs.OUTPUT_PATH, lid=LAYER_ID, nid=NEURON_ID, sid=SIDS)
 
@@ -24,8 +24,17 @@ zs = []
 comps = []
 colors = {}
 
-for i in range(10):
-    colors[i]=(random.uniform(0.2,0.8),random.uniform(0.2,0.8),random.uniform(0.2,0.8))
+
+colors[0]='tab:red'
+colors[1]='tab:blue'
+colors[2]='tab:green'
+colors[3]='tab:orange'
+colors[4]='tab:purple'
+colors[5]='tab:olive'
+colors[6]='tab:cyan'
+colors[7]='tab:brown'
+colors[8]='tab:gray'
+colors[9]='tab:pink'
 
 points = []
 

@@ -2451,18 +2451,253 @@ void RunEEG2(
  * This experiment will test whether an AD neuron can learn to differentiate
  * between two types of EEGs.
  *****************************************************************************/
+void RunMove_Hand_Config(
+    Network * network
+) {
+    Layer * out = network->GetLayer(network->GetOutputLayerIndex());
 
+    Neuron * hN = out->GetNeuron(0);
+    Neuron * vN = out->GetNeuron(1);
+
+    int start = 100;
+    int step = -10;
+
+    for(int p = 0; p < 10; p++) {
+        int r = start;
+        for(int i = p; i < 100; i+=10) {
+            Synapse * hS = hN->GetSynapse(i);
+            hS->location.Lat(0.0); 
+            hS->location.Lon(0.0); 
+            hS->location.Rad(r);
+            hS->dist_to_parent = std::abs(zxlb::MAX_RAD_TEMPORAL_DIFFERENCE/step);
+            hS->compartment=p;
+            if(i < 10) {
+                hS->parent = i+10;
+            } else if(i < 90) {
+                hS->parent = i+10;
+                hS->children.push_back(i-10);
+            } else {
+                hS->parent = -1;
+                hS->children.push_back(i-10);
+                hN->dendrites.push_back(i);
+            }
+            r+=step;
+
+            // std::cout << "Neuron: " << hS->parent << " " << i << " ";
+            // for(sizet x = 0; x < hS->children.size(); x++)
+            //     std::cout << hS->children[x] << " ";
+            // std::cout << std::endl; 
+        }
+    }
+
+    for(int p = 0; p < 100; p+=10) {
+        int r = start;
+        for(int i = p; i < p+10; i++) {
+            Synapse * vS = vN->GetSynapse(i);
+            vS->location.Lat(0.0); 
+            vS->location.Lon(0.0); 
+            vS->location.Rad(r);
+            vS->dist_to_parent = std::abs(zxlb::MAX_RAD_TEMPORAL_DIFFERENCE/step);
+            vS->compartment=p;
+
+            if(i%10==0) {
+                vS->parent = i+1;
+            } else if(i%10 < 9) {
+                vS->parent = i+1;
+                vS->children.push_back(i-1);
+            } else {
+                vS->parent = -1;
+                vS->children.push_back(i-1);
+                vN->dendrites.push_back(i);
+            }
+            r+=step;
+
+            // std::cout << "Neuron: " << vS->parent << " " << i << " ";
+            // for(sizet x = 0; x < vS->children.size(); x++)
+            //     std::cout << vS->children[x] << " ";
+            // std::cout << std::endl; 
+        }
+    }
+}
+void RunMove_Hand_Config_Reverse(
+    Network * network
+) {
+    Layer * out = network->GetLayer(network->GetOutputLayerIndex());
+
+    Neuron * hN = out->GetNeuron(0);
+    Neuron * vN = out->GetNeuron(1);
+
+    int start = 10;
+    int step = 10;
+
+    for(int p = 0; p < 10; p++) {
+        int r = start;
+        for(int i = p; i < 100; i+=10) {
+            Synapse * hS = hN->GetSynapse(i);
+            hS->location.Lat(0.0); 
+            hS->location.Lon(0.0); 
+            hS->location.Rad(r);
+            hS->dist_to_parent = std::abs(zxlb::MAX_RAD_TEMPORAL_DIFFERENCE/step);
+            hS->compartment=p;
+            if(i < 10) {
+                hS->parent = -1;
+                hS->children.push_back(i+10);
+                hN->dendrites.push_back(i);
+                
+            } else if(i < 90) {
+                hS->parent = i-10;
+                hS->children.push_back(i+10);
+            } else {
+                hS->parent = i-10;
+            }
+            r+=step;
+
+            // std::cout << "Neuron: " << hS->parent << " " << i << " ";
+            // for(sizet x = 0; x < hS->children.size(); x++)
+            //     std::cout << hS->children[x] << " ";
+            // std::cout << std::endl; 
+        }
+    }
+
+    for(int p = 0; p < 100; p+=10) {
+        int r = start;
+        for(int i = p; i < p+10; i++) {
+            Synapse * vS = vN->GetSynapse(i);
+            vS->location.Lat(0.0); 
+            vS->location.Lon(0.0); 
+            vS->location.Rad(r);
+            vS->dist_to_parent = std::abs(zxlb::MAX_RAD_TEMPORAL_DIFFERENCE/step);
+            vS->compartment=p;
+
+            if(i%10==0) {
+                vS->parent = -1;
+                vS->children.push_back(i+1);
+                vN->dendrites.push_back(i);
+            } else if(i%10 < 9) {
+                vS->parent = i-1;
+                vS->children.push_back(i+1);
+            } else {
+                vS->parent = i-1;
+            }
+            r+=step;
+
+            // std::cout << "Neuron: " << vS->parent << " " << i << " ";
+            // for(sizet x = 0; x < vS->children.size(); x++)
+            //     std::cout << vS->children[x] << " ";
+            // std::cout << std::endl; 
+        }
+    }
+}
+void RunMove_Hand_Random(
+    Network * network,
+    RNG & rng
+) {
+    Layer * out = network->GetLayer(network->GetOutputLayerIndex());
+
+    Neuron * hN = out->GetNeuron(0);
+    Neuron * vN = out->GetNeuron(1);
+
+    int start = 10;
+    int step = 10;
+
+    int offset = 5;
+    vec<int> synids;
+    for(int i = 0; i < 100; i+=10) {
+        vec<int> v;
+        for(int k = i; k < i+10; k++) {
+
+            v.push_back(k);
+
+        }
+
+        std::shuffle(v.begin()+offset, v.end(), rng);
+        for(sizet k = 0; k < v.size(); k++) synids.push_back(v[k]);
+    }
+    
+
+    for(int p = 0; p < 10; p++) {
+        int r = start;
+        for(int i = p; i < 100; i+=10) {
+            Synapse * hS = hN->GetSynapse(synids[i]);
+            hS->location.Lat(0.0); 
+            hS->location.Lon(0.0); 
+            hS->location.Rad(r);
+            hS->compartment=p;
+            if(i < 10) {
+                hS->parent = -1;
+                hS->children.push_back(i+10);
+                hN->dendrites.push_back(i);
+                
+            } else if(i < 90) {
+                hS->parent = i-10;
+                hS->children.push_back(i+10);
+            } else {
+                hS->parent = i-10;
+            }
+            r+=step;
+
+            // std::cout << "Neuron: " << hS->parent << " " << i << " ";
+            // for(sizet x = 0; x < hS->children.size(); x++)
+            //     std::cout << hS->children[x] << " ";
+            // std::cout << std::endl; 
+        }
+    }
+
+    synids.clear();
+    for(int i = 0; i < 100; i+=10) {
+        vec<int> v;
+        for(int k = i; k < i+10; k++) {
+
+            v.push_back(k);
+
+        }
+
+        std::shuffle(v.begin()+offset, v.end(), rng);
+        for(sizet k = 0; k < v.size(); k++) synids.push_back(v[k]);
+    }
+
+
+    for(int p = 0; p < 100; p+=10) {
+        int r = start;
+        for(int i = p; i < p+10; i++) {
+            Synapse * vS = vN->GetSynapse(synids[i]);
+            vS->location.Lat(0.0); 
+            vS->location.Lon(0.0); 
+            vS->location.Rad(r);
+            vS->compartment=p;
+
+            if(i%10==0) {
+                vS->parent = -1;
+                vS->children.push_back(i+1);
+                vN->dendrites.push_back(i);
+            } else if(i%10 < 9) {
+                vS->parent = i-1;
+                vS->children.push_back(i+1);
+            } else {
+                vS->parent = i-1;
+            }
+            r+=step;
+
+            // std::cout << "Neuron: " << vS->parent << " " << i << " ";
+            // for(sizet x = 0; x < vS->children.size(); x++)
+            //     std::cout << vS->children[x] << " ";
+            // std::cout << std::endl; 
+        }
+    }
+}
 void RunMove_Hand(
     Writer * writer,
     Network * network,
     RNG & rng
 ) {
 
+    RunMove_Hand_Config_Reverse(network);
+
     int time_start = -200;
     int time_end = 1300;
 
     vec<MoveType> move_types = {
-        MoveType::LEFT,
+        MoveType::DOWN,
         MoveType::RIGHT
     };
 
@@ -2470,7 +2705,7 @@ void RunMove_Hand(
         10,
         10,
         0.5,
-        200.0,
+        1.0,
         time_start,
         time_end,
         move_types
@@ -2481,11 +2716,12 @@ void RunMove_Hand(
         0,1
     };
 
-    sizet num_iterations = 1000;
-    i64 time_per_example = time_end-time_start;
+    sizet num_iterations = zxlb::NUM_ITERATIONS;
+    i64 time_per_example = zxlb::TASK_DURATION;
+
     i64 output_layer_index = network->GetOutputLayerIndex();
     Layer * output_layer = network->GetLayer(network->GetOutputLayerIndex());
-    // Layer * input_layer = network->GetLayer(network->GetInputLayerIndex());
+    Layer * input_layer = network->GetLayer(network->GetInputLayerIndex());
 
     vec<double> rate = {
         0,
@@ -2499,36 +2735,23 @@ void RunMove_Hand(
     // Build the dendrites the first time.
     //network->InitDendrites();
 
-    Neuron * n0 = output_layer->GetNeuron(0);
-    Neuron * n1 = output_layer->GetNeuron(1);
+    output_layer->SetTraining(
+        zxlb::TRAIN_RAD,
+        zxlb::TRAIN_ANG,
+        zxlb::TRAIN_STR
+    );
 
-    double lon = -M_PI;
-    for(sizet i = 0; i < 10; i++) {
-        for(sizet j = 0; j < 10; j++) {
-            n0->synapses[i*10+j].location.Lon(lon);
-            n1->synapses[j*10+i].location.Lon(lon);
-
-            n0->synapses[i*10+j].location.Rad((10-j)*100);
-            n1->synapses[j*10+i].location.Rad((10-i)*100);
-
-            if(j<9) {
-                n0->synapses[i*10+j].parent=i*10+j+1;
-            } else {
-                n0->synapses[i*10+j].parent=-1;
-            }
-
-            if(i<9) {
-                n1->synapses[j*10+i].parent=j*10+i+1;
-            } else {
-                n1->synapses[j*10+i].parent=-1;
-            }
-        }
-        lon+=M_PI/10.0;
-
-
+    /* REMOVE TO STOP IGEN */
+    uptr<InputGenerator_Poisson> igen = std::make_unique<InputGenerator_Poisson>();
+    igen->id = "0";
+    igen->dist = std::uniform_real_distribution<double>(0.0,1.0);
+    for(int i = 0; i < input_layer->GetLayerSize(); i++) {
+        igen->decay.push_back(std::exp(-1.0/10.0));
+        igen->strength.push_back(200.0);
+        igen->signal.push_back(0.0);
+        igen->rate.push_back(0.0);
     }
-
-    output_layer->SetTraining(false, false, false);
+    input_layer->AddInputGenerator(igen.get());
 
     for(sizet i = 0; i < num_iterations; i++) {
         std::cout << i << "\r" << std::flush;
@@ -2544,15 +2767,15 @@ void RunMove_Hand(
             ExpMoveInstance * emi = &(instances[k]);
             str type;
 
-            if(emi->type==MoveType::LEFT) {
-                type = "H";
-                rate[0] = 1;
-                rate[1] = 0;
+            if(emi->type==MoveType::RIGHT) {
+                type = "RIGHT";
+                rate[0] = zxlb::CORRECT_EXPECTED;
+                rate[1] = zxlb::INCORRECT_EXPECTED;
             }
-            else if(emi->type==MoveType::RIGHT) {
-                type = "V";
-                rate[0] = 0;
-                rate[1] = 1;
+            else if(emi->type==MoveType::DOWN) {
+                type = "DOWN";
+                rate[0] = zxlb::INCORRECT_EXPECTED;
+                rate[1] = zxlb::CORRECT_EXPECTED;
             }
             
             network->UpdateLayerErrorValues(
@@ -2562,7 +2785,11 @@ void RunMove_Hand(
             i64 time = 0;
             for(; time < time_per_example; time++) {
 
-                network->SetInputs(emi->signals[time]);
+                // IGEN VERSION
+                igen->SetRate(emi->signals[time]);
+
+                // NON-IGEN
+                // network->SetInputs(emi->signals[time]);
 
 
                 network->Update(
@@ -2572,7 +2799,7 @@ void RunMove_Hand(
                 );
             }
 
-            writer->AddExampleData(std::make_unique<ExampleData>(i,k,type));
+            writer->AddExampleData(std::make_unique<ExampleData>(i,emi->rc,type));
             network->SaveData(-1);
             network->WriteData(writer);
             network->Reset();
@@ -2703,7 +2930,7 @@ void RunMove(
                 );
             }
 
-            writer->AddExampleData(std::make_unique<ExampleData>(i,k,type));
+            writer->AddExampleData(std::make_unique<ExampleData>(i,emi->rc,type));
             network->SaveData(-1);
             network->WriteData(writer);
             network->Reset();

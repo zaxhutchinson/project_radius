@@ -61,8 +61,10 @@ namespace zxlb {
     inline i64 NUM_ITERATIONS = 1000;
 
     // SYNAPSE Witch of Agnesi constants.
-    inline double B_SYN_SIG = 10.0;
-    inline double C_SYN_SIG = 1.0;
+    inline double B_SYN_SIG_MOD = 10.0;
+    inline double C_SYN_SIG_MOD = 1.0;
+    inline double B_SYN_SIG_SELF = 1.0;
+    inline double C_SYN_SIG_SELF = 1.0;
 
     inline double B_SYN_STR = 4.0;
     inline double C_SYN_STR = 1.0;

@@ -18,7 +18,7 @@ ExpMove::ExpMove(
 
     // double time_steps = time_end-time_start;
 
-    instances.emplace(MoveType::LEFT,vec<ExpMoveInstance>());
+    // instances.emplace(MoveType::LEFT,vec<ExpMoveInstance>());
     
 
     for(
@@ -36,6 +36,7 @@ ExpMove::ExpMove(
 
                 ExpMoveInstance emi;
                 emi.type = MoveType::DOWN;
+                emi.rc = w;
 
                 for(int ts = time_start; ts < time_end; ts++) {
 
@@ -71,6 +72,7 @@ ExpMove::ExpMove(
 
                 ExpMoveInstance emi;
                 emi.type = MoveType::UP;
+                emi.rc = w;
 
                 for(int ts = time_end-1; ts >= time_start; ts--) {
 
@@ -104,8 +106,10 @@ ExpMove::ExpMove(
             
             for(int h = 0; h < _height; h++) {
 
+
                 ExpMoveInstance emi;
                 emi.type = MoveType::RIGHT;
+                emi.rc = h;
 
                 for(int ts = time_start; ts < time_end; ts++) {
 
@@ -140,6 +144,7 @@ ExpMove::ExpMove(
 
                 ExpMoveInstance emi;
                 emi.type = MoveType::LEFT;
+                emi.rc = h;
 
                 for(int ts = time_end-1; ts >= time_start; ts--) {
 

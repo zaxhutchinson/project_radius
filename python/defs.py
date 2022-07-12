@@ -45,5 +45,5 @@ OUTPUT_PATH = "/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/projec
 # EEG
 # OUTPUT_PATH = "/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/done_radius/EEG/preset_10000/"
 
-# OUTPUT_PATH = "/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/project_radius/DS_B_COMBINED/"
+# OUTPUT_PATH = "/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/project_radius/DS_GOOD_2000_AD_PRESET2/"
 # OUTPUT_PATH = "/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/project_radius/DS_B_2000_AD/"
