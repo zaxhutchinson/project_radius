@@ -147,7 +147,7 @@ b1_in = []
 c1_in = []
 C_out = []
 
-runs = 3000
+runs = 1000
 
 a1_in.append(5)
 b1_in.append(5)
@@ -182,6 +182,7 @@ fig = plt.figure()
 _in = abs(a1_in[0]-5)
 _in += abs(b1_in[0]-5)
 _in += abs(c1_in[0]-5)
+_in /= 3.0
 _out = C_out[0]
 
 plt.scatter(_in, _out, color='red',linewidth=0.5)

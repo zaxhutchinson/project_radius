@@ -41,11 +41,11 @@ class Comp:
             v.set_input(I)
         return I
 
-conn_b1 = 16
-conn_b2 = 8
+conn_b1 = 2
+conn_b2 = 2
 
-comp_b1 = 0.8
-comp_b2 = 1
+comp_b1 = 2
+comp_b2 = 2
 
 a = Conn(0.0, conn_b1, 1.0)
 b = Conn(0.0, conn_b1, 1.0)
@@ -53,17 +53,25 @@ c = Conn(1.0, conn_b2, 1.0)
 d = Conn(1.0, conn_b2, 1.0)
 e = Conn(1.0, conn_b2, 1.0)
 f = Conn(1.0, conn_b2, 1.0)
+g = Conn(1.0, conn_b2, 1.0)
+h = Conn(1.0, conn_b2, 1.0)
 
 AND = Comp(2.0, comp_b1, {'a':a, 'b':b}, {'d':d})
 XOR1 = Comp(1.0, comp_b1, {'a':a, 'b':b}, {'c':c})
 XOR2 = Comp(1.0, comp_b1, {'a':a, 'b':b}, {'f':f})
 NOR = Comp(0.0, comp_b1, {'a':a, 'b':b}, {'e':e})
-OR = Comp(1.0, comp_b2, {'c':c, 'd':d},{})
-NAND = Comp(1.0, comp_b2, {'e':e, 'f':f},{} )
+OR = Comp(0.0, comp_b2, {'e':e},{})
+NAND = Comp(0.0, comp_b2, {'d':d},{} )
+IMPL_NOT = Comp(0.0, comp_b2, {'a':a}, {'g':g})
+IMPL_NOR = Comp(0.0, comp_b2, {'g':g, 'b':b}, {'h':h})
+IMPL = Comp(0.0,comp_b2, {'h':h},{})
 
+start = -5
+end = 5
+step = 0.01
 
-X = np.arange(-5,5,0.01)
-Y = np.arange(-5,5,0.01)
+X = np.arange(start,end,step)
+Y = np.arange(start,end,step)
 # X,Y = np.meshgrid(X,Y)
 Z_AND = np.zeros([len(X),len(Y)])
 Z_XOR1 = np.zeros([len(X),len(Y)])
@@ -71,6 +79,9 @@ Z_XOR2 = np.zeros([len(X),len(Y)])
 Z_NOR = np.zeros([len(X),len(Y)])
 Z_OR = np.zeros([len(X),len(Y)])
 Z_NAND = np.zeros([len(X),len(Y)])
+Z_IMPL_NOT = np.zeros([len(X), len(Y)])
+Z_IMPL_NOR = np.zeros([len(X), len(Y)])
+Z_IMPL = np.zeros([len(X), len(Y)])
 
 # a.set_input(10)
 # b.set_input(10)
@@ -94,23 +105,82 @@ for i in range(len(X)):
         Z_NOR[i][j] = NOR.psi()
         Z_OR[i][j] = OR.psi()
         Z_NAND[i][j] = NAND.psi()
+        Z_IMPL_NOT[i][j] = IMPL_NOT.psi()
+        Z_IMPL_NOR[i][j] = IMPL_NOR.psi()
+        Z_IMPL[i][j] = IMPL.psi()
 
 
 fig, axs = plt.subplots(2,3)
-axs[0,0].imshow(Z_XOR1,cmap='turbo')
-axs[0,1].imshow(Z_AND,cmap='turbo')
-axs[0,2].imshow(Z_OR, cmap='turbo')
-axs[1,0].imshow(Z_XOR2,cmap='turbo')
-axs[1,1].imshow(Z_NOR,cmap='turbo')
-axs[1,2].imshow(Z_NAND, cmap='turbo')
 
-axs[0,0].set_title("XOR")
-axs[0,1].set_title("AND")
-axs[0,2].set_title("OR")
-axs[1,0].set_title("XOR")
-axs[1,1].set_title("NOR")
+im=axs[0,2].imshow(Z_AND,cmap='turbo')
+axs[0,2].set_xticks(range(0, len(Z_XOR1)+1, len(Z_XOR1)//10))
+axs[0,2].set_xticklabels(range(start, end+1, (end-start)//10))
+axs[0,2].set_yticks(range(0, len(Z_XOR1)+1, len(Z_XOR1)//10))
+axs[0,2].set_yticklabels(range(start, end+1, (end-start)//10))
+axs[0,2].invert_yaxis()
+axs[0,2].set_title("AND")
+
+axs[0,0].imshow(Z_NOR,cmap='turbo')
+axs[0,0].set_xticks(range(0, len(Z_XOR1)+1, len(Z_XOR1)//10))
+axs[0,0].set_xticklabels(range(start, end+1, (end-start)//10))
+axs[0,0].set_yticks(range(0, len(Z_XOR1)+1, len(Z_XOR1)//10))
+axs[0,0].set_yticklabels(range(start, end+1, (end-start)//10))
+axs[0,0].invert_yaxis()
+axs[0,0].set_title("NOR")
+
+axs[1,0].imshow(Z_OR, cmap='turbo')
+axs[1,0].set_xticks(range(0, len(Z_XOR1)+1, len(Z_XOR1)//10))
+axs[1,0].set_xticklabels(range(start, end+1, (end-start)//10))
+axs[1,0].set_yticks(range(0, len(Z_XOR1)+1, len(Z_XOR1)//10))
+axs[1,0].set_yticklabels(range(start, end+1, (end-start)//10))
+axs[1,0].invert_yaxis()
+axs[1,0].set_title("OR")
+
+axs[0,1].imshow(Z_XOR1,cmap='turbo')
+axs[0,1].set_xticks(range(0, len(Z_XOR1)+1, len(Z_XOR1)//10))
+axs[0,1].set_xticklabels(range(start, end+1, (end-start)//10))
+axs[0,1].set_yticks(range(0, len(Z_XOR1)+1, len(Z_XOR1)//10))
+axs[0,1].set_yticklabels(range(start, end+1, (end-start)//10))
+axs[0,1].invert_yaxis()
+axs[0,1].set_title("XOR")
+
+axs[1,2].imshow(Z_NAND, cmap='turbo')
+axs[1,2].set_xticks(range(0, len(Z_XOR1)+1, len(Z_XOR1)//10))
+axs[1,2].set_xticklabels(range(start, end+1, (end-start)//10))
+axs[1,2].set_yticks(range(0, len(Z_XOR1)+1, len(Z_XOR1)//10))
+axs[1,2].set_yticklabels(range(start, end+1, (end-start)//10))
+axs[1,2].invert_yaxis()
 axs[1,2].set_title("NAND")
 
-# ax1.plot_surface(X,Y,Z_NAND,linewidth=0,antialiased=False, cmap='turbo')
-# ax2.plot_surface(X,Y,Z_NOR,linewidth=0,antialiased=False, cmap='turbo')
+# axs[1,0].imshow(Z_XOR2,cmap='turbo')
+# axs[1,0].set_xticks(range(0, len(Z_XOR1)+1, len(Z_XOR1)//10))
+# axs[1,0].set_xticklabels(range(start, end+1, (end-start)//10))
+# axs[1,0].set_yticks(range(0, len(Z_XOR1)+1, len(Z_XOR1)//10))
+# axs[1,0].set_yticklabels(range(start, end+1, (end-start)//10))
+# axs[1,0].invert_yaxis()
+# axs[1,0].set_title("XOR")
+
+# axs[1,1].axis('off')
+
+axs[1,1].imshow(Z_IMPL,cmap='turbo')
+axs[1,1].set_xticks(range(0, len(Z_XOR1)+1, len(Z_XOR1)//10))
+axs[1,1].set_xticklabels(range(start, end+1, (end-start)//10))
+axs[1,1].set_yticks(range(0, len(Z_XOR1)+1, len(Z_XOR1)//10))
+axs[1,1].set_yticklabels(range(start, end+1, (end-start)//10))
+axs[1,1].invert_yaxis()
+axs[1,1].set_title("IMPL")
+
+# fig.colorbar(im, ax=axs.ravel().tolist())
+
+fig.subplots_adjust(right=0.8)
+cbar_ax = fig.add_axes([0.85, 0.15, 0.02, 0.70])
+fig.colorbar(im, cax=cbar_ax)
+
+
+fig.text(0.5, 0.04, 'Input B', ha='center')
+fig.text(0.04, 0.5, 'Input A', va='center', rotation='vertical')
+
+# fig.supxlabel("Input A")
+# fig.supylabel("Input B")
+
 plt.show()
