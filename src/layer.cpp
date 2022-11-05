@@ -136,24 +136,21 @@ Neuron * Layer::GetNeuron(i64 index) {
 }
 
 void Layer::Update(i64 time, Writer * writer, ConnectionMatrix & cm, RNG & rng) {
-    sizet i=0;
     if(input_generator != nullptr) {
-        //#pragma omp parallel for
+        #pragma omp parallel for
         for(sizet j = 0; j < neuron_indexes.size(); j++) {
-            i = neuron_indexes[j];
-            neurons[i].SetRawInput(input_generator->GetInput(i, time, rng));
-            if(neurons[i].Update(time, writer, id, cm, train_str, train_ang)) {
-                if(train_rad) neurons[i].PostsynapticSignal(time, cm);
-                neurons[i].bAP(time,1.0, train_str, cm);
+            neurons[j].SetRawInput(input_generator->GetInput(j, time, rng));
+            if(neurons[j].Update(time, writer, id, cm, train_str, train_ang)) {
+                if(train_rad) neurons[j].PostsynapticSignal(time, cm);
+                //neurons[j].bAP(time,1.0, train_str, cm);
             }
         }
     } else {
-        // #pragma omp parallel for
+        #pragma omp parallel for
         for(sizet j = 0; j < neuron_indexes.size(); j++) {
-            i = neuron_indexes[j];
-            if(neurons[i].Update(time, writer, id, cm, train_str, train_ang)) {
-                if(train_rad) neurons[i].PostsynapticSignal(time, cm);
-                neurons[i].bAP(time,1.0, train_str, cm);
+            if(neurons[j].Update(time, writer, id, cm, train_str, train_ang)) {
+                if(train_rad) neurons[j].PostsynapticSignal(time, cm);
+                //neurons[j].bAP(time,1.0, train_str, cm);
             }
         }
     }
@@ -181,6 +178,12 @@ void Layer::RebuildDendrites() {
     #pragma omp parallel for
     for(sizet i = 0; i < neurons.size(); i++) {
         neurons[i].BuildDendrite2();
+    }
+}
+
+void Layer::SetRecordData(bool b) {
+    for(sizet i = 0; i < neurons.size(); i++) {
+        neurons[i].record_data = b;
     }
 }
 

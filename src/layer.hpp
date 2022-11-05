@@ -52,6 +52,7 @@ public:
     void InitDendrites();
     void RebuildDendrites();
 
+    void SetRecordData(bool b);
     void CleanUp(Writer * writer);
     void InitWriteData();
     void SaveData(i64 time, ConnectionMatrix & cm);

@@ -51,6 +51,10 @@ struct Neuron {
     std::function<void(i64)> get_input;
     int max_dendrites;
 
+    vec<pair<double,double>> comp_izh;
+    vec<i64> compartment_spikes;
+    vec<i64> syns_per_comp;
+
     Neuron();
     Neuron(
         VecS _loc,
@@ -113,6 +117,7 @@ private:
     void GetInputWitch(i64 time);
     void GetInputWitch2(i64 time);
     void GetInputWitch3(i64 time);
+    void GetInputWitch4(i64 time);
     void GetInput(i64 time);
     void GetInput2(i64 time);
     void GetInput_Old(i64 time);

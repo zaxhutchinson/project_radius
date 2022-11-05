@@ -77,9 +77,11 @@ x3,y3,z3 = GetXYZ(p3_lat,p3_lon,rad)
 slerp1 = []
 slerp2 = []
 slerp3 = []
+slerp4 = []
 path1 = []
 path2 = []
 path3 = []
+path4 = []
 
 # dist1 = AngularDistanceTo(p1_lat,p1_lon,p2_lat,p2_lon)
 # step = dist1/100
@@ -168,6 +170,33 @@ for e in slerp2:
     path2.append(GetXYZ(e[0],e[1],rad))
 
 
+dist3 = AngularDistanceTo(p1_lat,p1_lon,s3_lat,s3_lon)
+step = dist3/100
+lat = p1_lat
+lon = p1_lon
+for i in range(100):
+    head = HeadingTo(lat,lon,s3_lat,s3_lon)
+    dlat,dlon = OrbitTo(lat,lon,rad,head,step)
+    slerp3.append((dlat,dlon))
+    lat = dlat
+    lon = dlon
+for e in slerp3:
+    path3.append(GetXYZ(e[0],e[1],rad))
+
+dist4 = AngularDistanceTo(s3_lat,s3_lon,s4_lat,s4_lon)
+step = dist4/100
+lat = s3_lat
+lon = s3_lon
+for i in range(100):
+    head = HeadingTo(lat,lon,s4_lat,s4_lon)
+    dlat,dlon = OrbitTo(lat,lon,rad,head,step)
+    slerp4.append((dlat,dlon))
+    lat = dlat
+    lon = dlon
+for e in slerp4:
+    path4.append(GetXYZ(e[0],e[1],rad))
+
+
 fig = plt.figure()
 ax = fig.add_subplot(projection='3d')
 
@@ -184,21 +213,23 @@ ax.plot([0,x3],[0,y3],[0,z3],c='gray',zorder=1)
 ax.plot([0,s1x],[0,s1y],[0,s1z],c='gray',zorder=1,linewidth=0.5)
 ax.plot([0,s2x],[0,s2y],[0,s2z],c='gray',zorder=1,linewidth=0.5)
 
-ax.scatter(x1, y1, z1,c='red',linewidths=1,zorder=3)
-ax.scatter(x2, y2, z2,c='red',linewidths=1,zorder=3)
-ax.scatter(x3, y3, z3,c='red',linewidths=1,zorder=3)
-ax.scatter(s1x, s1y, s1z,c='blue',linewidths=1,zorder=3)
-ax.scatter(s2x, s2y, s2z,c='blue',linewidths=1,zorder=3)
-ax.scatter(s3x, s3y, s3z,c='blue',linewidths=1,zorder=3)
-ax.scatter(s4x, s4y, s4z,c='blue',linewidths=1,zorder=3)
+ax.scatter(x1, y1, z1,c='tab:red',linewidths=1,zorder=3)
+ax.scatter(x2, y2, z2,c='tab:red',linewidths=1,zorder=3)
+ax.scatter(x3, y3, z3,c='tab:red',linewidths=1,zorder=3)
+ax.scatter(s1x, s1y, s1z,c='tab:blue',linewidths=1,zorder=3)
+ax.scatter(s2x, s2y, s2z,c='tab:blue',linewidths=1,zorder=3)
+ax.scatter(s3x, s3y, s3z,c='tab:orange',linewidths=1,zorder=3)
+ax.scatter(s4x, s4y, s4z,c='tab:orange',linewidths=1,zorder=3)
 ax.scatter(0,0,0,c='black',linewidths=1,zorder=3)
 
 ax.text(x1+0.2,y1-0.2,z1+0.0,'A',fontsize=12,zorder=3)
 ax.text(x2+0.05,y2+0.05,z2+0.05,'B',fontsize=12,zorder=3)
 ax.text(x3+0.05,y3+0.05,z3-0.08,'C',fontsize=12,zorder=3)
 ax.text(0.0,0.0,-0.2,'O',fontsize=12)
-ax.text(s1x+0.2,s1y-0.1,s1z+0.0,'1',fontsize=10,zorder=3)
-ax.text(s2x+0.05,s2y+0.05,s2z+0.05,'2',fontsize=10,zorder=3)
+ax.text(s1x-0.05,s1y+0.02,s1z+0.0,'1',fontsize=10,zorder=3)
+ax.text(s2x+0.02,s2y+0.02,s2z+0.0,'2',fontsize=10,zorder=3)
+ax.text(s3x+0.05,s3y-0.05,s3z+0.0,'1',fontsize=10,zorder=3)
+ax.text(s4x+0.02,s4y+0.02,s4z+0.0,'2',fontsize=10,zorder=3)
 
 
 
@@ -211,8 +242,8 @@ for i in range(len(path1)-1):
         [path1[i][1],path1[i+1][1]],
         [path1[i][2],path1[i+1][2]],
         linestyle='dotted',
-        linewidth='0.5',
-        c='blue'
+        linewidth='1',
+        c='tab:blue'
     )
 
 # mid = len(path1)//2
@@ -226,8 +257,28 @@ for i in range(len(path2)-1):
         [path2[i][1],path2[i+1][1]],
         [path2[i][2],path2[i+1][2]],
         linestyle='dotted',
-        linewidth='0.5',
-        c='blue'
+        linewidth='1',
+        c='tab:blue'
+    )
+
+for i in range(len(path3)-1):
+    ax.plot(
+        [path3[i][0],path3[i+1][0]],
+        [path3[i][1],path3[i+1][1]],
+        [path3[i][2],path3[i+1][2]],
+        linestyle='dotted',
+        linewidth='1',
+        c='tab:orange'
+    )
+
+for i in range(len(path4)-1):
+    ax.plot(
+        [path4[i][0],path4[i+1][0]],
+        [path4[i][1],path4[i+1][1]],
+        [path4[i][2],path4[i+1][2]],
+        linestyle='dotted',
+        linewidth='1',
+        c='tab:orange'
     )
 
 # mid = len(path2)//2

@@ -131,7 +131,7 @@ void Synapse::SetStraightLinePathLength(double path) {
 }
 
 double Synapse::GetStrength() {
-    return cur_strength / 
+    return (cur_strength*max_strength) / 
         (std::abs(cur_strength) + abs_max_strength);
 }
 double Synapse::GetStrengthDelta() {
@@ -218,6 +218,9 @@ double Synapse::GetStrengthDelta() {
 //     //}
 // }
 
+
+
+
 void Synapse::ChangeStrengthPre(
     i64 pre_spike_time,
     i64 post_spike_time,
@@ -274,19 +277,19 @@ void Synapse::ChangeStrengthPost(
 void Synapse::ChangeStrengthPre_AD(i64 time, i64 cur_neuron_spike, double _error, ConnectionMatrix & cm) {
     this->error = _error;
     double delta = zxlb::C_SYN_STR / 
-        (std::pow((cur_neuron_spike - dendrite_path_length) / zxlb::B_SYN_STR, 2.0) + 1.0);
-    delta *= _error;
+        (std::pow(((time-cur_neuron_spike) - dendrite_path_length) / zxlb::B_SYN_STR, 2.0) + 1.0);
+    delta = delta * _error;// * zxlb::SYN_STRENGTH_LEARNING_RATE;
     cur_strength = cur_strength + delta;
-    cm[ca.pre_layer][ca.pre_neuron].SetDownStreamErrorRate(neuron_id,delta);
+    //cm[ca.pre_layer][ca.pre_neuron].SetDownStreamErrorRate(neuron_id,delta);
 }
 
 void Synapse::ChangeStrengthPost_AD(i64 time, double _error, ConnectionMatrix & cm) {
     this->error = _error;
     double delta = zxlb::C_SYN_STR / 
-        (std::pow((time_cur_spike - dendrite_path_length) / zxlb::B_SYN_STR, 2.0) + 1.0);
-    delta *= _error;
+        (std::pow(((time-time_cur_spike) - dendrite_path_length) / zxlb::B_SYN_STR, 2.0) + 1.0);
+    delta = delta * _error;// * zxlb::SYN_STRENGTH_LEARNING_RATE;
     cur_strength = cur_strength + delta;
-    cm[ca.pre_layer][ca.pre_neuron].SetDownStreamErrorRate(neuron_id,delta);
+    //cm[ca.pre_layer][ca.pre_neuron].SetDownStreamErrorRate(neuron_id,delta);
 }
 
 void Synapse::ChangeStrengthPre_Simple(i64 time, double _error, ConnectionMatrix & cm) {
@@ -320,6 +323,127 @@ void Synapse::ChangeStrengthPost_Simple(i64 time, double _error, ConnectionMatri
 
 void Synapse::SetBAP(i64 time) {
     bap = time;
+}
+
+double Synapse::psi(double sig) {
+    return (sig >= 0.0) ? sig : 0.0;
+}
+
+double Synapse::GetInput(i64 time, vec<Synapse> & syns, i64 parent_id, double compdist) {
+    
+    double sig = GetSignal_Within(time,compdist);
+
+    for(sizet i = 0; i < children.size(); i++) {
+
+        // If the next child is in our compartment, use the compdist
+        // Else reset compdist to the distance to the next synapse.
+        if(compartment==syns[children[i]].GetCompartment()) {
+            // sig += syns[children[i]].GetInput(time,syns,parent,compdist);
+            sig += syns[children[i]].GetInput(time,syns,parent,compdist+syns[i].dist_to_parent);
+        } else {
+            // sig += psi(syns[children[i]].GetInput(time,syns,parent,syns[i].dist_to_parent));
+            sig += psi(syns[children[i]].GetInput(time,syns,parent,0.0));
+        }
+    }
+
+    return sig;
+}
+
+
+
+double Synapse::GetInput_Within(
+    i64 time, 
+    vec<Synapse> & syns,
+    vec<i64> & comp_spikes,
+    vec<i64> & syns_per_comp,
+    vec<pair<double,double>> & comp_izh,
+    tmps::NeuronType & nt,
+    i64 parent_id, 
+    double compdist
+) {
+
+        double sig = GetSignal_Within(time,compdist+dist_to_parent);
+
+        for(sizet i = 0; i < children.size(); i++) {
+
+            if(compartment==syns[children[i]].GetCompartment()) {
+                sig += syns[children[i]].GetInput_Within(
+                    time, syns, comp_spikes,syns_per_comp,comp_izh,nt,parent,
+                    compdist+dist_to_parent
+                );
+            } else {
+                sig += syns[children[i]].GetInput_Between(
+                    time, syns, comp_spikes,syns_per_comp,comp_izh,nt,parent,
+                    0.0
+                );
+            }
+        }
+
+        return sig;
+
+}
+
+double Synapse::GetInput_Between(
+    i64 time, 
+    vec<Synapse> & syns,
+    vec<i64> & comp_spikes,
+    vec<i64> & syns_per_comp,
+    vec<pair<double,double>> & comp_izh,
+    tmps::NeuronType & nt,
+    i64 parent_id, 
+    double compdist
+) {
+    double sig = GetInput_Within(
+        time,
+        syns,
+        comp_spikes,
+        syns_per_comp,
+        comp_izh,
+        nt,
+        parent,
+        0.0
+    );
+
+    double vpre = comp_izh[compartment].first;
+    double upre = comp_izh[compartment].second;
+
+    comp_izh[compartment].first = vpre +
+    (
+        nt.k * (vpre - nt.vr) * (vpre - nt.vt) -
+        upre +
+        sig + 50.0
+    ) / nt.cap;
+
+    comp_izh[compartment].second = upre +
+        nt.a *
+        (nt.b * (vpre - nt.vr) - upre);
+
+    if(comp_izh[compartment].first > nt.vpeak) {
+        comp_izh[compartment].first = nt.c;
+        comp_izh[compartment].second += nt.d;
+        comp_spikes[compartment]=time;
+    }
+
+    return GetSignal_Between(time, comp_spikes[compartment],dist_to_parent,syns_per_comp[compartment]);
+}
+
+
+
+
+
+// The GOOD ONE
+double Synapse::GetSignal_Within(i64 time, double compdist) {
+    if(GetCurSpike()<0) return 0.0;
+    else {
+        return GetStrength() /
+            (std::pow(((time-GetCurSpike())-compdist)*zxlb::B_SYN_SIG_SELF, 2.0) + 1.0);
+    }
+}
+double Synapse::GetSignal_Between(i64 time, i64 comp_spike_time, double compdist, i64 syns_in_comp) {
+
+    return (zxlb::DENDRITE_SIGNAL_WEIGHT*syns_in_comp) /
+        (std::pow(((time-comp_spike_time)-compdist)*zxlb::B_SYN_SIG_SELF, 2.0) + 1.0);
+
 }
 
 double Synapse::GetSignal_Simple(i64 time) {

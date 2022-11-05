@@ -37,6 +37,7 @@ void VecS::ChangeRad(double amt) {
 
     rad += amt;
     if(rad > zxlb::MAX_RADIUS) rad = zxlb::MAX_RADIUS;
+    else if(rad < 0.0) rad = 0.0;
 }
 
 double VecS::Distance(const VecS & v) {

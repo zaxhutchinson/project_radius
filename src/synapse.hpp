@@ -7,6 +7,7 @@
 #include"data.hpp"
 #include"loader.hpp"
 #include"connection.hpp"
+#include"neuron_type.hpp"
 
 struct DenSig {
     double D;
@@ -83,8 +84,6 @@ struct Synapse {
     void SetLayerID(i64 _id);
     void SetNeuronID(i64 _id);
 
-    
-
     void SetConnectionAddress(ConnectionAddress ca);
     void SetSignal(i64 time, double amt);
     void SetCurSpike(i64 time);
@@ -120,6 +119,36 @@ struct Synapse {
     void ChangeStrengthPost_Simple(i64 time, double _error, ConnectionMatrix & cm);
 
     void SetBAP(i64 time);
+
+    double psi(double sig);
+
+    double GetInput(i64 time, vec<Synapse> & syns, i64 parent_id, double compdist);
+
+    double GetInput_Within(
+        i64 time, 
+        vec<Synapse> & syns,
+        vec<i64> & comp_spikes,
+        vec<i64> & syns_per_comp,
+        vec<pair<double,double>> & comp_izh,
+        tmps::NeuronType & nt,
+        i64 parent_id, 
+        double compdist
+    );
+
+    double GetInput_Between(
+        i64 time, 
+        vec<Synapse> & syns,
+        vec<i64> & comp_spikes,
+        vec<i64> & syns_per_comp,
+        vec<pair<double,double>> & comp_izh,
+        tmps::NeuronType & nt,
+        i64 parent_id, 
+        double compdist
+    );
+
+    // THE GOOD ONE
+    double GetSignal_Within(i64 time, double compdist);
+    double GetSignal_Between(i64 time, i64 comp_spike_time, double compdist, i64 syns_in_comp);
 
     double GetSignal_Simple(i64 time);
     double GetSignal_In(i64 time);

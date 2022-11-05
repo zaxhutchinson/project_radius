@@ -7,9 +7,11 @@ TARGET=radius # define the name of the executable
 # RELEASE
 CFLAGS= -c -std=c++20 -O3 -fopenmp -Wall
 LFLAGS= -Llib -lm -pthread -fopenmp
+
 # DEBUG
-#CFLAGS= -c -std=c++20 -g3 -pg -fopenmp -Wall -DDEBUG
-#LFLAGS= -Llib -lm -pthread -fopenmp -pg
+# CFLAGS= -c -std=c++20 -g3 -pg -fopenmp -Wall -DDEBUG
+# LFLAGS= -Llib -lm -pthread -fopenmp -pg
+
 SRCDIR = src
 OBJDIR = obj
 INCLUDE = -Iinc

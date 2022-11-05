@@ -10,8 +10,8 @@ NEURON_ID = 0
 LAYER_ID = 1
 SIDS = list(range(784))
 
-outA = output.Output("/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/project_radius/MNIST_9_5000_YesMask50/", lid=LAYER_ID, nid=NEURON_ID)
-outB = output.Output("/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/project_radius/MNIST_2_5000_YesMask50/", lid=LAYER_ID, nid=NEURON_ID)
+outA = output.Output("/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/project_radius/output/", lid=LAYER_ID, nid=0)
+outB = output.Output("/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/project_radius/output/", lid=LAYER_ID, nid=9)
 
 NEURON_ID = 0
 LAYER_ID = 1

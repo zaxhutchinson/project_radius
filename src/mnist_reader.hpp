@@ -18,6 +18,7 @@
 #include<random>
 #include<string>
 #include<algorithm>
+#include<omp.h>
 
 #include"zxlb.hpp"
 #include"input_gen.hpp"
@@ -32,6 +33,8 @@ using pair = std::pair<T,U>;
 struct MNISTData {
     unsigned label;
     vec<double> image;
+
+    void NormalizeByTotalStrength();
 };
 
 enum MNISTDIR {
@@ -48,7 +51,7 @@ struct MNISTReader {
     MNISTReader();
 
     // Loads the labels and images at the given filenames.
-    void LoadData(std::string & label_filename, std::string & images_filename);
+    void LoadData(std::string & label_filename, std::string & images_filename, bool normalize=false);
 
     // Will return all MNISTData objects that have the label <label>.
     vec<MNISTData> GetDataWithLabel(unsigned label, MNISTDIR trans=MNISTDIR::NONE);
@@ -68,7 +71,7 @@ struct MNISTReader {
     // Returns a vector of MNISTData built by iteration size. Each iteration
     // will contain one example of each label. The order within each iteration
     // is randomized.
-    vec<vec<MNISTData>> GetDataAsIteration(vec<unsigned> labels, sizet num_iterations, sizet examples_per_iteration, RNG & rng);
+    vec<vec<MNISTData>> GetDataAsIteration(vec<unsigned> & labels, sizet num_iterations, sizet examples_per_iteration, RNG & rng);
 
     // Converts the ith image to a b&w ppm image file named: image_[i].ppm
     // If the i is bad, nothing happens

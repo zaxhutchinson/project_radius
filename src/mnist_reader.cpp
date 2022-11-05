@@ -1,10 +1,28 @@
 #include"mnist_reader.hpp"
 
+
+void MNISTData::NormalizeByTotalStrength() {
+    double total = 0.0;
+    for(sizet i = 0; i < image.size(); i++) {
+        total += image[i];
+    }
+    for(sizet i = 0; i < image.size(); i++) {
+        image[i] = (image[i] / total) * 1000.0;
+    }
+
+    // for(sizet i = 0; i < image.size(); i++) {
+    //     image[i] = (image[i] / 255.0) * 100.0;
+    // }
+}
+
+
+
+
 MNISTReader::MNISTReader() {
 
 }
 
-void MNISTReader::LoadData(std::string & label_filename, std::string & images_filename) {
+void MNISTReader::LoadData(std::string & label_filename, std::string & images_filename, bool normalize) {
 
 
     std::ifstream ifs(label_filename, std::ios::binary);
@@ -51,6 +69,9 @@ void MNISTReader::LoadData(std::string & label_filename, std::string & images_fi
             }
             if(!ifs.fail()) {
                 data[i].image=std::move(image);
+                if(normalize) {
+                    data[i].NormalizeByTotalStrength();
+                }
                 i++;
             }
                 
@@ -105,7 +126,7 @@ uptr<InputGenerator_Poisson> MNISTReader::GetDataAsPoissonInputGenerator(MNISTDa
     return ig;
 }
 
-vec<vec<MNISTData>> MNISTReader::GetDataAsIteration(vec<unsigned> labels, sizet num_iterations, sizet examples_per_iteration, RNG & rng) {
+vec<vec<MNISTData>> MNISTReader::GetDataAsIteration(vec<unsigned> & labels, sizet num_iterations, sizet examples_per_iteration, RNG & rng) {
     zxlog::Debug("MNISTReader: GetDataAsIteration");
     vec<vec<MNISTData>> data_by_label;
     for(sizet i = 0; i < labels.size(); i++) {

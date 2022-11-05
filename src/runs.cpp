@@ -5,31 +5,49 @@ void RunMNIST(
     Network * network,
     RNG & rng
 ) {
-    std::string LABELS_FILENAME("exp_mnist/train-labels-idx1-ubyte");
-    std::string IMAGES_FILENAME("exp_mnist/train-images-idx3-ubyte");
+    std::string TRAIN_LABELS_FILENAME("exp_mnist/train-labels-idx1-ubyte");
+    std::string TRAIN_IMAGES_FILENAME("exp_mnist/train-images-idx3-ubyte");
+    std::string TEST_LABELS_FILENAME("exp_mnist/t10k-labels-idx1-ubyte");
+    std::string TEST_IMAGES_FILENAME("exp_mnist/t10k-images-idx3-ubyte");
+
+    vec<unsigned> labels = {0,1,2,3,4,5,6,7,8,9};
+
+    std::cout << "START: LOADING MNIST DATA\n";
+
+    MNISTReader train_mnist;
+    MNISTReader test_mnist;
+    train_mnist.LoadData(TRAIN_LABELS_FILENAME,TRAIN_IMAGES_FILENAME,true);
+    test_mnist.LoadData(TEST_LABELS_FILENAME,TEST_IMAGES_FILENAME,true);
+    vec<MNISTData> train_data;
+    vec<MNISTData> test_data;
+    for(int i = 0; i < 10; i++) {
+        vec<MNISTData> train_tmp = train_mnist.GetDataWithLabel(i);
+        vec<MNISTData> test_tmp = test_mnist.GetDataWithLabel(i);
+        std::copy(train_tmp.begin(), train_tmp.end(), std::back_inserter(train_data));
+        std::copy(test_tmp.begin(), test_tmp.end(), std::back_inserter(test_data));
+    }
 
 
-    MNISTReader mnist;
-    mnist.LoadData(LABELS_FILENAME,IMAGES_FILENAME);
-    vec<MNISTData> data; 
-    vec<MNISTData> dataA = mnist.GetDataWithLabel(3);
-    vec<MNISTData> dataB = mnist.GetDataWithLabel(8);
-    std::copy(dataA.begin(), dataA.end(), std::back_inserter(data));
-    std::copy(dataB.begin(), dataB.end(), std::back_inserter(data));
+    std::cout << "DONE: LOADING MNIST DATA\n";
     
-    sizet num_iterations = 100;
-    // sizet examples_per_iteration = 1;
-    sizet iteration_size = 100;
+    sizet num_epochs = 1000;
+    sizet train_iteration_size = 1000; // don't make larger than num examples
+    sizet test_iteration_size = 100; // don't make larger than num examples
+
     i64 time_per_example = 1000;
-    sizet mask_interval = 10;
+    
     i64 output_layer_index = network->GetOutputLayerIndex();
     Layer * input_layer = network->GetLayer(network->GetInputLayerIndex());
     i64 input_layer_size = input_layer->GetLayerSize();
 
-    vec<sizet> image_indexes;
-    for(sizet i = 0; i < mnist.GetData().size(); i++) {
-        image_indexes.push_back(i);
-    }
+    // vec<sizet> train_image_indexes;
+    // vec<sizet> test_image_indexes;
+    // for(sizet i = 0; i < train_mnist.GetData().size(); i++) {
+    //     train_image_indexes.push_back(i);
+    // }
+    // for(sizet i = 0; i < test_mnist.GetData().size(); i++) {
+    //     test_image_indexes.push_back(i);
+    // }
 
     uptr<InputGenerator_Poisson> ig_mask = std::make_unique<InputGenerator_Poisson>();
     ig_mask->id = "0";
@@ -38,61 +56,72 @@ void RunMNIST(
         ig_mask->dist = std::uniform_real_distribution<double>(0.0,1.0);
         ig_mask->strength.push_back(500.0);
         ig_mask->signal.push_back(0.0);
-        ig_mask->rate.push_back(0.05);
+        ig_mask->rate.push_back(0.01);
     }
+
+    Layer * output_layer = network->GetLayer(network->GetOutputLayerIndex());
+
+    sizet mask_time = 10000;
+    double MASK_ERROR = -1;
+    vec<double> MASK_RATES;
+    for(unsigned int l = 0; l < 10; l++) {
+        MASK_RATES.push_back(MASK_ERROR);
+    }
+    
 
     //-------------------------------------------------------------------------
     // Build the rates vector. Default to incorrect rates.
-    vec<double> rates = {zxlb::CORRECT_EXPECTED};
-    // for(sizet i = 0; i < 10; i++) {
-    //     rates.push_back(zxlb::INCORRECT_EXPECTED);
-    // }
+    vec<double> rates;
+    for(i64 i = 0; i < output_layer->GetLayerSize(); i++) {
+        rates.push_back(zxlb::INCORRECT_EXPECTED);
+    }
 
     //-------------------------------------------------------------------------
     // Start the run
-    // network->RebuildDendrites();
+
+    network->RebuildDendrites();
 
     writer->StartRecording();
+
+    output_layer->SetRecordData(false);
+
+    for(sizet e = 0; e < num_epochs; e++) {
+
+        std::cout << "EPOCH: " << e << std::endl;
+
+        std::shuffle(train_data.begin(), train_data.end(), rng);
+
+        std::shuffle(test_data.begin(), test_data.end(), rng);
     
-    for(sizet i = 0; i < num_iterations; i++) {
-        std::cout << "Iteration: " << i << std::endl;
+        // TRAINING SECTION
+        {
 
-        std::shuffle(data.begin(), data.end(), rng);
-
-
-        for(sizet k = 0; k < iteration_size; k++) {
-            std::cout << k << "\r" << std::flush;
-
-            // Get the image
-            uptr<InputGenerator_Poisson> ig = mnist.GetDataAsPoissonInputGenerator(data[k]);
-
-            // Set the inputs to the pixel data
-            input_layer->AddInputGenerator(ig.get());
-
-
-            rates[0] = zxlb::CORRECT_EXPECTED;
-
-
-            network->UpdateLayerErrorValues(
-                rates, output_layer_index
+            output_layer->SetTraining(
+                zxlb::TRAIN_RAD,
+                zxlb::TRAIN_ANG,
+                zxlb::TRAIN_STR
             );
+            
 
-
-            i64 time = 1;
-            for(; time <= time_per_example; time++) {
-                network->Update(
-                    time,
-                    writer,
-                    rng
-                );
-            }
-
-            network->Reset();
             network->RandomizeOrder(rng);
 
-            if(k%mask_interval==0) {
-                input_layer->AddInputGenerator(ig_mask.get());
-                rates[0] = zxlb::INCORRECT_EXPECTED;
+            for(sizet k = 0; k < train_iteration_size; k++) {
+                std::cout << "TRAIN " << k << "\r" << std::flush;
+
+                // Get the image
+                // uptr<InputGenerator_Poisson> ig = train_mnist.GetDataAsPoissonInputGenerator(train_data[k]);
+                unsigned int label = train_data[k].label;
+
+                // Set the inputs to the pixel data
+                // input_layer->AddInputGenerator(ig.get());
+                input_layer->SetInputs(train_data[k].image);
+
+                for(unsigned int l = 0; l < 10; l++) {
+                    if(l==label) rates[l] = zxlb::CORRECT_EXPECTED;
+                    else rates[l] = zxlb::INCORRECT_EXPECTED;
+                }
+
+
                 network->UpdateLayerErrorValues(
                     rates, output_layer_index
                 );
@@ -106,20 +135,105 @@ void RunMNIST(
                     );
                 }
 
-                // Reset the input generator
-                ig_mask->Reset();
+                network->Reset();
+                
+            }
+        }
+
+        std::cout << std::endl;
+
+        // TESTING SECTION
+        {
+
+            // Don't train anything
+            output_layer->SetTraining(
+                false,
+                false,
+                false // DON'T TRAIN STRENGTH
+            );
+
+            // Start saving data
+            output_layer->SetRecordData(true);
+
+            network->RandomizeOrder(rng);
+
+            network->RebuildDendrites();
+
+            for(sizet k = 0; k < test_iteration_size; k++) {
+                std::cout << "TEST " << k << "\r" << std::flush;
+
+                // Get the image
+                // uptr<InputGenerator_Poisson> ig = test_mnist.GetDataAsPoissonInputGenerator(test_data[k]);
+
+                // Set the inputs to the pixel data
+                // input_layer->AddInputGenerator(ig.get());
+                input_layer->SetInputs(test_data[k].image);
+
+                i64 time = 1;
+                for(; time <= time_per_example; time++) {
+                    network->Update(
+                        time,
+                        writer,
+                        rng
+                    );
+                }
+
+                writer->AddExampleData(std::make_unique<ExampleData>(e,test_data[k].label,"None"));
+        
+                network->SaveData(-1);
+                network->WriteData(writer);
 
                 network->Reset();
-                network->RandomizeOrder(rng);
+                
             }
-            
+
+            output_layer->SetRecordData(false);
+
         }
+
         std::cout << std::endl;
-        //network->RebuildDendrites();
-        network->SaveData(-1);
-        network->WriteData(writer);
-        
+
+        // MASK SECTION
+
+        // {
+
+        //     std::cout << "MASK" << std::flush;
+
+        //     output_layer->SetTraining(
+        //         false,
+        //         true,
+        //         false
+        //     );
+
+        //     input_layer->AddInputGenerator(ig_mask.get());
+            
+        //     network->UpdateLayerErrorValues(
+        //         MASK_RATES, output_layer_index
+        //     );
+
+
+        //     i64 time = 1;
+        //     for(; time <= mask_time; time++) {
+        //         network->Update(
+        //             time,
+        //             writer,
+        //             rng
+        //         );
+        //     }
+
+        //     // Reset the input generator
+        //     ig_mask->Reset();
+        //     network->Reset();
+            
+        //     // Remove input generator. Only needed for mask.
+        //     input_layer->AddInputGenerator(nullptr);
+        // }
+
+        // std::cout << std::endl;
+
     }
+
+    std::cout << "ALL DONE\n" << std::flush;
 
     network->CleanUpData(writer);
     writer->StopRecording();

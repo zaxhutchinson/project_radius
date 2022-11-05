@@ -129,7 +129,7 @@ int main(int argc, char**argv) {
     // INIT STUFF
     omp_set_num_threads(7);
 
-    zxlb::LoadConstants("ds_baseline_preset.json");
+    // zxlb::LoadConstants("ds_baseline_preset.json");
 
     // LOGS
     zxlog::Init(false);
@@ -150,7 +150,7 @@ int main(int argc, char**argv) {
 
     //-------------------------------------------------------------------------
     // Process command line args.
-    str network_id = "move";
+    str network_id = "";
     bool load_preset = false;
 
     zxlog::Debug("MAIN: Processing cmd line args.");
@@ -164,6 +164,10 @@ int main(int argc, char**argv) {
             UnitTests();
         } else if(strcmp(argv[i],"-p")==0) {
             load_preset = true;
+        } else if(strcmp(argv[i],"-c")==0) {
+            zxlb::LoadConstants(argv[++i]);
+            std::cout << "Loading constants: " << argv[i] << " "  << zxlb::MAX_ANG_TEMPORAL_DIFFERENCE << std::endl;
+
         }
     }
 
@@ -198,11 +202,11 @@ int main(int argc, char**argv) {
 
     //-------------------------------------------------------------------------
     // MNIST
-    // RunMNIST(
-    //     &writer,
-    //     network.get(),
-    //     rng
-    // );
+    RunMNIST(
+        &writer,
+        network.get(),
+        rng
+    );
 
     //-------------------------------------------------------------------------
     // POISSON002
@@ -273,11 +277,11 @@ int main(int argc, char**argv) {
     //     rng
     // );
 
-    RunMove_Hand(
-        &writer,
-        network.get(),
-        rng
-    );
+    // RunMove_Hand(
+    //     &writer,
+    //     network.get(),
+    //     rng
+    // );
 
     return 0;
 }

@@ -15,10 +15,10 @@ data = []
 xvals = []
 
 i = -10.0
-c = 1.0
+c = 0.0
 
 while i <= 10.0:
-    result = gau(i,c,5,1)
+    result = gau(i,c,1,1)
     data.append(result)
     xvals.append(i)
     i += 0.1
@@ -26,8 +26,8 @@ while i <= 10.0:
 
 plt.figure()
 plt.plot(xvals,data,color='green',linewidth=2)
-plt.xlabel(r"$v_a$")
-plt.ylabel("\u03C6"+r"   $v_{e}=0$" )
+plt.xlabel(r"$x$")
+plt.ylabel("\u03C6"+r"(x), $c=0$" )
 plt.show()
 
 
