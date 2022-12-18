@@ -10,7 +10,9 @@ out = output.Output(defs.OUTPUT_PATH)
 LID = 1
 NID = 0
 
-for i in range(784):
+SIZE = 25
+
+for i in range(SIZE):
     out.LoadSynapse(LID,NID,i)
 
 out.LoadNeuron(LID,NID)
@@ -24,7 +26,7 @@ rads = []
 xs = []
 ys = []
 zs = []
-colors = mycolors.GetColors(785)
+colors = mycolors.GetColors(SIZE+1)
 ids = []
 pids = []
 comps = []
@@ -51,16 +53,19 @@ points = {-1:soma}
 colors[soma.comp]=(0.0,0.0,0.0)
 
 
-for i in range(784):
+for i in range(SIZE):
     syn = out.synapses[f'{LID} {NID} {i}']
     
     lat = syn.lats[-1][-1]
     lon = syn.lons[-1][-1]
     rad = syn.rads[-1][-1]
 
-    x = rad * math.cos(lat) * math.cos(lon)
-    y = rad * math.cos(lat) * math.sin(lon)
-    z = rad * math.sin(lat)
+    # x = rad* math.cos(lat) * math.cos(lon)
+    # y = rad * math.cos(lat) * math.sin(lon)
+    # z = rad *math.sin(lat)
+    x = math.cos(lat) * math.cos(lon)
+    y = math.cos(lat) * math.sin(lon)
+    z = math.sin(lat)
     c = rad
 
     p = Point()
@@ -83,28 +88,63 @@ for i in range(784):
     ys.append(y)
     zs.append(z)
 
+C = {
+    0:'gray',
+    1:'tab:blue',
+    2:'tab:blue',
+    3:'tab:blue',
+    4:'tab:blue',
+    5:'tab:blue',
+    6:'tab:orange',
+    7:'tab:orange',
+    8:'tab:orange',
+    9:'tab:orange',
+    10:'tab:orange',
+    11:'tab:green',
+    12:'tab:green',
+    13:'tab:green',
+    14:'tab:green',
+    15:'tab:green',
+    16:'tab:red',
+    17:'tab:red',
+    18:'tab:red',
+    19:'tab:red',
+    20:'tab:red',
+    21:'tab:purple',
+    22:'tab:purple',
+    23:'tab:purple',
+    24:'tab:purple',
+}
+
 fig = plt.figure()
-ax = fig.add_subplot()
-# a = max(np.ptp(xs), np.ptp(ys), np.ptp(zs))
-# ax.set_box_aspect((np.ptp(xs), np.ptp(ys), np.ptp(zs)))
-# ax.set_xlim3d(-a,a)
-# ax.set_ylim3d(-a,a)
-# ax.set_zlim3d(-a,a)
+ax = fig.add_subplot(projection='3d',computed_zorder=False)
+a = max(np.ptp(xs), np.ptp(ys), np.ptp(zs))
+ax.set_box_aspect((np.ptp(xs), np.ptp(ys), np.ptp(zs)))
+ax.set_xlim3d(-a,a)
+ax.set_ylim3d(-a,a)
+ax.set_zlim3d(-a,a)
 for k,v in points.items():
-    ax.scatter(v.lon,v.lat, color=colors[v.comp], cmap='jet')
+    if k==-1:
+        continue
+    # ax.scatter(v.lon,v.lat, color=colors[v.comp], cmap='jet',linewidths=5)
+    ax.scatter(v.x,v.y,v.z, color=C[k], cmap='jet',linewidths=8,zorder=1)
+    # ax.scatter(v.x,v.y,v.z, color='tab:blue', cmap='jet',linewidths=8,zorder=1)
     label = str(v.ID)
-    #ax.text(v.x, v.y, v.z, '%s' % (label), size=10, zorder=1 )
+    ax.text(v.x,v.y,v.z, '%s' % (label), size=8, zorder=4,horizontalalignment='center',verticalalignment='center')
 # ax.scatter(xs_max, ys_max, zs_max, marker='o')
 
-for k,v in points.items():
-    if v.pid!=None:
+# UNCOMMENT TO ADD DENDRITES
+# for k,v in points.items():
+#     if v.pid!=None:
 
-        parent = points[v.pid]
-        # if v.pid==-1:
-        #     print(v.ID, v.lat, v.lon, v.rad, v.x, v.y, v.z)    
-        ax.plot([v.lon, parent.lon], [v.lat, parent.lat], 'gray')
+#         parent = points[v.pid]
+#         # if v.pid==-1:
+#         #     print(v.ID, v.lat, v.lon, v.rad, v.x, v.y, v.z)    
+#         ax.plot([v.lon, parent.lon], [v.lat, parent.lat], 'gray')
 
-plt.title("Synaptic Locations and Dendritic Connections")
+plt.xlabel("x")
+plt.ylabel("y")
+ax.set_zlabel("z")
 plt.show()
 # fig = plt.figure()
 # ax = fig.add_subplot(projection='3d')

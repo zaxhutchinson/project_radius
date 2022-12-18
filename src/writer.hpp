@@ -7,6 +7,8 @@
 #include<iostream>
 #include<filesystem>
 
+#include<omp.h>
+
 #include"zxlb.hpp"
 #include"data.hpp"
 

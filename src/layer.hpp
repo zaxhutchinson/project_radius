@@ -12,6 +12,7 @@ private:
     i64 id;
     str name;
     vec<Neuron> neurons;
+    vec<int> spikes_per_neuron;
     vec<sizet> neuron_indexes;
     bool is_input;
     bool is_output;
@@ -38,6 +39,8 @@ public:
     void SetIsInput(bool b);
     void SetIsOutput(bool b);
     i64 GetLayerSize();
+
+    vec<int> & GetSpikesPerNeuron();
 
     void SetTraining(bool rad, bool ang, bool str);
 

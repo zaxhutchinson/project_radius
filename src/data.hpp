@@ -24,6 +24,7 @@ struct SynapseData {
     vec<i64> spikes;
     vec<double> error;
     vec<i64> compartment_ids;
+    vec<double> comp_strength;
 };
 
 struct NeuronData {

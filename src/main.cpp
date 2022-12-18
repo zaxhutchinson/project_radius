@@ -29,6 +29,14 @@
 
 int main(int argc, char**argv) {
 
+    // VecS v1(0.0,0.0,10.0);
+    // VecS v2(M_PI/2.0,M_PI/2.0,10.0);
+    // double head = v1.HeadingTo(v2);
+    // std::cout << v1.Distance(v2) << std::endl;
+    // v1.Orbit(head,0.1);
+    // std::cout << v1.Distance(v2) << std::endl;
+
+
     // ExpEEG exp_eeg;
     // exp_eeg.LoadData("./exp_eeg/train", "./exp_eeg/test");
     // return 0;
@@ -202,11 +210,51 @@ int main(int argc, char**argv) {
 
     //-------------------------------------------------------------------------
     // MNIST
-    RunMNIST(
+    // RunMNIST(
+    //     &writer,
+    //     network.get(),
+    //     rng
+    // );
+
+    //-------------------------------------------------------------------------
+    // INPUT POSITION
+    // RunInputPosition2(
+    //     &writer,
+    //     network.get(),
+    //     rng
+    // );
+
+    //-------------------------------------------------------------------------
+    // EEG
+    RunEEG2(
         &writer,
         network.get(),
         rng
     );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     //-------------------------------------------------------------------------
     // POISSON002

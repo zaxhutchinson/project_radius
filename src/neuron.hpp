@@ -20,7 +20,7 @@ enum class InputMethod {
     Witch
 };
 
-
+inline constexpr i64 SOMA_COMP_ID = 0;
 
 struct Neuron {
     i64 id;
@@ -84,6 +84,7 @@ struct Neuron {
     // void PresynapticSignal(i64 time, i64 synapse_id, double signal, bool pre_spike);
     void PresynapticSpike(i64 time, i64 synapse_id, ConnectionMatrix & cm);
     void PostsynapticSignal(i64 time, ConnectionMatrix & cm);
+    void PostsynapticSignal2(i64 time, ConnectionMatrix & cm);
     void bAP(i64 time, double signal, bool train_str, ConnectionMatrix & cm);
     double GetError(ConnectionMatrix & cm);
    
@@ -117,7 +118,7 @@ private:
     void GetInputWitch(i64 time);
     void GetInputWitch2(i64 time);
     void GetInputWitch3(i64 time);
-    void GetInputWitch4(i64 time);
+    void GetInputWitch4(i64 time, ConnectionMatrix & cm,bool train_str);
     void GetInput(i64 time);
     void GetInput2(i64 time);
     void GetInput_Old(i64 time);

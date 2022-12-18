@@ -140,6 +140,11 @@ void Writer::WriteSynapseData() {
             ofs << data->compartment_ids[i] << " ";
         } ofs << "\n";
 
+        ofs << "COMP_STR ";
+        for(sizet i = 0; i < data->data_size; i++) {
+            ofs << data->comp_strength[i] << " ";
+        } ofs << "\n";
+
         ofs.close();
     }
 }

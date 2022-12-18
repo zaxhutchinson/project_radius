@@ -28,6 +28,48 @@ void RunMNIST(
     RNG & rng
 );
 /******************************************************************************
+ * Input Position Experiment
+ *****************************************************************************/
+// 21 inputs, 4 patterns, 0th input shared by all.
+void RunInputPosition1(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+);
+
+// 25 Inputs, 4 patterns, 0th input shared by all. Each pattern shares an input
+// with neighbor
+void RunInputPosition2(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+);
+
+
+// 50 inputs 1 pattern. This is to test position compression.
+void RunInputPosition3(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+);
+
+// 6 inputs 1 pattern. This is to test position compression.
+void RunInputPosition4(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+);
+
+
+
+
+
+
+
+
+
+
+/******************************************************************************
  * 
  *****************************************************************************/
 void RunPattern001(

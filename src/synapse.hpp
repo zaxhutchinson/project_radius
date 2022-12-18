@@ -59,8 +59,11 @@ struct Synapse {
     double upstream_signal;
     bool upstream_eval;
     vec<DenSig> densigs;
-    int compartment_size; // # of syns.
+    i64 compartment_size; // # of syns.
     double dist_to_parent;
+
+    bool is_comp_root;
+    double cur_comp_strength;
 
 
     Synapse();
@@ -114,7 +117,9 @@ struct Synapse {
         ConnectionMatrix & cm
     );
     void ChangeStrengthPre_AD(i64 time, i64 cur_neuron_spike, double _error, ConnectionMatrix & cm);
-    void ChangeStrengthPost_AD(i64 time, double _error, ConnectionMatrix & cm);
+    void ChangeStrengthPost_AD(i64 time, double _error, ConnectionMatrix & cm, vec<i64> & comp_spikes);
+    void ChangeStrengthCompartment_Between(i64 time, double _error,vec<i64> & comp_spikes,double compdist);
+    void ChangeStrengthCompartment_Within(i64 time, double _error, vec<Synapse> & syns,vec<i64> & comp_spikes);
     void ChangeStrengthPre_Simple(i64 time, double _error, ConnectionMatrix & cm);
     void ChangeStrengthPost_Simple(i64 time, double _error, ConnectionMatrix & cm);
 
@@ -132,7 +137,9 @@ struct Synapse {
         vec<pair<double,double>> & comp_izh,
         tmps::NeuronType & nt,
         i64 parent_id, 
-        double compdist
+        double compdist,
+        double error,
+        bool train_str
     );
 
     double GetInput_Between(
@@ -143,7 +150,9 @@ struct Synapse {
         vec<pair<double,double>> & comp_izh,
         tmps::NeuronType & nt,
         i64 parent_id, 
-        double compdist
+        double compdist,
+        double error,
+        bool train_str
     );
 
     // THE GOOD ONE

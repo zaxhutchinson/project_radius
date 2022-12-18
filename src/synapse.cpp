@@ -27,9 +27,12 @@ Synapse::Synapse()
     upstream_signal = 0.0;
     upstream_eval = false;
 
-    children.reserve(10);
+    // children.reserve(10);
 
     dist_to_parent = 0.0;
+
+    is_comp_root = false;
+    cur_comp_strength = 0.0;
 
 }
 
@@ -64,9 +67,12 @@ Synapse::Synapse(
     upstream_signal = 0.0;
     upstream_eval = false;
 
-    children.reserve(10);
+    // children.reserve(10);
 
     dist_to_parent = 0.0;
+
+    is_comp_root = false;
+    cur_comp_strength = _cur_strength;
 }
 
 void Synapse::LoadPreset(SynData & syndata) {
@@ -277,19 +283,51 @@ void Synapse::ChangeStrengthPost(
 void Synapse::ChangeStrengthPre_AD(i64 time, i64 cur_neuron_spike, double _error, ConnectionMatrix & cm) {
     this->error = _error;
     double delta = zxlb::C_SYN_STR / 
-        (std::pow(((time-cur_neuron_spike) - dendrite_path_length) / zxlb::B_SYN_STR, 2.0) + 1.0);
+        (std::pow(((time-cur_neuron_spike) - dendrite_path_length) * zxlb::B_SYN_STR, 2.0) + 1.0);
     delta = delta * _error;// * zxlb::SYN_STRENGTH_LEARNING_RATE;
     cur_strength = cur_strength + delta;
     //cm[ca.pre_layer][ca.pre_neuron].SetDownStreamErrorRate(neuron_id,delta);
 }
 
-void Synapse::ChangeStrengthPost_AD(i64 time, double _error, ConnectionMatrix & cm) {
+void Synapse::ChangeStrengthPost_AD(i64 time, double _error, ConnectionMatrix & cm, vec<i64> & comp_spikes) {
+    // this->error = _error;
+    // double delta = zxlb::C_SYN_STR / 
+    //     (std::pow(((time-time_cur_spike) - dendrite_path_length) * zxlb::B_SYN_STR, 2.0) + 1.0);
+    // delta = delta * _error;// * zxlb::SYN_STRENGTH_LEARNING_RATE;
+    // cur_strength = cur_strength + delta;
+    // //cm[ca.pre_layer][ca.pre_neuron].SetDownStreamErrorRate(neuron_id,delta);
+
+    if(is_comp_root) {
+        double delta = zxlb::C_SYN_STR / 
+            (std::pow(((time-comp_spikes[compartment]) - dendrite_path_length) * zxlb::B_SYN_STR, 2.0) + 1.0);
+        delta = delta * error;
+        cur_comp_strength += delta;
+    }
+}
+
+void Synapse::ChangeStrengthCompartment_Within(i64 time, double _error,vec<Synapse> & syns,vec<i64> & comp_spikes) {
+
     this->error = _error;
     double delta = zxlb::C_SYN_STR / 
-        (std::pow(((time-time_cur_spike) - dendrite_path_length) / zxlb::B_SYN_STR, 2.0) + 1.0);
-    delta = delta * _error;// * zxlb::SYN_STRENGTH_LEARNING_RATE;
+        (std::pow(((time-time_cur_spike) - compartment_length) * zxlb::B_SYN_STR, 2.0) + 1.0);
+    delta = delta * _error * zxlb::SYN_STRENGTH_LEARNING_RATE;
     cur_strength = cur_strength + delta;
-    //cm[ca.pre_layer][ca.pre_neuron].SetDownStreamErrorRate(neuron_id,delta);
+
+    for(sizet i = 0; i < children.size(); i++) {
+        if(compartment==syns[children[i]].GetCompartment()) {
+            syns[children[i]].ChangeStrengthCompartment_Within(time,_error,syns,comp_spikes);
+        } else {
+            syns[children[i]].ChangeStrengthCompartment_Between(time, _error,comp_spikes,compartment_length);
+        }
+    }
+
+}
+
+void Synapse::ChangeStrengthCompartment_Between(i64 time, double _error,vec<i64> & comp_spikes,double compdist) {
+    double delta = zxlb::C_SYN_STR / 
+        (std::pow(((time-comp_spikes[compartment]) - (compdist+dist_to_parent)) * zxlb::B_SYN_STR, 2.0) + 1.0);
+    delta = delta * error * zxlb::SYN_STRENGTH_LEARNING_RATE;
+    cur_comp_strength += delta;
 }
 
 void Synapse::ChangeStrengthPre_Simple(i64 time, double _error, ConnectionMatrix & cm) {
@@ -359,7 +397,9 @@ double Synapse::GetInput_Within(
     vec<pair<double,double>> & comp_izh,
     tmps::NeuronType & nt,
     i64 parent_id, 
-    double compdist
+    double compdist,
+    double error,
+    bool train_str
 ) {
 
         double sig = GetSignal_Within(time,compdist+dist_to_parent);
@@ -369,12 +409,12 @@ double Synapse::GetInput_Within(
             if(compartment==syns[children[i]].GetCompartment()) {
                 sig += syns[children[i]].GetInput_Within(
                     time, syns, comp_spikes,syns_per_comp,comp_izh,nt,parent,
-                    compdist+dist_to_parent
+                    compdist+dist_to_parent,error,train_str
                 );
             } else {
                 sig += syns[children[i]].GetInput_Between(
                     time, syns, comp_spikes,syns_per_comp,comp_izh,nt,parent,
-                    0.0
+                    0.0,error,train_str
                 );
             }
         }
@@ -391,7 +431,9 @@ double Synapse::GetInput_Between(
     vec<pair<double,double>> & comp_izh,
     tmps::NeuronType & nt,
     i64 parent_id, 
-    double compdist
+    double compdist,
+    double error,
+    bool train_str
 ) {
     double sig = GetInput_Within(
         time,
@@ -401,7 +443,9 @@ double Synapse::GetInput_Between(
         comp_izh,
         nt,
         parent,
-        0.0
+        0.0,
+        error,
+        train_str
     );
 
     double vpre = comp_izh[compartment].first;
@@ -422,6 +466,7 @@ double Synapse::GetInput_Between(
         comp_izh[compartment].first = nt.c;
         comp_izh[compartment].second += nt.d;
         comp_spikes[compartment]=time;
+        if(train_str) ChangeStrengthCompartment_Within(time, error, syns, comp_spikes);
     }
 
     return GetSignal_Between(time, comp_spikes[compartment],dist_to_parent,syns_per_comp[compartment]);
@@ -441,8 +486,13 @@ double Synapse::GetSignal_Within(i64 time, double compdist) {
 }
 double Synapse::GetSignal_Between(i64 time, i64 comp_spike_time, double compdist, i64 syns_in_comp) {
 
-    return (zxlb::DENDRITE_SIGNAL_WEIGHT*syns_in_comp) /
-        (std::pow(((time-comp_spike_time)-compdist)*zxlb::B_SYN_SIG_SELF, 2.0) + 1.0);
+    if(comp_spike_time < 0) return 0.0;
+
+    double s = (cur_comp_strength*max_strength) / 
+        (std::abs(cur_comp_strength)+abs_max_strength);
+
+    return (s*syns_in_comp) /
+        (std::pow(((time-comp_spike_time)-compdist)*zxlb::B_NEU_DEN_OUT, 2.0) + 1.0);
 
 }
 
@@ -615,6 +665,7 @@ void Synapse::SaveData(i64 time) {
         }
         data->children_ids.push_back(c_ids);
         data->compartment_ids.push_back(compartment);
+        data->comp_strength.push_back(cur_comp_strength);
     //}
 }
 

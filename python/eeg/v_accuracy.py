@@ -21,12 +21,12 @@ loss_by_id = {}
 loss = []
 
 
-for i in range(10):
+for i in range(2):
     spikes_by_id[i]=[]
     correct_by_id[i]=[]
     loss_by_id[i] = []
 
-for i in range(10):
+for i in range(2):
     out.LoadNeuron(1,i)
 
 
@@ -42,14 +42,14 @@ for i in range(len(out.examples)):
 
     rnd = []
 
-    for k in range(10):
+    for k in range(2):
         rnd.append(len(out.neurons[f"1 {k}"].spikes[i]))
         spikes_by_id[k].append(rnd[k])
 
     # maxrnd = max(rnd)
     # cntrnd = rnd.count(maxrnd)
 
-    # for m in range(10):
+    # for m in range(2):
     #     if correct_id==m:
     #         if maxrnd==rnd[m]:
     #             correct_by_id[m].append(1)
@@ -72,7 +72,7 @@ for i in range(len(out.examples)):
     # acc.append(num_corr/(i+1))
 
     # num_geq = 0
-    # for k in range(10):
+    # for k in range(2):
     #     if k==correct_id: continue
     #     if rnd[k] >= rnd[correct_id]:
     #         num_geq += 1
@@ -86,7 +86,7 @@ for i in range(len(out.examples)):
 
 norm_spikes_by_id = {}
 for_acc_spikes_by_id = {}
-for i in range(10):
+for i in range(2):
     norm_spikes_by_id[i]=[]
     for_acc_spikes_by_id[i]=[]
 
@@ -127,7 +127,7 @@ for i in range(len(out.examples[mid:])):
 #     correct_id = int(out.examples[i].example)
 
     rnd = []
-    for m in range(10):
+    for m in range(2):
         l=0
         # rnd.append(spikes_by_id[m][i])
         rnd.append(for_acc_spikes_by_id[m][i])
@@ -139,7 +139,7 @@ for i in range(len(out.examples[mid:])):
 
         l+=loss_by_id[m][-1]
 
-    loss.append(l/10)
+    loss.append(l/2)
 
     maxrnd = max(rnd)
     cntrnd = rnd.count(maxrnd)

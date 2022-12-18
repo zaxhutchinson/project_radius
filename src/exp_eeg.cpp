@@ -83,8 +83,8 @@ void ExpEEG::LoadData(str fn_train_path, str fn_test_path) {
 
                 eeg.trial_type = elements[0].substr(2);
 
-                // std::cout << eeg.ac << "-" << eeg.id << "-" << eeg.trial
-                //             << "-" << eeg.trial_type << " "; 
+
+                // std::cout << eeg.trial_type << std::endl; 
 
                 /*-------------------------------------------------------------
                     READ DATA
@@ -123,16 +123,16 @@ void ExpEEG::LoadData(str fn_train_path, str fn_test_path) {
                         chan_eles.push_back(e);
                     }
 
-                    double reading = std::min(std::max(std::stod(chan_eles[3]),-MIN_READING),MAX_READING);
-
+                    double reading = std::min(std::max(std::stod(chan_eles[3]),MIN_READING),MAX_READING);
+                    reading = reading * READING_SCALAR;
                     // if(eeg.ac=="a") as[static_cast<int>(reading)+MIN_READING]++;
                     // if(eeg.ac=="c") cs[static_cast<int>(reading)+MIN_READING]++;
                     //double reading = std::stod(chan_eles[3]);
-                    reading = (READING_SCALAR * ((reading + MIN_READING) / MINMAX_READING));
+                    // reading = (READING_SCALAR * ((reading + MIN_READING) / MINMAX_READING));
                     
-                    if(reading > READING_SCALAR || reading < 0) {
-                        std::cout << reading << std::endl;
-                    }
+                    // if(reading > READING_SCALAR || reading < 0) {
+                    //     std::cout << reading << std::endl;
+                    // }
 
                     eeg.readings[reading_index][channel_index] = reading;
                     reading_index++;
@@ -269,14 +269,14 @@ void ExpEEG::LoadData(str fn_train_path, str fn_test_path) {
                         chan_eles.push_back(e);
                     }
 
-                    double reading = std::min(std::max(std::stod(chan_eles[3]),-MIN_READING),MAX_READING);
-                    //double reading = std::stod(chan_eles[3]);
-                    reading = (READING_SCALAR * ((reading + MIN_READING) / MINMAX_READING));
+                    double reading = std::min(std::max(std::stod(chan_eles[3]),MIN_READING),MAX_READING);
+                    // //double reading = std::stod(chan_eles[3]);
+                    // reading = (READING_SCALAR * ((reading + MIN_READING) / MINMAX_READING));
                     
-                    if(reading > READING_SCALAR || reading < 0) {
-                        std::cout << reading << std::endl;
-                    }
-
+                    // if(reading > READING_SCALAR || reading < 0) {
+                    //     std::cout << reading << std::endl;
+                    // }
+                    reading = reading * READING_SCALAR;
                     eeg.readings[reading_index][channel_index] = reading;
                     reading_index++;
 
@@ -330,4 +330,72 @@ EEG * ExpEEG::GetTrainingExample(str & key,sizet index) {
 }
 EEG * ExpEEG::GetTestingExample(str & key,sizet index) {
     return &(test_eegs[key][index]);
+}
+
+str ExpEEG::GetTrainingExampleTrialType(str & key, sizet index) {
+    return train_eegs[key][index].trial_type;
+}
+str ExpEEG::GetTestingExampleTrialType(str & key, sizet index) {
+    return test_eegs[key][index].trial_type;
+}
+
+vec<EEG*> ExpEEG::GetAllTraningExamplesByID(i32 id, str trialtype, str subjecttype) {
+    vec<EEG*> v;
+    if(subjecttype=="a" || subjecttype=="ac") {
+        for(
+            vec<EEG>::iterator it = train_eegs.at("a").begin();
+            it != train_eegs.at("a").end(); it++
+        ) {
+            if(id==-1&& it->trial_type==trialtype) {
+                v.push_back(&*it);
+            }
+            else if(it->id==id && it->trial_type==trialtype) {
+                v.push_back(&*it);
+            }
+        }
+    } else if(subjecttype=="c" || subjecttype=="ac") {
+        for(
+            vec<EEG>::iterator it = train_eegs.at("c").begin();
+            it != train_eegs.at("c").end(); it++
+        ) {
+            if(id==-1&& it->trial_type==trialtype) {
+                v.push_back(&*it);
+            }
+            else if(it->id==id && it->trial_type==trialtype) {
+                v.push_back(&*it);
+            }
+        }
+    }
+
+    return v;
+}
+vec<EEG*> ExpEEG::GetAllTestingExamplesByID(i32 id, str trialtype, str subjecttype) {
+    vec<EEG*> v;
+
+    if(subjecttype=="a" || subjecttype=="ac") {
+        for(
+            vec<EEG>::iterator it = test_eegs.at("a").begin();
+            it != test_eegs.at("a").end(); it++
+        ) {
+            if(id==-1&& it->trial_type==trialtype) {
+                v.push_back(&*it);
+            }
+            else if(it->id==id && it->trial_type==trialtype) {
+                v.push_back(&*it);
+            }
+        }
+    } else if(subjecttype=="c" || subjecttype=="ac") {
+        for(
+            vec<EEG>::iterator it = test_eegs.at("c").begin();
+            it != test_eegs.at("c").end(); it++
+        ) {
+            if(id==-1&& it->trial_type==trialtype) {
+                v.push_back(&*it);
+            }
+            else if(it->id==id && it->trial_type==trialtype) {
+                v.push_back(&*it);
+            }
+        }
+    }
+    return v;
 }

@@ -17,6 +17,7 @@ Layer::Layer(Layer && l) {
         name = std::move(l.name);
         neurons = std::move(l.neurons);
         neuron_indexes = std::move(l.neuron_indexes);
+        spikes_per_neuron = std::move(l.spikes_per_neuron);
         is_input = l.is_input;
         is_output = l.is_output;
         input_generator = l.input_generator;
@@ -32,6 +33,7 @@ Layer& Layer::operator=(Layer && l) {
         name = std::move(l.name);
         neurons = std::move(l.neurons);
         neuron_indexes = std::move(l.neuron_indexes);
+        spikes_per_neuron = std::move(l.spikes_per_neuron);
         is_input = l.is_input;
         is_output = l.is_output;
         input_generator = l.input_generator;
@@ -56,11 +58,10 @@ void Layer::LoadPresets(LayData & laydata) {
 
 void Layer::Reset(bool purge_data) {
     for(
-        vec<Neuron>::iterator it = neurons.begin();
-        it != neurons.end();
-        it++
+        sizet i = 0; i < neurons.size(); i++
     ) {
-        it->Reset(purge_data);
+        neurons[i].Reset(purge_data);
+        spikes_per_neuron[i] = 0;
     }
     //input_generator = nullptr;
 }
@@ -109,10 +110,15 @@ i64 Layer::GetLayerSize() {
     return static_cast<i64>(neurons.size());
 }
 
+vec<int> & Layer::GetSpikesPerNeuron() {
+    return spikes_per_neuron;
+}
+
 void Layer::SetTraining(bool rad, bool ang, bool str) {
     train_rad=rad;
     train_ang=ang;
     train_str=str;
+    
 }
 
 void Layer::AddInputGenerator(InputGenerator * ig) {
@@ -125,6 +131,7 @@ void Layer::AddNeuron(Neuron neuron) {
     neuron.SetID(static_cast<i64>(neurons.size()));
     neuron_indexes.push_back(neurons.size());
     neurons.push_back(std::move(neuron));
+    spikes_per_neuron.push_back(0);
 }
 
 Neuron * Layer::GetNeuron(i64 index) {
@@ -142,7 +149,9 @@ void Layer::Update(i64 time, Writer * writer, ConnectionMatrix & cm, RNG & rng) 
             neurons[j].SetRawInput(input_generator->GetInput(j, time, rng));
             if(neurons[j].Update(time, writer, id, cm, train_str, train_ang)) {
                 if(train_rad) neurons[j].PostsynapticSignal(time, cm);
-                //neurons[j].bAP(time,1.0, train_str, cm);
+                // if(train_rad) neurons[j].PostsynapticSignal2(time, cm);
+                if(train_str) neurons[j].bAP(time,1.0, train_str, cm);
+                spikes_per_neuron[j]++;
             }
         }
     } else {
@@ -150,7 +159,9 @@ void Layer::Update(i64 time, Writer * writer, ConnectionMatrix & cm, RNG & rng) 
         for(sizet j = 0; j < neuron_indexes.size(); j++) {
             if(neurons[j].Update(time, writer, id, cm, train_str, train_ang)) {
                 if(train_rad) neurons[j].PostsynapticSignal(time, cm);
-                //neurons[j].bAP(time,1.0, train_str, cm);
+                // if(train_rad) neurons[j].PostsynapticSignal2(time, cm);
+                if(train_str) neurons[j].bAP(time,1.0, train_str, cm);
+                spikes_per_neuron[j]++;
             }
         }
     }
@@ -177,7 +188,11 @@ void Layer::InitDendrites() {
 void Layer::RebuildDendrites() {
     #pragma omp parallel for
     for(sizet i = 0; i < neurons.size(); i++) {
+        // The base version
         neurons[i].BuildDendrite2();
+
+        // Soma on shell version
+        // neurons[i].BuildDendrite3();
     }
 }
 
