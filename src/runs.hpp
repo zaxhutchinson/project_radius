@@ -60,6 +60,36 @@ void RunInputPosition4(
     RNG & rng
 );
 
+/******************************************************************************
+ * ExpEEG2
+ * This experiment will test whether an AD neuron can learn to differentiate
+ * between two types of EEGs.
+ *****************************************************************************/
+void RunEEG2(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+);
+
+/******************************************************************************
+ * Exp iBeacon
+ * 59 input neurons corresponding to the:
+ *  20 rows, 26 columns and 13 iBeacons.
+ *****************************************************************************/
+void RunExpBeacon(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+);
+
+
+
+
+
+
+
+
+
 
 
 
@@ -164,16 +194,7 @@ void RunPoisson004_D(
     RNG & rng
 );
 
-/******************************************************************************
- * Exp iBeacon
- * 59 input neurons corresponding to the:
- *  20 rows, 26 columns and 13 iBeacons.
- *****************************************************************************/
-void RunExpBeacon(
-    Writer * writer,
-    Network * network,
-    RNG & rng
-);
+
 
 
 
@@ -211,16 +232,7 @@ void RunEEG(
     RNG & rng
 );
 
-/******************************************************************************
- * ExpEEG2
- * This experiment will test whether an AD neuron can learn to differentiate
- * between two types of EEGs.
- *****************************************************************************/
-void RunEEG2(
-    Writer * writer,
-    Network * network,
-    RNG & rng
-);
+
 
 /******************************************************************************
  * ExpMove_Hand

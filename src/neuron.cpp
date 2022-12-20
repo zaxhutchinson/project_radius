@@ -303,7 +303,7 @@ void Neuron::PresynapticSpike(i64 time, i64 synapse_id, ConnectionMatrix & cm) {
     // if(dist > 0.01) {
     synapses[synapse_id].location.Orbit(
         head,
-        dist*zxlb::PRE_LEARNING_RATE//*error
+        dist*zxlb::PRE_LEARNING_RATE*error
     );
     // if(synapse_id==0)
 

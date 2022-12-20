@@ -130,10 +130,10 @@ void ExpBeacon::LoadBeaconEntries() {
         
 
     }
-    std::cout << "NUM LABELED ENTRIES: " << labeled_entries.size() << std::endl;
-    for(int i = 0; i < 13; i++) {
-        std::cout << "B" << i+1 << ": " << num_heard_by_index[i] << std::endl;
-    }
+    // std::cout << "NUM LABELED ENTRIES: " << labeled_entries.size() << std::endl;
+    // for(int i = 0; i < 13; i++) {
+    //     std::cout << "B" << i+1 << ": " << num_heard_by_index[i] << std::endl;
+    // }
     ifs.close();
 }
 

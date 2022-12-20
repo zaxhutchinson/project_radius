@@ -1680,22 +1680,179 @@ void RunEEG2(
 
 
         // MASK
+        // {
+
+            
+
+        //     output_layer->SetTraining(
+        //         false,
+        //         true,
+        //         false
+        //     );
+
+        //     input_layer->AddInputGenerator(igen.get());
+            
+        //     network->UpdateLayerErrorValues(
+        //         mask_rate, output_layer_index
+        //     );
+
+
+        //     i64 time = 1;
+        //     for(; time <= mask_time; time++) {
+        //         network->Update(
+        //             time,
+        //             writer,
+        //             rng
+        //         );
+        //     }
+
+        //     // Reset the input generator
+        //     igen->Reset();
+        //     network->Reset();
+            
+        //     // Remove input generator. Only needed for mask.
+        //     input_layer->AddInputGenerator(nullptr);
+        // }
+
+    }
+
+    network->CleanUpData(writer);
+
+    writer->StopRecording();
+}
+
+/*****************************************************************************
+ * ExpBeacon
+ ****************************************************************************/
+void RunExpBeacon(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+) {
+    zxlog::Debug("ExpBeacon Run.");
+
+    ExpBeacon beacon;
+    beacon.Init(rng());
+    ExpBeaconEntry * entry;
+
+    sizet num_iterations = 2000;
+    sizet iteration_size = beacon.GetSizeLabeledEntries() / 10;
+    i64 time_per_example = 1000;
+    i64 output_layer_index = network->GetOutputLayerIndex();
+    Layer * input_layer = network->GetLayer(network->GetInputLayerIndex());
+    Layer * output_layer = network->GetLayer(output_layer_index);
+    i64 input_layer_size = input_layer->GetLayerSize();
+    sizet mask_time = 1000*(iteration_size/10);
+
+    uptr<InputGenerator_Poisson> ig = std::make_unique<InputGenerator_Poisson>();
+    ig->id = "0";
+    for(i64 i = 0; i < input_layer_size; i++) {
+        ig->decay.push_back(std::exp(-1.0/10));
+        ig->dist = std::uniform_real_distribution<double>(0.0,1.0);
+        ig->strength.push_back(500.0);
+        ig->signal.push_back(0.0);
+        ig->rate.push_back(0.01);
+    }
+
+    //-------------------------------------------------------------------------
+    // Build the rates vector. Default to incorrect rates.
+    // Size of the rate vector is equal to the number of
+    // output neurons.
+    vec<double> rates = {
+        zxlb::INCORRECT_EXPECTED
+    };
+    //-------------------------------------------------------------------------
+    // Start the run
+    // network->RebuildDendrites();
+
+    vec<double> zero_inputs;
+    for(int i = 0; i < input_layer_size; i++) {
+        zero_inputs.push_back(0.0);
+    }
+
+    writer->StartRecording();
+    
+    
+
+    for(sizet i = 0; i < num_iterations; i++) {
+        std::cout << i << "\r" << std::flush;
+
+        //-----------------------------------------------------------
+        // TRAINING 
+        beacon.ShuffleLabeledEntries();
+        network->RebuildDendrites();
+        network->RandomizeOrder(rng);
+        output_layer->SetTraining(true,true,false);
+
+        for(sizet k = 0; k < iteration_size; k++) {
+            entry = beacon.GetLabeledEntry(k);
+            
+            network->SetInputs(entry->beacons);
+
+            // Set the rate to correct
+            rates[0] = zxlb::CORRECT_EXPECTED;
+
+            network->UpdateLayerErrorValues(
+                rates, output_layer_index
+            );
+
+            i64 time = 1;
+            for(; time <= time_per_example; time++) {
+                network->Update(
+                    time,
+                    writer,
+                    rng
+                );
+            }
+            network->Reset();
+        }
+
+
+        // TEST
         {
 
-            
+            network->Reset(true);
+            output_layer->SetTraining(false, false, false);
+            network->RebuildDendrites();
 
-            output_layer->SetTraining(
-                false,
-                true,
-                false
-            );
 
-            input_layer->AddInputGenerator(igen.get());
+            entry = beacon.GetLabeledEntry(0);
             
+            network->SetInputs(entry->beacons);
+
+            // Set the rate to correct
+            rates[0] = zxlb::CORRECT_EXPECTED;
+
             network->UpdateLayerErrorValues(
-                mask_rate, output_layer_index
+                rates, output_layer_index
             );
 
+            i64 time = 1;
+            for(; time <= time_per_example; time++) {
+                network->Update(
+                    time,
+                    writer,
+                    rng
+                );
+            }
+
+
+            writer->AddExampleData(std::make_unique<ExampleData>(i,0,"NONE"));
+            network->SaveData(-1);
+            network->WriteData(writer);
+            network->Reset(true);
+        }
+
+        ///////////////////////////////////////////////////////////
+        // MASK
+        if(i < num_iterations-1) {
+            output_layer->SetTraining(false,true,false);
+            input_layer->AddInputGenerator(ig.get());
+            rates[0] = zxlb::INCORRECT_EXPECTED;
+            network->UpdateLayerErrorValues(
+                rates, output_layer_index
+            );
+            network->SetInputs(zero_inputs);
 
             i64 time = 1;
             for(; time <= mask_time; time++) {
@@ -1707,21 +1864,28 @@ void RunEEG2(
             }
 
             // Reset the input generator
-            igen->Reset();
-            network->Reset();
-            
-            // Remove input generator. Only needed for mask.
+            ig->Reset();
+            network->Reset(true);
+            network->RandomizeOrder(rng);
             input_layer->AddInputGenerator(nullptr);
         }
+        
 
+    
+        // END OF ITERATION
+        //------------------------------------------------------   
+
+        // network->RebuildDendrites();
+        // network->SaveData(-1);
+        // network->WriteData(writer);
+        
     }
 
     network->CleanUpData(writer);
 
     writer->StopRecording();
+
 }
-
-
 
 
 
@@ -3245,133 +3409,7 @@ void RunPoisson004_D(
 
 
 
-/*****************************************************************************
- * ExpBeacon
- ****************************************************************************/
-void RunExpBeacon(
-    Writer * writer,
-    Network * network,
-    RNG & rng
-) {
-    zxlog::Debug("ExpBeacon Run.");
 
-    ExpBeacon beacon;
-    beacon.Init(rng());
-    ExpBeaconEntry * entry;
-
-    sizet num_iterations = 50;
-    sizet iteration_size = beacon.GetSizeLabeledEntries();
-    i64 time_per_example = 1000;
-    i64 output_layer_index = network->GetOutputLayerIndex();
-    Layer * input_layer = network->GetLayer(network->GetInputLayerIndex());
-    i64 input_layer_size = input_layer->GetLayerSize();
-    sizet mask_interval = 1000000000000000;
-
-    uptr<InputGenerator_Poisson> ig = std::make_unique<InputGenerator_Poisson>();
-    ig->id = "0";
-    for(i64 i = 0; i < input_layer_size; i++) {
-        ig->decay.push_back(std::exp(-1.0/10));
-        ig->dist = std::uniform_real_distribution<double>(0.0,1.0);
-        ig->strength.push_back(500.0);
-        ig->signal.push_back(0.0);
-        ig->rate.push_back(0.005);
-    }
-
-    //-------------------------------------------------------------------------
-    // Build the rates vector. Default to incorrect rates.
-    // Size of the rate vector is equal to the number of
-    // output neurons.
-    vec<double> rates = {
-        zxlb::INCORRECT_EXPECTED
-    };
-    //-------------------------------------------------------------------------
-    // Start the run
-    network->RebuildDendrites();
-
-    vec<double> zero_inputs;
-    for(int i = 0; i < input_layer_size; i++) {
-        zero_inputs.push_back(0.0);
-    }
-
-    writer->StartRecording();
-    //vec<double> input;
-    //input.reserve(13);
-    for(sizet i = 0; i < num_iterations; i++) {
-        std::cout << i << "\r" << std::flush;
-        zxlog::Debug("Iteration " + std::to_string(i));
-
-        //-----------------------------------------------------------
-        // Exp BEACON start
-        beacon.ShuffleLabeledEntries();
-        // Get the entry
-
-        for(sizet k = 0; k < iteration_size; k++) {
-            entry = beacon.GetLabeledEntry(k);
-
-            //input.clear();
-            //std::copy(std::begin(entry->beacons), std::end(entry->beacons),std::back_inserter(input));
-            
-            network->SetInputs(entry->beacons);
-
-            // Set the rate to correct
-            rates[0] = zxlb::CORRECT_EXPECTED;
-
-            network->UpdateLayerErrorValues(
-                rates, output_layer_index
-            );
-
-            i64 time = 1;
-            for(; time <= time_per_example; time++) {
-                network->Update(
-                    time,
-                    writer,
-                    rng
-                );
-            }
-            network->Reset();
-
-
-            // MASK
-            if(k%mask_interval==0) {
-                network->SetInputs(zero_inputs);
-                input_layer->AddInputGenerator(ig.get());
-                rates[0] = zxlb::INCORRECT_EXPECTED;
-                network->UpdateLayerErrorValues(
-                    rates, output_layer_index
-                );
-
-                i64 time = 1;
-                for(; time <= time_per_example; time++) {
-                    network->Update(
-                        time,
-                        writer,
-                        rng
-                    );
-                }
-
-                // Reset the input generator
-                ig->Reset();
-
-                network->Reset();
-                network->RandomizeOrder(rng);
-            }
-        }
-
-    
-        // END OF ITERATION
-        //------------------------------------------------------   
-
-        network->RebuildDendrites();
-        network->SaveData(-1);
-        network->WriteData(writer);
-        
-    }
-
-    network->CleanUpData(writer);
-
-    writer->StopRecording();
-
-}
 
 /*****************************************************************************
  * LINES VERT
