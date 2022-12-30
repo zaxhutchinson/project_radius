@@ -83,10 +83,65 @@ void RunExpBeacon(
 );
 
 
+/******************************************************************************
+ * Exp Radial
+ * 1 spike rate to test whether rate shows up in the radial
+ * position.
+ *****************************************************************************/
+void RunRadialPosition0(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+);
+/******************************************************************************
+ * Exp Radial
+ * 4 Different spike rates to test whether rate shows up in the radial
+ * position.
+ *****************************************************************************/
+void RunRadialPosition1(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+);
+/******************************************************************************
+ * Exp Radial
+ * Similar to the angular test but with varying rates.
+ *****************************************************************************/
+void RunRadialPosition2(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+);
 
 
 
-
+/******************************************************************************
+ * TreeBuilding
+ * Similar to the angular test but with varying rates.
+ *****************************************************************************/
+void RunTree0(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+);
+/******************************************************************************
+ * TreeBuilding1
+ * 20 inputs 4 patterns all equal
+ *****************************************************************************/
+void RunTree1(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+);
+/******************************************************************************
+ * TreeBuilding1
+ * 100 inputs 10 patterns Guassian centers.
+ *****************************************************************************/
+void RunTree2(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+);
 
 
 

@@ -93,6 +93,8 @@ void Synapse::Reset() {
     upstream_eval = false;
     upstream_signal =0.0;
     spike_queue = {};
+    comp_spike_queue = {};
+
 }
 
 double Synapse::GetError() {
@@ -118,7 +120,7 @@ void Synapse::SetSignal(i64 time, double amt) {
 }
 
 void Synapse::SetCurSpike(i64 time) {
-    // spike_queue.push(time);
+    spike_queue.push_back(time);
     time_pre_spike = time_cur_spike;
     time_cur_spike = time;
 }
@@ -309,7 +311,7 @@ void Synapse::ChangeStrengthCompartment_Within(i64 time, double _error,vec<Synap
 
     this->error = _error;
     double delta = zxlb::C_SYN_STR / 
-        (std::pow(((time-time_cur_spike) - compartment_length) * zxlb::B_SYN_STR, 2.0) + 1.0);
+        (std::pow(((time-GetCurSpike()) - compartment_length) * zxlb::B_SYN_STR, 2.0) + 1.0);
     delta = delta * _error * zxlb::SYN_STRENGTH_LEARNING_RATE;
     cur_strength = cur_strength + delta;
 
@@ -466,6 +468,7 @@ double Synapse::GetInput_Between(
         comp_izh[compartment].first = nt.c;
         comp_izh[compartment].second += nt.d;
         comp_spikes[compartment]=time;
+        comp_spike_queue.push_back(time);
         if(train_str) ChangeStrengthCompartment_Within(time, error, syns, comp_spikes);
     }
 
@@ -478,22 +481,52 @@ double Synapse::GetInput_Between(
 
 // The GOOD ONE
 double Synapse::GetSignal_Within(i64 time, double compdist) {
-    if(GetCurSpike()<0) return 0.0;
-    else {
-        return GetStrength() /
-            (std::pow(((time-GetCurSpike())-compdist)*zxlb::B_SYN_SIG_SELF, 2.0) + 1.0);
+    double sig = 0.0;
+    i64 diff_time = 0;
+    for(
+        lst<i64>::iterator it = spike_queue.begin();
+        it != spike_queue.end();
+    ) {
+        diff_time = time - *it;
+        if(diff_time > zxlb::MAX_RAD_TEMPORAL_DIFFERENCE*2.0) {
+            it = spike_queue.erase(it);
+        } else {
+            // if(GetCurSpike()<0) return 0.0;
+            // else {
+                sig+= 1.0 /
+                    (std::pow(((diff_time)-compdist)*zxlb::B_SYN_SIG_SELF, 2.0) + 1.0);
+            // }
+            it++;
+        }
     }
+    return sig * GetStrength();
 }
+
+
 double Synapse::GetSignal_Between(i64 time, i64 comp_spike_time, double compdist, i64 syns_in_comp) {
-
-    if(comp_spike_time < 0) return 0.0;
-
+    double sig = 0.0;
+    i64 diff_time = 0;
     double s = (cur_comp_strength*max_strength) / 
-        (std::abs(cur_comp_strength)+abs_max_strength);
+            (std::abs(cur_comp_strength)+abs_max_strength);
 
-    return (s*syns_in_comp) /
-        (std::pow(((time-comp_spike_time)-compdist)*zxlb::B_NEU_DEN_OUT, 2.0) + 1.0);
+    for(
+        lst<i64>::iterator it = comp_spike_queue.begin();
+        it != comp_spike_queue.end();
+    ) {
+        diff_time = time - *it;
+        if(diff_time > zxlb::MAX_RAD_TEMPORAL_DIFFERENCE*2.0) {
+            it = comp_spike_queue.erase(it);
+        } else {
 
+            sig+= 1.0 /
+                (std::pow(((diff_time)-compdist)*zxlb::B_NEU_DEN_OUT, 2.0) + 1.0);
+            
+            it++;
+            
+        }
+    }
+    
+    return sig * s;//(s*syns_in_comp);
 }
 
 double Synapse::GetSignal_Simple(i64 time) {

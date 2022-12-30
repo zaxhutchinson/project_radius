@@ -9,28 +9,19 @@ import helpers
 
 out = output.Output(defs.OUTPUT_PATH)
 LID = 1
-NID = 1
+NID = 0
 
-SIZE = 64
-# pattern0=[0,1] #FP1, FP2
-# pattern0=[13,14] #O1, O2
-# pattern0=[38,58] #FPZ, OZ
-pattern0=[29,30] #T7 T8
+SIZE = 21
 
-# pattern0=list(range(SIZE))
-# ODD
-# pattern0=[
-#     0,2,4,8,10,12,14,16,18,20,22,26,28,30,32,34,36,40,42,44,46,48,50,52,54,60
+pattern0=[11,12,13,14,15]
+# pattern1=[
+#     33,48,20,34,49,6,28,14,42,36,8,22,29,44,
+#     16,37,30,2,45,31,38,11,18,25,39,47,5,26,40
 # ]
-# EVEN
-# pattern0=[
-#     1,3,5,7,9,11,13,17,19,21,23,25,27,29,33,35,37,39,41,43,45,49,51,53,55,59,
-# ]
-# MIDDLE
-# pattern0=[
-#     6,15,24,38,47,56,57,58,61
-# ]
-# Not sure where 31 goes.
+# pattern0=[]
+# for i in range(50):
+#     if i not in pattern1:
+#         pattern0.append(i)
 
 for i in range(SIZE):
     out.LoadSynapse(LID,NID,i,last=False)

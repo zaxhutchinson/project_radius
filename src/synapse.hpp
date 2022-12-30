@@ -40,7 +40,8 @@ struct Synapse {
     i64 time_error;
     i64 time_cur_spike;
     i64 time_pre_spike;
-    que<i64> spike_queue;
+    lst<i64> spike_queue;
+    lst<i64> comp_spike_queue;
     i64 spikes;
     i64 parent;
     vec<i64> children;
