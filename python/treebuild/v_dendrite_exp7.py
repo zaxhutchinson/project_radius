@@ -53,7 +53,7 @@ soma.lon = nlon
 soma.ID = -1
 soma.comp = -1
 points = {-1:soma}
-# colors[soma.comp]=(0.0,0.0,0.0)
+colors[soma.comp]=(0.0,0.0,0.0)
 
 
 for i in range(SIZE):
@@ -119,17 +119,8 @@ for i in range(SIZE):
 C = {-1:'black'}
 for i in range(SIZE):
     C[i]='tab:blue'
-    # if i < 10:
-    #     C[i]='tab:blue'
-    # elif i < 20:
-    #     C[i]='tab:orange'
-    # elif i < 30:
-    #     C[i]='tab:green'
-    # elif i < 40:
-    #     C[i]='tab:red'
 
-COMP_C = mycolors.GetColors(100)
-COMP_C[-1]='black'
+
 
 A = [points[5].lat,points[5].lon]
 B = [points[6].lat,points[6].lon]
@@ -171,8 +162,7 @@ for k,v in points.items():
     #     continue
     # ax.scatter(v.lon,v.lat, color=colors[v.comp], cmap='jet',linewidths=5)
     # ax.scatter(v.x,v.y,v.z, color=C[k], cmap='jet',linewidths=8,zorder=1)
-    ax.scatter(v.x,v.y,v.z, color=COMP_C[v.comp], cmap='jet',linewidths=8,zorder=1)
-    # ax.scatter(v.x,v.y,v.z, color=C[k], cmap='jet',linewidths=8,zorder=1)
+    ax.scatter(v.x,v.y,v.z, color=C[k], cmap='jet',linewidths=8,zorder=1)
     label = str(v.ID)
     ax.text(v.x,v.y,v.z, '%s' % (label), size=8, zorder=4,horizontalalignment='center',verticalalignment='center')
 # ax.scatter(xs_max, ys_max, zs_max, marker='o')

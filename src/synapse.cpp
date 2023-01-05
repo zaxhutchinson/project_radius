@@ -72,7 +72,9 @@ Synapse::Synapse(
     dist_to_parent = 0.0;
 
     is_comp_root = false;
-    cur_comp_strength = _cur_strength;
+    cur_comp_strength = zxlb::DENDRITE_SIGNAL_WEIGHT;
+    max_comp_strength = cur_comp_strength;
+    abs_max_comp_strength = std::abs(max_comp_strength);
 }
 
 void Synapse::LoadPreset(SynData & syndata) {
@@ -450,6 +452,8 @@ double Synapse::GetInput_Between(
         train_str
     );
 
+    sig /= syns_per_comp[compartment];
+
     double vpre = comp_izh[compartment].first;
     double upre = comp_izh[compartment].second;
 
@@ -506,8 +510,8 @@ double Synapse::GetSignal_Within(i64 time, double compdist) {
 double Synapse::GetSignal_Between(i64 time, i64 comp_spike_time, double compdist, i64 syns_in_comp) {
     double sig = 0.0;
     i64 diff_time = 0;
-    double s = (cur_comp_strength*max_strength) / 
-            (std::abs(cur_comp_strength)+abs_max_strength);
+    double s = (cur_comp_strength*max_comp_strength) / 
+            (std::abs(cur_comp_strength)+abs_max_comp_strength);
 
     for(
         lst<i64>::iterator it = comp_spike_queue.begin();

@@ -134,10 +134,24 @@ void RunTree1(
     RNG & rng
 );
 /******************************************************************************
- * TreeBuilding1
- * 100 inputs 10 patterns Guassian centers.
+ * TreeBuilding2
+ * 20 inputs 4 patterns NOT equal
  *****************************************************************************/
 void RunTree2(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+);
+/******************************************************************************
+ * TreeBuilding3
+ * 100 inputs 10 patterns Guassian centers.
+ *****************************************************************************/
+void RunTree3(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+);
+void RunTree3_TestB(
     Writer * writer,
     Network * network,
     RNG & rng

@@ -49,6 +49,7 @@ namespace zxlb {
         to a level able to elicit a spike.
     */
     inline double DENDRITE_SIGNAL_WEIGHT = 100.0;
+    inline double SYNAPSE_SIGNAL_WEIGHT = 100.0;
 
     inline bool TRAIN_ANG = false;
     inline bool TRAIN_RAD = false;

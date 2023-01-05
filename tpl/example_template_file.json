@@ -551,7 +551,98 @@
             }
         }
     },
-
+    "tree_2" : {
+        "layers": {
+            "input_layer" : {
+                "is_input_layer" : true,
+                "is_output_layer" : false,
+                "neuron_templates" : {
+                    "neuron1": {
+                        "type":"Regular Spiking",
+                        "number": 40,
+                        "baseline":50.0
+                    }
+                },
+                "record_data" : false,
+                "record_interval" : 0,
+                "record_data_size" : 0
+            },
+            "output_layer" : {
+                "is_input_layer" : false,
+                "is_output_layer" : true,
+                "neuron_templates" : {
+                    "neuron1": {
+                        "type": "Regular Spiking",
+                        "number": 1,
+                        "baseline":50.0
+                    }
+                },
+                "record_data" : true,
+                "record_interval" : 1000,
+                "record_data_size" : 1000
+            }
+        },
+        "connections" : {
+            "output_layer_pos" : {
+                "from_layer":"input_layer",
+                "to_layer":"output_layer",
+                "number_of_downstream_connections" : 1,
+                "prob_of_making_downstream_connection" : 1.0,
+                "min_starting_strength": 200.0,
+                "max_starting_strength": 200.0,
+                "max_strength": 200.0,
+                "min_radius": 500.0,
+                "max_radius": 500.0,
+                "polarity": 1.0
+            }
+        }
+    },
+    "tree_3" : {
+        "layers": {
+            "input_layer" : {
+                "is_input_layer" : true,
+                "is_output_layer" : false,
+                "neuron_templates" : {
+                    "neuron1": {
+                        "type":"Regular Spiking",
+                        "number": 100,
+                        "baseline":50.0
+                    }
+                },
+                "record_data" : false,
+                "record_interval" : 0,
+                "record_data_size" : 0
+            },
+            "output_layer" : {
+                "is_input_layer" : false,
+                "is_output_layer" : true,
+                "neuron_templates" : {
+                    "neuron1": {
+                        "type": "Regular Spiking",
+                        "number": 1,
+                        "baseline":50.0
+                    }
+                },
+                "record_data" : true,
+                "record_interval" : 1000,
+                "record_data_size" : 1000
+            }
+        },
+        "connections" : {
+            "output_layer_pos" : {
+                "from_layer":"input_layer",
+                "to_layer":"output_layer",
+                "number_of_downstream_connections" : 1,
+                "prob_of_making_downstream_connection" : 1.0,
+                "min_starting_strength": 500.0,
+                "max_starting_strength": 500.0,
+                "max_strength": 500.0,
+                "min_radius": 500.0,
+                "max_radius": 500.0,
+                "polarity": 1.0
+            }
+        }
+    },
 
 
 

@@ -20,6 +20,9 @@ namespace zxlb {
         BF = j.at("BF");
         MAX_COMPARTMENT_LENGTH = j.at("MAX_COMPARTMENT_LENGTH");
         DENDRITE_SIGNAL_WEIGHT = j.at("DENDRITE_SIGNAL_WEIGHT");
+        if(j.contains("SYNAPSE_SIGNAL_WEIGHT")) {
+            SYNAPSE_SIGNAL_WEIGHT = j.at("SYNAPSE_SIGNAL_WEIGHT");
+        }
         TRAIN_ANG = j.at("TRAIN_ANG");
         TRAIN_RAD = j.at("TRAIN_RAD");
         TRAIN_STR = j.at("TRAIN_STR");

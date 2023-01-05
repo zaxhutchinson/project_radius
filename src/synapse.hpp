@@ -65,6 +65,8 @@ struct Synapse {
 
     bool is_comp_root;
     double cur_comp_strength;
+    double max_comp_strength;
+    double abs_max_comp_strength;
 
 
     Synapse();

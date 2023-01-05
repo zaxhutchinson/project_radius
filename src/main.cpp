@@ -143,7 +143,7 @@ int main(int argc, char**argv) {
     zxlog::Init(false);
 
     str OUTPUT_PATH = "/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/project_radius/output/";
-    str PRESET_PATH = "/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/project_radius/TREE_EXP5_bf02/";
+    str PRESET_PATH = "/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/project_radius/EXP8_COMPLEN_20/";
 
     //-------------------------------------------------------------------------
     // RANDOM
@@ -264,12 +264,16 @@ int main(int argc, char**argv) {
     //     network.get(),
     //     rng
     // );
-    RunTree1(
+    // RunTree1(
+    //     &writer,
+    //     network.get(),
+    //     rng
+    // );
+    RunTree3_TestB(
         &writer,
         network.get(),
         rng
     );
-
 
 
 
