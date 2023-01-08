@@ -130,6 +130,7 @@ void Neuron::Reset(bool purge_data) {
     spike_times_live.clear();
 
     if(purge_data) {
+        
         spike_times_data.clear();
     }
 
@@ -220,7 +221,7 @@ void Neuron::PresynapticSpike(i64 time, i64 synapse_id, ConnectionMatrix & cm) {
     // if(Rt != 0.0) error = RaRt / Rt;
 
     
-    double error = cm[layer_id][id].GetTargetErrorRate();
+    double error = cm[layer_id][id].GetPosTargetErrorRate();
     // if(error==0.0) return;
 
     // std::cout << error << std::endl;
@@ -337,7 +338,7 @@ void Neuron::PostsynapticSignal(i64 time, ConnectionMatrix & cm) {
     // double RaRt = Ra - Rt;
     // double error =  (RaRt) / (zxlb::POST_LEARNING_RATE + std::abs(RaRt));
 
-    double error = cm[layer_id][id].GetTargetErrorRate();
+    double error = cm[layer_id][id].GetPosTargetErrorRate();
 
     #pragma omp parallel for
     for(std::size_t i = 0; i < synapse_indexes.size(); i++) {
@@ -419,7 +420,7 @@ void Neuron::PostsynapticSignal2(i64 time, ConnectionMatrix & cm) {
     double dist_to_cur_from_p = 0.0;
     double angular_delta = 0.0;
 
-    double error = cm[layer_id][id].GetTargetErrorRate();
+    double error = cm[layer_id][id].GetPosTargetErrorRate();
 
     for(std::size_t i = 0; i < synapse_indexes.size(); i++) {
 
@@ -468,14 +469,16 @@ void Neuron::bAP(i64 time, double signal, bool train_str, ConnectionMatrix & cm)
     // double error =  0.0;
     // if(Rt != 0.) error = RaRt / Rt;
     
-    std::cout << "TRAINING STR\n";
-    double error = cm[layer_id][id].GetTargetErrorRate();
+    
+    double error = cm[layer_id][id].GetWeightTargetErrorRate();
 
     for(sizet i = 0; i < dendrites.size(); i++) {
-        if(synapses[dendrites[i]].GetCompartment()==SOMA_COMP_ID)
-            synapses[dendrites[i]].ChangeStrengthCompartment_Within(time,error,synapses,compartment_spikes);
-        else
-            synapses[dendrites[i]].ChangeStrengthCompartment_Between(time,error,compartment_spikes,0.0);
+        synapses[dendrites[i]].ChangeStrengthCompartment_Between(time, error, spike_times_live, 0);
+        synapses[dendrites[i]].ChangeStrengthCompartment(time, error, synapses);
+        // if(synapses[dendrites[i]].GetCompartment()==SOMA_COMP_ID)
+        //     synapses[dendrites[i]].ChangeStrengthCompartment_Within(time,error,synapses,compartment_spikes);
+        // else
+        //     synapses[dendrites[i]].ChangeStrengthCompartment_Between(time,error,compartment_spikes,0.0);
     }
     
 
@@ -517,7 +520,7 @@ void Neuron::bAP(i64 time, double signal, bool train_str, ConnectionMatrix & cm)
 }
 
 double Neuron::GetError(ConnectionMatrix & cm) {
-    double Rt = cm[layer_id][id].GetDownStreamErrorRate();
+    double Rt = cm[layer_id][id].GetWeightDownStreamErrorRate();
     double Ra = time_cur_spike - time_pre_spike;
     double RaRt = Ra - Rt;
     return RaRt / zxlb::TASK_DURATION;
@@ -909,11 +912,11 @@ void Neuron::GetInputWitch4(i64 time, ConnectionMatrix & cm,bool train_str) {
         if(synapses[*it].GetCompartment()==0) {
             input += synapses[*it].GetInput_Within(
                 time,synapses,compartment_spikes,syns_per_comp,comp_izh,nt,-1,
-                0.0,cm[layer_id][id].GetTargetErrorRate(),train_str);
+                0.0,cm[layer_id][id].GetWeightTargetErrorRate(),train_str);
         } else {
             input += synapses[*it].GetInput_Between(
                 time,synapses,compartment_spikes,syns_per_comp,comp_izh,nt,-1,
-                0.0,cm[layer_id][id].GetTargetErrorRate(),train_str);// *
+                0.0,cm[layer_id][id].GetWeightTargetErrorRate(),train_str);// *
                     // zxlb::DENDRITE_SIGNAL_WEIGHT;
         }
     }
@@ -1116,7 +1119,7 @@ bool Neuron::Update(i64 time, Writer * writer, i64 layer_id, ConnectionMatrix & 
         upre = ucur = ucur + nt.d;
         time_pre_spike = time_cur_spike;
         time_cur_spike = time;
-        //spike_times_live.push_back(time);
+        spike_times_live.push_back(time);
         if(record_data) spike_times_data.push_back(time);
         just_spiked = true;
     } else {
@@ -1125,21 +1128,13 @@ bool Neuron::Update(i64 time, Writer * writer, i64 layer_id, ConnectionMatrix & 
         just_spiked = false;
     }
 
+
+
     // output = 0.0;
-    // double diff = 0.0;
-    // for(
-    //     lst<i64>::iterator it = spike_times_live.begin();
-    //     it != spike_times_live.end();
-    // ) {
-    //     diff = time - (*it);
-    //     if(diff > zxlb::NEURON_SPIKE_TIME_WINDOW) {
-    //         it = spike_times_live.erase(it);
-    //     } else {
-    //         output += diff * std::exp( -(diff - 1.0) );
-    //         it++;
-    //     }
-    // }
-    // output = std::tanh(output);
+    double diff = 0.0;
+    while(!spike_times_live.empty() && time-spike_times_live.front() > zxlb::MAX_STR_TEMPORAL_DIFFERENCE) {
+        spike_times_live.pop_front();
+    }
 
     // Update connection matrix.
     cm[layer_id][id].Update(just_spiked, output);
@@ -1186,7 +1181,7 @@ void Neuron::SaveData(i64 time, ConnectionMatrix & cm) {
         spike_times_data.clear();   // Clear out spike times.
         data->output.push_back(output);
         data->input.push_back(input);
-        data->error.push_back(cm[layer_id][id].GetDownStreamErrorRate());
+        data->error.push_back(cm[layer_id][id].GetWeightDownStreamErrorRate());
     
 
         for(sizet i = 0; i < synapses.size(); i++) {

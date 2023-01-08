@@ -121,8 +121,11 @@ struct Synapse {
     );
     void ChangeStrengthPre_AD(i64 time, i64 cur_neuron_spike, double _error, ConnectionMatrix & cm);
     void ChangeStrengthPost_AD(i64 time, double _error, ConnectionMatrix & cm, vec<i64> & comp_spikes);
-    void ChangeStrengthCompartment_Between(i64 time, double _error,vec<i64> & comp_spikes,double compdist);
-    void ChangeStrengthCompartment_Within(i64 time, double _error, vec<Synapse> & syns,vec<i64> & comp_spikes);
+    
+    void ChangeStrengthCompartment(i64 time, double _error, vec<Synapse> & syns);
+    void ChangeStrengthCompartment_Between(i64 time, double _error,lst<i64> & comp_spikes,double compdist);
+    void ChangeStrengthCompartment_Within(i64 time, double _error, vec<Synapse> & syns,lst<i64> & comp_spikes);
+    
     void ChangeStrengthPre_Simple(i64 time, double _error, ConnectionMatrix & cm);
     void ChangeStrengthPost_Simple(i64 time, double _error, ConnectionMatrix & cm);
 

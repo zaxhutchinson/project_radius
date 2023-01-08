@@ -4017,6 +4017,329 @@ void RunTree3_TestB(
 
 }
 
+/*****************************
+ * WEIGHT A
+ *****************************/
+void RunWeightA(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+) {
+
+    sizet num_patterns = 2;
+    sizet num_inputs = 100;
+    sizet num_epochs = 1000;
+    sizet train_iteration_size = 100; // don't make larger than num examples
+    sizet test_iteration_size = 2; // don't make larger than num examples
+    i64 time_per_example = 1000;
+    i64 time;
+    double correct_rate = 20.0;
+    double incorrect_rate = 1.0;
+    vec<int> spikes_per_neuron;
+    i64 output_layer_index = network->GetOutputLayerIndex();
+    Layer * input_layer = network->GetLayer(network->GetInputLayerIndex());
+    i64 input_layer_size = input_layer->GetLayerSize();
+
+    vuptr<InputGenerator_Poisson> ig_patterns;
+
+    
+    // for(sizet i = 0; i < num_patterns; i++) {
+    //     uptr<InputGenerator_Poisson> pat = std::make_unique<InputGenerator_Poisson>();
+    //     pat->id = std::to_string(i);
+    //     for(i64 k = 0; k < num_inputs; k++) {
+    //         pat->decay.push_back(std::exp(-1.0/10));
+    //         pat->dist = std::uniform_real_distribution<double>(0.0,1.0);
+    //         pat->strength.push_back(500.0);
+    //         pat->signal.push_back(0.0);
+
+    //         pat->rate.push_back(
+    //             0.1 / (std::pow(0.1*((k-center)),2.0)+1.0)
+    //         );
+    //     }
+    //     ig_patterns.push_back(std::move(pat));
+    // }
+
+    // TEST A
+    // vuptr<InputGenerator_Poisson> ig_testing;
+    sizet start = 0;
+    sizet end = 10;
+    double center = 25;
+    for(sizet i = 0; i < 2; i++) {
+        uptr<InputGenerator_Poisson> pat = std::make_unique<InputGenerator_Poisson>();
+        pat->id = std::to_string(i);
+        for(i64 k = 0; k < num_inputs; k++) {
+            pat->decay.push_back(std::exp(-1.0/10));
+            pat->dist = std::uniform_real_distribution<double>(0.0,1.0);
+            pat->strength.push_back(500.0);
+            pat->signal.push_back(0.0);
+            
+            pat->rate.push_back(
+                0.1 / (std::pow(0.1*((k-center)),2.0)+1.0)
+            );
+
+        }
+        ig_patterns.push_back(std::move(pat));
+        start = end;
+        end += 10;
+        center += 50;
+    }
+
+    // TEST B
+    // vuptr<InputGenerator_Poisson> ig_testing;
+    // sizet remainder = 1;
+    // for(sizet i = 0; i < 10; i++) {
+    //     uptr<InputGenerator_Poisson> pat = std::make_unique<InputGenerator_Poisson>();
+    //     pat->id = std::to_string(i);
+    //     for(i64 k = 0; k < num_inputs; k++) {
+    //         pat->decay.push_back(std::exp(-1.0/10));
+    //         pat->dist = std::uniform_real_distribution<double>(0.0,1.0);
+    //         pat->strength.push_back(500.0);
+    //         pat->signal.push_back(0.0);
+    //         if(k/10 == 2 || k/10 == 1) {
+    //             pat->rate.push_back(0.05);
+    //         }
+    //         else {
+    //             pat->rate.push_back(0.0);
+    //         }
+
+    //     }
+    //     ig_testing.push_back(std::move(pat));
+    //     remainder++;
+    // }
+
+    uptr<InputGenerator_Poisson> ig_mask = std::make_unique<InputGenerator_Poisson>();
+    ig_mask->id = "mask";
+    for(i64 i = 0; i < input_layer_size; i++) {
+        ig_mask->decay.push_back(std::exp(-1.0/10));
+        ig_mask->dist = std::uniform_real_distribution<double>(0.0,1.0);
+        ig_mask->strength.push_back(500.0);
+        ig_mask->signal.push_back(0.0);
+        ig_mask->rate.push_back(0.01);
+    }
+
+    Layer * output_layer = network->GetLayer(network->GetOutputLayerIndex());
+
+    sizet mask_time = 0;
+    vec<double> MASK_RATES = {-0.1};
+
+    
+
+    //-------------------------------------------------------------------------
+    // Build the rates vector. Default to incorrect rates.
+    vec<vec<double>> position_error_rates;
+    vec<vec<double>> weight_error_rates;
+    for(int j = 0; j < num_patterns; j++) {
+        vec<double> prates;
+        vec<double> wrates;
+        for(i64 i = 0; i < output_layer->GetLayerSize(); i++) {
+            prates.push_back(zxlb::CORRECT_EXPECTED);
+            wrates.push_back(zxlb::CORRECT_EXPECTED);
+            // if(j==0) wrates.push_back(zxlb::CORRECT_EXPECTED);
+            // else wrates.push_back(zxlb::INCORRECT_EXPECTED);
+        }
+        position_error_rates.push_back(std::move(prates));
+        weight_error_rates.push_back(std::move(wrates));
+    }
+
+
+    vec<sizet> examples;
+    for(sizet i = 0; i < num_patterns; i++) {
+        examples.push_back(i);
+    }
+    //-------------------------------------------------------------------------
+    // Start the run
+
+    network->RebuildDendrites();
+
+    network->InitWriteData();
+
+    writer->StartRecording();
+
+    // output_layer->SetRecordData(true);
+    // network->SaveData(-1);
+    // network->WriteData(writer);
+
+    output_layer->SetRecordData(false);
+
+    vec<vec<double>> spike_history;
+    for(int i = 0; i < 2; i++) {
+        vec<double> v = {10.0};
+        spike_history.push_back(std::move(v));
+    }
+
+    for(sizet e = 0; e < num_epochs; e++) {
+
+        std::cout << "EPOCH: " << e << "\r" << std::flush;
+
+        
+        std::shuffle(examples.begin(), examples.end(), rng);
+    
+        // TRAINING SECTION
+        {
+
+            
+            
+
+            network->RandomizeOrder(rng);
+
+            for(sizet k = 0; k < train_iteration_size; k++) {
+                // std::cout << "TRAIN " << k << "\r" << std::flush;
+
+                // Get the image
+                // uptr<InputGenerator_Poisson> ig = train_mnist.GetDataAsPoissonInputGenerator(train_data[k]);
+                unsigned int label = examples[k%examples.size()];
+
+                output_layer->SetTraining(
+                    true,
+                    true,
+                    true
+                );
+
+                
+                vec<double> wrate = spike_history[k%examples.size()];
+                if(label==0) {
+                    wrate[0] = 1.0 - (wrate[0] / 10.0);// * position_error_rates[label][0];
+                } else {
+                    wrate[0] = 1.0 - (wrate[0] / 5.0);// * position_error_rates[label][0];
+                }
+
+                network->UpdateLayerErrorValuesSeparate(
+                    position_error_rates[label], wrate, output_layer_index
+                );
+                 
+                input_layer->AddInputGenerator(ig_patterns[label].get());
+                // input_layer->SetInputs(train_data[k].image);
+
+                time = 1;
+                for(; time <= time_per_example; time++) {
+                    network->Update(
+                        time,
+                        writer,
+                        rng
+                    );
+                }
+
+                spike_history[k%examples.size()][0] = output_layer->GetSpikesPerNeuron()[0];
+
+                network->Reset();
+                ig_patterns[label]->Reset();
+            }
+        }
+
+        // std::cout << std::endl;
+
+        //std::shuffle(testing_examples.begin(), testing_examples.end(), rng);
+
+        // TESTING SECTION
+        {
+
+            // Don't train anything
+            output_layer->SetTraining(
+                false,
+                false,
+                false // DON'T TRAIN STRENGTH
+            );
+
+            // Start saving data
+            output_layer->SetRecordData(true);
+
+            network->RandomizeOrder(rng);
+
+            network->RebuildDendrites();
+
+            std::shuffle(examples.begin(), examples.end(),rng);
+
+            for(sizet k = 0; k < test_iteration_size; k++) {
+            // for(int k = 9; k >= 0; k--) {
+                // std::cout << "TEST " << k << "\r" << std::flush;
+
+                // Get the image
+                // uptr<InputGenerator_Poisson> ig = train_mnist.GetDataAsPoissonInputGenerator(train_data[k]);
+                unsigned int label = examples[k];
+
+                input_layer->AddInputGenerator(ig_patterns[label].get());
+
+                i64 time = 1;
+                for(; time <= time_per_example; time++) {
+                    network->Update(
+                        time,
+                        writer,
+                        rng
+                    );
+                }
+                writer->AddExampleData(std::make_unique<ExampleData>(e,label,str("None")));
+                network->SaveData(-1);
+                network->WriteData(writer);
+                ig_patterns[label]->Reset();
+                network->Reset();
+                
+            }
+
+            output_layer->SetRecordData(false);
+
+        }
+
+        // std::cout << std::endl;
+
+        // MASK SECTION
+
+        {
+
+            // std::cout << "MASK" << std::flush;
+
+            output_layer->SetTraining(
+                false,
+                true,
+                false
+            );
+
+            input_layer->AddInputGenerator(ig_mask.get());
+            
+            network->UpdateLayerErrorValues(
+                MASK_RATES, output_layer_index
+            );
+
+
+            i64 time = 1;
+            for(; time <= mask_time; time++) {
+                network->Update(
+                    time,
+                    writer,
+                    rng
+                );
+            }
+
+            // Reset the input generator
+            ig_mask->Reset();
+            network->Reset();
+            
+            // Remove input generator. Only needed for mask.
+            input_layer->AddInputGenerator(nullptr);
+        }
+
+        // std::cout << std::endl;
+
+    }
+    network->RebuildDendrites();
+    // std::cout << "ALL DONE\n" << std::flush;
+
+    network->CleanUpData(writer);
+    writer->StopRecording();
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -4109,7 +4432,7 @@ void RunPattern001(
                 );
             }
 
-            vec<double> error_rates = network->GetErrorRates(output_layer_index);
+            vec<double> error_rates = network->GetPosErrorRates(output_layer_index);
             std::cout << "/== Iteration " << i << "  Image " << correct_choice << ":" << d.label << " ==============================//\n";
             for(sizet m = 0; m < error_rates.size(); m++) {
                 std::cout << m << ":" << error_rates[m] << std::endl;
@@ -4242,7 +4565,7 @@ void RunPoisson000(
                 );
             }
 
-            vec<double> error_rates = network->GetErrorRates(output_layer_index);
+            vec<double> error_rates = network->GetPosErrorRates(output_layer_index);
             std::cout << "/== Iteration " << i << "  Image " << pattern << " ==============================//\n";
             for(sizet m = 0; m < error_rates.size(); m++) {
                 std::cout << m << ":" << error_rates[m] << std::endl;
@@ -4366,7 +4689,7 @@ void RunPoisson001(
                 );
             }
 
-            vec<double> error_rates = network->GetErrorRates(output_layer_index);
+            vec<double> error_rates = network->GetPosErrorRates(output_layer_index);
             std::cout << "/== Iteration " << i << "  Image " << pattern << " ==============================//\n";
             for(sizet m = 0; m < error_rates.size(); m++) {
                 std::cout << m << ":" << error_rates[m] << std::endl;
@@ -4642,7 +4965,7 @@ void RunPoisson003(
                 );
             }
 
-            vec<double> error_rates = network->GetErrorRates(output_layer_index);
+            vec<double> error_rates = network->GetPosErrorRates(output_layer_index);
             std::cout << "/== Iteration " << i << "  Image " << pattern << " ==============================//\n";
             for(sizet m = 0; m < error_rates.size(); m++) {
                 std::cout << m << ":" << error_rates[m] << std::endl;
@@ -4838,7 +5161,7 @@ void RunPoisson004(
 
 
 
-            vec<double> error_rates = network->GetErrorRates(output_layer_index);
+            vec<double> error_rates = network->GetPosErrorRates(output_layer_index);
             
             // for(sizet m = 0; m < error_rates.size(); m++) {
             //     std::cout << m << ":" << error_rates[m] << std::endl;
@@ -5044,7 +5367,7 @@ void RunPoisson004_B(
 
 
 
-            vec<double> error_rates = network->GetErrorRates(output_layer_index);
+            vec<double> error_rates = network->GetPosErrorRates(output_layer_index);
             
             writer->AddExampleData(std::make_unique<ExampleData>(i, k, std::to_string(pattern)));
 
@@ -5297,7 +5620,7 @@ void RunPoisson004_C(
 
 
 
-            vec<double> error_rates = network->GetErrorRates(output_layer_index);
+            vec<double> error_rates = network->GetPosErrorRates(output_layer_index);
             
             // for(sizet m = 0; m < error_rates.size(); m++) {
             //     std::cout << m << ":" << error_rates[m] << std::endl;
@@ -5503,7 +5826,7 @@ void RunPoisson004_D(
 
 
 
-            vec<double> error_rates = network->GetErrorRates(output_layer_index);
+            vec<double> error_rates = network->GetPosErrorRates(output_layer_index);
             
             // for(sizet m = 0; m < error_rates.size(); m++) {
             //     std::cout << m << ":" << error_rates[m] << std::endl;

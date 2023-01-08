@@ -40,7 +40,8 @@ void Network::Reset(bool purge_data) {
             it2->output = 0.0;
             it2->time = 0;
             it2->num_spikes = 0;
-            it2->target_rate = 0.0;
+            it2->pos_target_rate = 0.0;
+            it2->weight_target_rate = 0.0;
         }
     }
 }
@@ -135,11 +136,30 @@ void Network::UpdateLayerErrorValues(
         );
     }
 }
+void Network::UpdateLayerErrorValuesSeparate(
+    vec<double> & pos_rates,
+    vec<double> & weight_rates,
+    i64 layer_id
+) {
+    for(i64 i = 0; i < layers[layer_id].GetLayerSize(); i++) {
+        connection_matrix[layer_id][i].Reset(
+            pos_rates[i],
+            weight_rates[i]
+        );
+    }
+}
 
-vec<double> Network::GetErrorRates(i64 layer_id) {
+vec<double> Network::GetPosErrorRates(i64 layer_id) {
     vec<double> erates;
     for(sizet i = 0; i < connection_matrix[layer_id].size(); i++) {
-        erates.push_back(connection_matrix[layer_id][i].GetDownStreamErrorRate());
+        erates.push_back(connection_matrix[layer_id][i].GetPosDownStreamErrorRate());
+    }
+    return erates;
+}
+vec<double> Network::GetWeightErrorRates(i64 layer_id) {
+    vec<double> erates;
+    for(sizet i = 0; i < connection_matrix[layer_id].size(); i++) {
+        erates.push_back(connection_matrix[layer_id][i].GetWeightDownStreamErrorRate());
     }
     return erates;
 }

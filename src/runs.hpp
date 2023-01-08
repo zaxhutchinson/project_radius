@@ -158,6 +158,21 @@ void RunTree3_TestB(
 );
 
 
+/******************************************************************************
+ * Weight A - Same as Tree 3 but using weights to select part of the pattern.
+ * 100 inputs 10 patterns Guassian centers.
+ *****************************************************************************/
+void RunWeightA(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+);
+void RunWeightB(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+);
+
 
 
 

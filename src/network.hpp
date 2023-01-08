@@ -41,8 +41,14 @@ public:
         vec<double> & rates,
         i64 layer_id
     );
+    void UpdateLayerErrorValuesSeparate(
+        vec<double> & pos_rates,
+        vec<double> & weight_rates,
+        i64 layer_id
+    );
 
-    vec<double> GetErrorRates(i64 layer_id);
+    vec<double> GetPosErrorRates(i64 layer_id);
+    vec<double> GetWeightErrorRates(i64 layer_id);
 
     void InitDendrites();
     void RebuildDendrites();

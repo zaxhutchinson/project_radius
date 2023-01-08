@@ -309,11 +309,50 @@ void Synapse::ChangeStrengthPost_AD(i64 time, double _error, ConnectionMatrix & 
     }
 }
 
-void Synapse::ChangeStrengthCompartment_Within(i64 time, double _error,vec<Synapse> & syns,vec<i64> & comp_spikes) {
+
+void Synapse::ChangeStrengthCompartment(i64 time, double _error, vec<Synapse> & syns) {
+    this->error = _error;
+
+    double delta = 0.0;
+
+    for(lst<i64>::iterator it = comp_spike_queue.begin(); it != comp_spike_queue.end(); ) {
+        if(time-*it > zxlb::MAX_STR_TEMPORAL_DIFFERENCE*2.0) {
+            it = comp_spike_queue.erase(it);
+        } else {
+            for(lst<i64>::iterator it2 = spike_queue.begin(); it2 != spike_queue.end(); it2++) {
+                delta = zxlb::C_SYN_STR / 
+                        (std::pow((std::abs(*it-*it2)) * zxlb::B_SYN_STR, 2.0) + 1.0);
+            }
+            it++;
+        }
+        
+    }
+    delta = delta * _error * zxlb::SYN_STRENGTH_LEARNING_RATE;
+    cur_strength = cur_strength + delta;
+
+    for(sizet i = 0; i < children.size(); i++) {
+        if(compartment==syns[children[i]].GetCompartment()) {
+            syns[children[i]].ChangeStrengthCompartment_Within(time,_error,syns,comp_spike_queue);
+        } else {
+            syns[children[i]].ChangeStrengthCompartment_Between(time, _error,comp_spike_queue,compartment_length);
+        }
+    }
+}
+
+
+void Synapse::ChangeStrengthCompartment_Within(i64 time, double _error,vec<Synapse> & syns,lst<i64> & comp_spikes) {
 
     this->error = _error;
-    double delta = zxlb::C_SYN_STR / 
-        (std::pow(((time-GetCurSpike()) - compartment_length) * zxlb::B_SYN_STR, 2.0) + 1.0);
+
+    double delta = 0.0;
+    for(lst<i64>::iterator it = comp_spikes.begin(); it != comp_spikes.end(); it++) {
+        
+        for(lst<i64>::iterator it2 = spike_queue.begin(); it2 != spike_queue.end(); it2++) {
+            delta = zxlb::C_SYN_STR / 
+                    (std::pow((std::abs(*it-*it2)-compartment_length) * zxlb::B_SYN_STR, 2.0) + 1.0);
+        }
+
+    }
     delta = delta * _error * zxlb::SYN_STRENGTH_LEARNING_RATE;
     cur_strength = cur_strength + delta;
 
@@ -327,11 +366,20 @@ void Synapse::ChangeStrengthCompartment_Within(i64 time, double _error,vec<Synap
 
 }
 
-void Synapse::ChangeStrengthCompartment_Between(i64 time, double _error,vec<i64> & comp_spikes,double compdist) {
-    double delta = zxlb::C_SYN_STR / 
-        (std::pow(((time-comp_spikes[compartment]) - (compdist+dist_to_parent)) * zxlb::B_SYN_STR, 2.0) + 1.0);
-    delta = delta * error * zxlb::SYN_STRENGTH_LEARNING_RATE;
-    cur_comp_strength += delta;
+void Synapse::ChangeStrengthCompartment_Between(i64 time, double _error,lst<i64> & comp_spikes,double compdist) {
+    this->error = _error;
+
+    double delta = 0.0;
+    for(lst<i64>::iterator it = comp_spikes.begin(); it != comp_spikes.end(); it++) {
+        
+        for(lst<i64>::iterator it2 = comp_spike_queue.begin(); it2 != comp_spike_queue.end(); it2++) {
+            delta = zxlb::C_SYN_STR / 
+                    (std::pow((std::abs(*it-*it2)-(compdist+dist_to_parent)) * zxlb::B_SYN_STR, 2.0) + 1.0);
+        }
+
+    }
+    delta = delta * _error * zxlb::SYN_STRENGTH_LEARNING_RATE;
+    cur_comp_strength = cur_comp_strength + delta;
 }
 
 void Synapse::ChangeStrengthPre_Simple(i64 time, double _error, ConnectionMatrix & cm) {
@@ -473,7 +521,10 @@ double Synapse::GetInput_Between(
         comp_izh[compartment].second += nt.d;
         comp_spikes[compartment]=time;
         comp_spike_queue.push_back(time);
-        if(train_str) ChangeStrengthCompartment_Within(time, error, syns, comp_spikes);
+        while(!comp_spike_queue.empty() && time-comp_spike_queue.front() > zxlb::MAX_STR_TEMPORAL_DIFFERENCE) {
+            comp_spike_queue.pop_front();
+        }
+        if(train_str) ChangeStrengthCompartment(time, error, syns);
     }
 
     return GetSignal_Between(time, comp_spikes[compartment],dist_to_parent,syns_per_comp[compartment]);
