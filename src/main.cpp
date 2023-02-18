@@ -143,7 +143,7 @@ int main(int argc, char**argv) {
     zxlog::Init(false);
 
     str OUTPUT_PATH = "/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/project_radius/output/";
-    str PRESET_PATH = "/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/project_radius/output/";
+    str PRESET_PATH = "/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/project_radius/NEW_MOVE_BOTH/";
 
     //-------------------------------------------------------------------------
     // RANDOM
@@ -210,7 +210,7 @@ int main(int argc, char**argv) {
 
     //-------------------------------------------------------------------------
     // MNIST
-    // RunMNIST(
+    // RunMNISTSingle(
     //     &writer,
     //     network.get(),
     //     rng
@@ -274,7 +274,13 @@ int main(int argc, char**argv) {
     //     network.get(),
     //     rng
     // );
-    RunWeightA(
+    // RunWeightB(
+    //     &writer,
+    //     network.get(),
+    //     rng
+    // );
+
+    RunMove(
         &writer,
         network.get(),
         rng

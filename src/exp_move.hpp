@@ -29,6 +29,13 @@ private:
     double sigma;
     umap<MoveType, vec<ExpMoveInstance>> instances;
 
+    double Witch(
+        double x, 
+        double y,
+        double cx,
+        double cy, 
+        double a
+    );
     double Witch(double x, double a);
     double Gauss(double x, double mu);
 
@@ -53,4 +60,26 @@ public:
 
     vec<ExpMoveInstance> GetAllInstances();
     vec<ExpMoveInstance> & GetInstancesOfType(MoveType type);
+    // ExpMoveInstance GetInstanceOfType(MoveType type, RNG & rng);
+
+
+};
+
+
+struct Coord {
+    double x;
+    double y;
+};
+
+struct MoveExp {
+
+    double maxrate;
+    Coord move_vector;
+    Coord curpos;
+    vec<Coord> cells;
+
+    void Move();
+
+    void GetRates(vec<double> & rates, str & type);
+    
 };

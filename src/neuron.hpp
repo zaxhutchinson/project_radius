@@ -98,6 +98,7 @@ struct Neuron {
     void InitDendrites();
     void BuildDendrite();
     void BuildDendrite2();
+    void BuildDendrite2_NoReconnect();
     void BuildDendrite3();
     void BuildDendrite4();
     void BuildCompartments();

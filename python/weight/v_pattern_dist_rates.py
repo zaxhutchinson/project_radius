@@ -11,7 +11,7 @@ out = output.Output(defs.OUTPUT_PATH)
 LID = 1
 NID = 0
 
-SIZE = 100
+SIZE = 20
 
 pattern0=list(range(10))
 # pattern1=[
@@ -38,7 +38,7 @@ for s in spikes:
     SPIKES.append(len(s))
 
 spikes_per_pattern = {}
-for i in range(10):
+for i in range(2):
     spikes_per_pattern[i]=[]
 
 for i in range(len(out.examples)):
@@ -193,25 +193,30 @@ plt.show()
 
 
 xlabels = [
-    '25',
-    '50'
+    '0-10',
+    '10-20',
+    '20-30',
+    '30-40'
 ]
 
-
-avg_spikes = [[],[]]
+print(len(SPIKES))
+avg_spikes = [[],[],[],[]]
 for i in range(len(SPIKES[1:])):
     label = out.examples[i].example
     # print(label)
     avg_spikes[label].append(SPIKES[i])
 
+print(len(avg_spikes[0]))
 # avg_spikes = np.divide(avg_spikes,len(SPIKES)//2)
+
+print(sum(avg_spikes[0][500:])/len(avg_spikes[0][500:]))
 
 plt.figure()
 # for a in range(len(avg_spikes)):
 plt.plot(avg_spikes[0],label="Pattern A")
-plt.plot(avg_spikes[1],label="Pattern B")
+# plt.plot(avg_spikes[1],label="Pattern B")
 # plt.xticks(list(range(2)),xlabels)
-plt.legend()
+# plt.legend()
 plt.xlabel("Epochs")
 plt.ylabel("S-Compartment Spike Rate")
 plt.show()
@@ -232,21 +237,50 @@ C={
 conns = []
 pat1 = []
 pat2 = []
+pat3 = []
+pat4 = []
 
-for i in range(100):
+for i in range(SIZE):
     conns.append(i)
-    pat1.append(
-        (0.1/((0.1*(25-i))**2.0 + 1.0))*1000
-    )
-    pat2.append(
-        (0.1/((0.1*(75-i))**2.0 + 1.0))*1000
-    )
+    if i >= 0 and i <= 20:
+        pat1.append(
+            (0.1/((0.2*(0-i))**2.0 + 1.0))*1000
+        )
+    else:
+        pat1.append(0.0)
+    if i >= 10 and i <= 20:
+        pat2.append(
+            (0.1/((0.05*(0-i))**2.0 + 1.0))*1000
+        )
+    else:
+        pat2.append(0.0)
 
+    if i >= 20 and i <= 30:
+        pat3.append(
+            (0.1/((0.05*(0-i))**2.0 + 1.0))*1000
+        )
+    else:
+        pat3.append(0.0)
+
+    if i >= 30 and i <= 40:
+        pat4.append(
+            (0.1/((0.05*(0-i))**2.0 + 1.0))*1000
+        )
+    else:
+        pat4.append(0.0)
+
+
+xlabels=[]
+for i in range(SIZE):
+    xlabels.append(str(i))
 
 plt.figure()
-plt.plot(conns,pat1,label='Pattern A: center=25')
-plt.plot(conns,pat2,label='Pattern B: center=75')
+plt.plot(conns,pat1,label='Pattern A:')
+# plt.plot(conns,pat2,label='Pattern B:')
+# plt.plot(conns,pat3,label='Pattern C:')
+# plt.plot(conns,pat4,label='Pattern D:')
 plt.xlabel("Input ID")
+plt.xticks(list(range(SIZE)),xlabels)
 plt.ylabel("Input Spike Rate (Hz)")
 # plt.legend()
 plt.show()

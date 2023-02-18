@@ -18,9 +18,9 @@ import random
 # T: make sim time
 # maxT: max ISI. ISI beyond max will not be counted.
 ########################################################
-NUM_INPUTS = 4
+NUM_INPUTS = 6
 I = {}
-R = [0.01,0.02,0.03,0.04]
+R = [0.01,0.01,0.01,0.01,0.01,0.01]
 flags = []
 dI = {}
 T = 100000

@@ -1,6 +1,7 @@
 #pragma once
 
 #include<filesystem>
+#include<iostream>
 
 #include"zxlb.hpp"
 
@@ -16,6 +17,7 @@ struct SynData {
     double lon;
     double rad;
     double str;
+    i64 pid;
 
     std::string to_string();
 };

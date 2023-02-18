@@ -27,6 +27,11 @@ void RunMNIST(
     Network * network,
     RNG & rng
 );
+void RunMNISTSingle(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+);
 /******************************************************************************
  * Input Position Experiment
  *****************************************************************************/

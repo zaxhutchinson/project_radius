@@ -11,7 +11,7 @@
 # Generic output dir
 # OUTPUT_PATH = "/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/project_radius/INPUT_POS_WEAKCONNTO0/"
 # OUTPUT_PATH = "/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/project_radius/INPUT_POS_BASE_100/"
-OUTPUT_PATH = "/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/project_radius/output/"
+OUTPUT_PATH = "/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/project_radius/INPUT_POS_1WEAKPAT/"
 
 #002 YY
 # OUTPUT_PATH = "/run/media/zax/a06347ed-42d6-48d5-a380-ddcfcb7fcf75/output/project_radius/POIS002_2000_YesNoiseYesOverlap/"

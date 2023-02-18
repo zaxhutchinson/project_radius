@@ -11,7 +11,7 @@ out = output.Output(defs.OUTPUT_PATH)
 LID = 1
 NID = 0
 
-SIZE = 100
+SIZE = 20
 
 
 
@@ -122,20 +122,36 @@ for i in range(SIZE):
 #     19:'tab:red',
 #     15:'tab:red',
 # }
-
+MAX_WEIGHT = 500
 
 actual_weights = []
 for w in weights:
     actual_weights.append(
-        (w*500)/(abs(w)+500)
+        (w*MAX_WEIGHT)/(abs(w)+MAX_WEIGHT)
     )
 
-plt.figure()
-plt.plot(weights,label='Raw weight',color='black',linestyle='--')
-plt.plot(actual_weights,label='Actual weight',color='black')
-plt.legend()
+xlabels=[]
+for i in range(SIZE):
+    xlabels.append(str(i))
+
+fig,ax1 = plt.subplots()
+ax2 = ax1.twinx()
+
+ax1.plot(weights,label='Raw weight',color='tab:blue')
+ax1.set_xlabel("Connections by Input ID")
+ax1.set_xticks(list(range(SIZE)))
+ax1.set_xticklabels(xlabels)
+ax1.set_ylabel("Raw Weight")
+ax1.tick_params(axis='y',labelcolor='tab:blue')
+ax1.yaxis.label.set_color('tab:blue')
+
+
+ax2.plot(actual_weights,label='Actual weight',color='tab:red')
+ax2.set_ylabel("Actual Weight")
+ax2.tick_params(axis='y',labelcolor='tab:red')
+ax2.yaxis.label.set_color('tab:red')
+# plt.legend()
 plt.xlabel("Connections by Input ID")
-plt.ylabel("Weight")
 plt.show()
 
 
@@ -156,6 +172,7 @@ for i in range(len(actual_weights)):
 plt.figure()
 plt.plot(weight_rad,color='black')
 plt.xlabel("Connections by Input ID")
+
 plt.ylabel(r"$\hat{w}$ - $\hat{r}$")
 plt.show()
 
@@ -186,7 +203,8 @@ plt.show()
 
 
 
-
+COMP_C = mycolors.GetColors(SIZE)
+COMP_C[-1]='black'
 
 
 C = {-1:'black'}
@@ -236,6 +254,7 @@ for k,v in points.items():
     if v.ID == -1:
         ax.scatter(v.x,v.y,v.z, color='black', cmap='bwr',linewidths=8,zorder=1)
     else:
+        # ax.scatter(v.x,v.y,v.z, color=COMP_C[v.comp], cmap='bwr',linewidths=8,zorder=1,vmin=VMIN,vmax=VMAX)
         ax.scatter(v.x,v.y,v.z, c=v.weight, cmap='bwr',linewidths=8,zorder=1,vmin=VMIN,vmax=VMAX)
     label = str(v.ID)
     ax.text(v.x,v.y,v.z, '%s' % (label), size=8, zorder=4,horizontalalignment='center',verticalalignment='center')
@@ -256,7 +275,8 @@ for k,v in points.items():
     if v.ID==-1:
         plt.scatter(xcoord,v.rad, color='black', cmap='bwr',linewidths=12,zorder=3,marker='o',s=100)
     else:
-        plt.scatter(xcoord,v.rad, c=v.weight, cmap='bwr',linewidths=12,zorder=3,marker='o',s=100,vmin=VMIN,vmax=VMAX)
+        plt.scatter(xcoord,v.rad, color=COMP_C[v.comp], cmap='bwr',linewidths=12,zorder=3,marker='o',s=100,vmin=VMIN,vmax=VMAX)
+        # plt.scatter(xcoord,v.rad, c=v.weight, cmap='bwr',linewidths=12,zorder=3,marker='o',s=100,vmin=VMIN,vmax=VMAX)
     label = str(v.ID)
     plt.text(xcoord,v.rad, '%s' % (label), size=8, zorder=4,horizontalalignment='center',verticalalignment='center')
 

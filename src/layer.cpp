@@ -186,13 +186,24 @@ void Layer::InitDendrites() {
     }
 }
 void Layer::RebuildDendrites() {
-    #pragma omp parallel for
-    for(sizet i = 0; i < neurons.size(); i++) {
-        // The base version
-        neurons[i].BuildDendrite2();
+    if(zxlb::FULL_REBUILD) {
+        #pragma omp parallel for
+        for(sizet i = 0; i < neurons.size(); i++) {
+            // The base version
+            neurons[i].BuildDendrite2();
 
-        // Soma on shell version
-        // neurons[i].BuildDendrite3();
+            // Soma on shell version
+            // neurons[i].BuildDendrite3();
+        }
+    } else {
+        #pragma omp parallel for
+        for(sizet i = 0; i < neurons.size(); i++) {
+            // The base version
+            neurons[i].BuildDendrite2_NoReconnect();
+
+            // Soma on shell version
+            // neurons[i].BuildDendrite3();
+        }
     }
 }
 

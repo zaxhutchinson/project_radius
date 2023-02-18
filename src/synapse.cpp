@@ -81,6 +81,7 @@ void Synapse::LoadPreset(SynData & syndata) {
     location.Lat(syndata.lat);
     location.Lon(syndata.lon);
     location.Rad(syndata.rad);
+    parent = syndata.pid;
     cur_strength = syndata.str;
 }
 

@@ -144,6 +144,10 @@ void Neuron::Reset(bool purge_data) {
         it->Reset();
     }
 
+    for(sizet i = 0; i < comp_izh.size(); i++) {
+        comp_izh[i].first = nt.c;
+        comp_izh[i].second = nt.d;
+    }
 
     for(sizet i = 0; i < compartment_spikes.size(); i++) {
         compartment_spikes[i] = std::numeric_limits<i64>::min();
@@ -222,6 +226,7 @@ void Neuron::PresynapticSpike(i64 time, i64 synapse_id, ConnectionMatrix & cm) {
 
     
     double error = cm[layer_id][id].GetPosTargetErrorRate();
+    // std::cout << error << std::endl;
     // if(error==0.0) return;
 
     // std::cout << error << std::endl;
@@ -358,9 +363,9 @@ void Neuron::PostsynapticSignal(i64 time, ConnectionMatrix & cm) {
             time_cur_spike - synapses[synapse_indexes[i]].time_cur_spike
         );
 
-        // if(std::abs(time_diff) > zxlb::MAX_RAD_TEMPORAL_DIFFERENCE) {
-        //     std::cout << time_diff << std::endl;
-        // }
+        if(std::abs(time_diff) > zxlb::MAX_RAD_TEMPORAL_DIFFERENCE) {
+            continue;
+        }
 
         // THIS IS THE WORKING VERSION of time_diff_soma
         // double time_diff_soma = static_cast<double>(
@@ -398,7 +403,7 @@ void Neuron::PostsynapticSignal(i64 time, ConnectionMatrix & cm) {
 
         // Removes alpha function from the one above. All change is equal.
         double force =
-            //error *
+            error *
             distance * //(1.0 / (std::pow(distance,2.0)+1.0)) * distance *
             zxlb::POST_LEARNING_RATE;
 
@@ -1542,7 +1547,7 @@ void Neuron::BuildDendrite2() {
             dendrites.push_back(*min_uit);
             synapses[*min_uit].parent = -1;
             double min_path_len = synapses[*min_uit].location.Rad();
-            min_path_len = ((zxlb::MAX_RAD_TEMPORAL_DIFFERENCE * min_path_len) / zxlb::MAX_RADIUS);
+            // min_path_len = ((zxlb::MAX_RAD_TEMPORAL_DIFFERENCE * min_path_len) / zxlb::MAX_RADIUS);
             synapses[*min_uit].dist_to_parent = min_path_len;
             synapses[*min_uit].SetDendritePathLength(min_path_len);
             synapses[*min_uit].SetCompartmentLength(0.0);
@@ -1599,6 +1604,191 @@ void Neuron::BuildDendrite2() {
         connected.push_back(*min_uit);
 
         unconnected.erase(min_uit);
+
+
+    }
+
+    for(i64 i = 0; i < comp_id; i++) {
+        compartment_spikes.push_back(std::numeric_limits<i64>::min());
+        comp_izh.emplace_back(nt.c,nt.d);
+    }
+
+}
+
+void Neuron::BuildDendrite2_NoReconnect() {
+
+
+    //-------------------------------------
+    // Init lists.
+    lst<i64> syns;
+    i64 comp_id = 1;
+    double radA = 0.0;
+    double radB = 0.0;
+    double ang_dist = 0.0;
+    double rad_dist = 0.0;
+    double ang_ratio = 1.0;//zxlb::MAX_ANG_TEMPORAL_DIFFERENCE/zxlb::MAX_RAD_TEMPORAL_DIFFERENCE;
+    double rad_ratio = 1.0;//zxlb::MAX_RAD_TEMPORAL_DIFFERENCE/zxlb::MAX_ANG_TEMPORAL_DIFFERENCE;
+    //-------------------------------------
+    // Disconnect
+
+    // Disconnect the dendrites.
+    dendrites.clear();
+
+    // Empty compartment info
+    compartment_spikes.clear();
+    syns_per_comp.clear();
+    comp_izh.clear();
+
+    for(sizet i = 0; i < synapses.size(); i++) {
+        synapses[i].children.clear();
+    }
+
+    // Disconnect all synapses.
+    // Complexity: Num Syns
+    for(sizet i = 0; i < synapses.size(); i++) {
+
+        if(synapses[i].parent == -1) {
+            syns.push_back(synapses[i].id);
+            dendrites.push_back(synapses[i].id);
+        } else {
+            synapses[synapses[i].parent].children.push_back(synapses[i].id);
+        }
+        // synapses[i].children.clear();
+        synapses[i].dendrite_path_length = 0.0;
+        synapses[i].compartment = 0;
+        synapses[i].compartment_length = 0;
+        synapses[i].dist_to_parent = 0;
+        // unconnected.push_back(i);
+        synapses[i].is_comp_root = false;
+    }
+    // std::cout << "NEWBUILD\n";
+    while(!syns.empty()) {
+
+        lst<i64>::iterator sit = syns.begin();
+        // lst<i64>::iterator min_cit = connected.begin();
+        // double min_dist = std::numeric_limits<double>::max();
+
+        // for(
+        //     lst<i64>::iterator uit = unconnected.begin();
+        //     uit != unconnected.end();
+        //     uit++ 
+        // ) {
+
+        //     for(
+        //         lst<i64>::iterator cit = connected.begin();
+        //         cit != connected.end();
+        //         cit++
+        //     ) {
+
+        //         double uc_dist = 0.0;
+
+        //         if(*cit==-1) {
+
+        //             uc_dist = synapses[*uit].location.Rad();
+                    
+        //         } else {
+
+        //             /* STRAIGHT-LINE METHOD */
+        //             radA = synapses[*cit].location.Rad();
+        //             radB = synapses[*uit].location.Rad();
+        //             ang_dist = synapses[*cit].location.Distance(synapses[*uit].location);
+        //             uc_dist = std::sqrt(
+        //                 std::pow(radA,2.0) + std::pow(radB,2.0) -
+        //                 2.0 * radA * radB * std::cos(ang_dist)
+        //             );
+        //             uc_dist += zxlb::BF * synapses[*cit].dendrite_path_length;
+
+
+        //             /* MANHATTAN METHOD - NO RADIAL SCALING OF ANGULAR*/
+        //             // radA = synapses[*cit].location.Rad();
+        //             // radB = synapses[*uit].location.Rad();
+        //             // ang_dist = synapses[*cit].location.Distance(synapses[*uit].location);
+        //             // ang_dist = zxlb::MAX_ANG_TEMPORAL_DIFFERENCE * (ang_dist / M_PI);
+        //             // uc_dist = std::abs(radB-radA) + ang_dist;
+        //             // uc_dist += zxlb::BF * synapses[*cit].dendrite_path_length;
+                    
+        //             /* MANHATTAN METHOD - WITH RADIAL SCALING OF ANGULAR*/
+        //             // uc_dist = synapses[*cit].location.DistanceWithRadius(synapses[*uit].location);
+        //             // uc_dist += zxlb::BF * synapses[*cit].dendrite_path_length;
+        //         }
+
+        //         if(uc_dist < min_dist) {
+        //             min_cit = cit;
+        //             min_uit = uit;
+        //             min_dist = uc_dist;
+        //         }
+
+        //     }
+
+        // }
+
+        Synapse * synapse = GetSynapse(*sit);
+        Synapse * parent = GetSynapse(synapse->parent);
+
+        if(synapse->parent==-1) {
+            // dendrites.push_back(*min_uit);
+            // synapses[*min_uit].parent = -1;
+            double min_path_len = synapses[*sit].location.Rad();
+            // min_path_len = ((zxlb::MAX_RAD_TEMPORAL_DIFFERENCE * min_path_len) / zxlb::MAX_RADIUS);
+            synapse->dist_to_parent = min_path_len;
+            synapse->SetDendritePathLength(min_path_len);
+            synapse->SetCompartmentLength(0.0);
+            synapse->is_comp_root = true;
+            // Since it is connected to soma, new compartment.
+            // std::cout << "SOMA " << min_path_len << std::endl;
+            synapse->SetCompartment(comp_id++);
+            syns_per_comp.push_back(1);
+        } else {
+            
+            // parent->children.push_back(*sit);
+            // synapses[*min_uit].parent = *min_cit;
+
+            /* STRAIGHT-LINE METHOD */
+            radA = parent->location.Rad();
+            radB = synapse->location.Rad();
+            ang_dist = parent->location.Distance(synapse->location);
+            double min_path_len = std::sqrt(
+                std::pow(radA,2.0) + std::pow(radB,2.0) -
+                2.0 * radA * radB * std::cos(ang_dist)
+            );
+
+            /* MANHATTAN METHOD - NO RADIUS SCALING OF ANGULAR */
+            // radA = synapses[*min_cit].location.Rad();
+            // radB = synapses[*min_uit].location.Rad();
+            // ang_dist = synapses[*min_cit].location.Distance(synapses[*min_uit].location);
+            // ang_dist = zxlb::MAX_ANG_TEMPORAL_DIFFERENCE * (ang_dist / M_PI);
+            // double min_path_len = std::abs(radB-radA) + ang_dist;
+
+            /* MANHATTAN METHOD - WITH RADIUS SCALING*/
+            // double min_path_len = synapses[*min_cit].location.DistanceWithRadius(synapses[*min_uit].location);
+
+            synapse->dist_to_parent = min_path_len;
+            //std::cout << "SYNSYN " << min_path_len << std::endl;
+            synapse->SetDendritePathLength(min_path_len+synapse->dendrite_path_length);
+
+            // Parent is another syn...
+            double cur_comp_length = parent->GetCompartmentLength();
+            double add_comp_length = min_path_len;
+            
+            if(cur_comp_length+add_comp_length <= zxlb::MAX_COMPARTMENT_LENGTH) {
+                synapse->SetCompartmentLength(cur_comp_length+add_comp_length);
+                synapse->is_comp_root = false;
+                synapse->SetCompartment(parent->GetCompartment());
+                syns_per_comp[parent->GetCompartment()]++;
+            } else {
+                synapse->SetCompartment(comp_id++);
+                synapse->SetCompartmentLength(0.0);
+                synapse->is_comp_root = true;
+                syns_per_comp.push_back(1);
+            }
+        }
+
+        
+        for(sizet i = 0; i < synapse->children.size(); i++) {
+            syns.push_back(synapse->children[i]);
+        }
+
+        syns.erase(sit);
 
 
     }

@@ -107,7 +107,7 @@ for k,v in xs.items():
         ax.plot3D(xs[k], ys[k], zs[k], label=k, c=colors[k])
     else:
         ax.plot3D(xs[k], ys[k], zs[k], label=k)
-ax.legend()
+# ax.legend()
 plt.show()
 
 

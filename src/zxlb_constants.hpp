@@ -80,7 +80,7 @@ namespace zxlb {
 
     void LoadConstants(str filename);
 
-
+    inline bool FULL_REBUILD = true;
 
 
 

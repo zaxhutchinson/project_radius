@@ -53,23 +53,24 @@ corr_val = {RIGHT:[],DOWN:[]}
 for i in range(len(outH.examples)):
     pattern_id = outH.examples[i].info
 
-    if pattern_id == 'RIGHT':
+    if pattern_id == 'H':
         spikes_corr[RIGHT].append(spikes_by_nid[RIGHT][i])
         spikes_incorr[DOWN].append(spikes_by_nid[DOWN][i])
 
         # corr[RIGHT].append(int(spikes_by_nid[RIGHT][i] > spikes_by_nid[DOWN][i]))
              
 
-    elif pattern_id=='DOWN':
+    elif pattern_id=='V':
         spikes_corr[DOWN].append(spikes_by_nid[DOWN][i])
         spikes_incorr[RIGHT].append(spikes_by_nid[RIGHT][i])
 
         # corr[DOWN].append(int(spikes_by_nid[DOWN][i] > spikes_by_nid[RIGHT][i]))
 
 
-
-corrR_avg = sum(spikes_corr[RIGHT])/len(spikes_corr[RIGHT])
-corrD_avg = sum(spikes_corr[DOWN])/len(spikes_corr[DOWN])
+if len(spikes_corr[RIGHT])==0: corrR_avg = 0.0
+else: corrR_avg = sum(spikes_corr[RIGHT])/len(spikes_corr[RIGHT])
+if len(spikes_corr[DOWN])==0: corrD_avg = 0.0
+else: corrD_avg = sum(spikes_corr[DOWN])/len(spikes_corr[DOWN])
 incorrR_avg = sum(spikes_incorr[RIGHT])/len(spikes_incorr[RIGHT])
 incorrD_avg = sum(spikes_incorr[DOWN])/len(spikes_incorr[DOWN])
 
@@ -93,7 +94,7 @@ nD = []
 for i in range(len(outH.examples)):
     pattern_id = outH.examples[i].info
 
-    if pattern_id == 'RIGHT':
+    if pattern_id == 'H':
         if incorrR_avg:
             y = spikes_by_nid[RIGHT][i] / incorrR_avg
         else: 
@@ -110,13 +111,13 @@ for i in range(len(outH.examples)):
         corr[RIGHT].append(int(y>n))
 
         if n>=y:
-            print("RIGHT",outH.examples[i].example, spikes_by_nid[RIGHT][i], spikes_by_nid[DOWN][i])
+            print("H",outH.examples[i].example, spikes_by_nid[RIGHT][i], spikes_by_nid[DOWN][i])
 
         corr_mag_R.append(spikes_by_nid[RIGHT][i] - incorrR_avg)
         corr_ratio_R.append(y)
              
 
-    elif pattern_id=='DOWN':
+    elif pattern_id=='V':
 
         if incorrR_avg:
             n = spikes_by_nid[RIGHT][i] / incorrR_avg
@@ -134,7 +135,7 @@ for i in range(len(outH.examples)):
         corr[DOWN].append(int(y > n))
 
         if n>=y:
-            print("DOWN",outH.examples[i].example, spikes_by_nid[DOWN][i], spikes_by_nid[RIGHT][i])
+            print("V",outH.examples[i].example, spikes_by_nid[DOWN][i], spikes_by_nid[RIGHT][i])
 
         corr_mag_D.append(spikes_by_nid[DOWN][i] - incorrD_avg)
         corr_ratio_D.append(y)

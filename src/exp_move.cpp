@@ -264,6 +264,154 @@ ExpMove::ExpMove(
 
 // }
 
+// ExpMoveInstance ExpMove::GetInstanceOfType(MoveType type, RNG & rng) {
+//     if(type==MoveType::DOWN) {
+
+
+            
+//         instances.emplace(MoveType::DOWN,vec<ExpMoveInstance>());
+
+//         for(int w = 0; w < field_width; w++) {
+
+//             ExpMoveInstance emi;
+//             emi.type = MoveType::DOWN;
+//             emi.rc = w;
+
+//             for(int ts = time_start; ts < time_end; ts++) {
+
+//                 vec<double> data;
+
+//                 double x = static_cast<double>(ts) / 
+//                             (1000.0 / static_cast<double>(field_height));
+
+//                 for(int i = 0; i < _width; i++) {
+//                     for(int j = 0; j < _height; j++) {
+//                         if(i==w) {
+//                             data.push_back(Witch(x, j+1));
+//                         } else {
+//                             data.push_back(0.0);
+//                         }
+//                         // std::cout << x << "--" << i << " " << j << ": " << data.back() << std::endl;
+//                     }
+//                 }
+
+//                 emi.signals.emplace_back(std::move(data));          
+//             }
+
+//             instances[MoveType::DOWN].emplace_back(std::move(emi));
+
+//         }
+//     }
+
+//     else if(*it==MoveType::UP) {
+
+//         instances.emplace(MoveType::UP,vec<ExpMoveInstance>());
+
+//         for(int w = 0; w < _width; w++) {
+
+//             ExpMoveInstance emi;
+//             emi.type = MoveType::UP;
+//             emi.rc = w;
+
+//             for(int ts = time_end-1; ts >= time_start; ts--) {
+
+//                 vec<double> data;
+
+//                 double x = static_cast<double>(ts) / 
+//                             (1000.0 / static_cast<double>(field_height));
+
+//                 for(int i = 0; i < _width; i++) {
+//                     for(int j = 0; j < _height; j++) {
+//                         if(i==w) {
+//                             data.push_back(Witch(x, j+1));
+//                         } else {
+//                             data.push_back(0.0);
+//                         }
+//                         // std::cout << x << "--" << i << " " << j << ": " << data.back() << std::endl;
+//                     }
+//                 }
+
+//                 emi.signals.emplace_back(std::move(data));          
+//             }
+
+//             instances[MoveType::UP].emplace_back(std::move(emi));
+
+//         }
+//     }
+
+//     else if(*it==MoveType::RIGHT) {
+
+//         instances.emplace(MoveType::RIGHT,vec<ExpMoveInstance>());
+        
+//         for(int h = 0; h < _height; h++) {
+
+
+//             ExpMoveInstance emi;
+//             emi.type = MoveType::RIGHT;
+//             emi.rc = h;
+
+//             for(int ts = time_start; ts < time_end; ts++) {
+
+//                 vec<double> data;
+
+//                 double x = static_cast<double>(ts) / 
+//                             (1000.0 / static_cast<double>(field_width));
+
+//                 for(int i = 0; i < _width; i++) {
+//                     for(int j = 0; j < _height; j++) {
+//                         if(j==h) {
+//                             data.push_back(Witch(x, i+1));
+//                         } else {
+//                             data.push_back(0.0);
+//                         }
+//                         // std::cout << x << "--" << i << " " << j << ": " << data.back() << std::endl;
+//                     }
+//                 }
+
+//                 emi.signals.emplace_back(std::move(data));          
+//             }
+
+//             instances[MoveType::RIGHT].emplace_back(std::move(emi));
+
+//         }
+//     }
+//     else if(*it==MoveType::LEFT) {
+
+//         instances.emplace(MoveType::LEFT,vec<ExpMoveInstance>());
+        
+//         for(int h = 0; h < _height; h++) {
+
+//             ExpMoveInstance emi;
+//             emi.type = MoveType::LEFT;
+//             emi.rc = h;
+
+//             for(int ts = time_end-1; ts >= time_start; ts--) {
+
+//                 vec<double> data;
+
+//                 double x = static_cast<double>(ts) / 
+//                             (1000.0 / static_cast<double>(field_width));
+
+//                 for(int i = 0; i < _width; i++) {
+//                     for(int j = 0; j < _height; j++) {
+//                         if(j==h) {
+//                             data.push_back(Witch(x, i+1));
+//                         } else {
+//                             data.push_back(0.0);
+//                         }
+//                         // std::cout << x << "--" << i << " " << j << ": " << data.back() << std::endl;
+//                     }
+//                 }
+
+//                 emi.signals.emplace_back(std::move(data));          
+//             }
+
+//             instances[MoveType::LEFT].emplace_back(std::move(emi));
+
+//         }
+//     }
+// }
+
 vec<ExpMoveInstance> & ExpMove::GetInstancesOfType(MoveType type) {
     return instances.at(type);
 }
@@ -287,10 +435,85 @@ vec<ExpMoveInstance> ExpMove::GetAllInstances() {
     return v;
 }
 
+double ExpMove::Witch(
+        double x, 
+        double y,
+        double cx,
+        double cy, 
+        double a
+) {
+    double d = std::sqrt(
+        std::pow(cx-x,2.0) + std::pow(cy-y,2.0)
+    );
+    d = std::pow(d,2.0);
+    return a / (d+1.0);
+}
+
 double ExpMove::Witch(double x, double a) {
     return c / (std::pow( (x-a)/b, 2.0 )+1.0);
 }
 
 double ExpMove::Gauss(double x, double mu) {
     return (1.0/(sigma*std::sqrt(2.0*M_PI))) * std::exp(-0.5*std::pow((x-mu)/sigma,2.0));
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void MoveExp::Move() {
+    curpos.x += move_vector.x;
+    curpos.y += move_vector.y;
+}
+
+void MoveExp::GetRates(vec<double> & rates, str & type) {
+    
+    if(type=="RIGHT")
+
+        for(int i = 0; i < cells.size(); i++) {
+
+            double d = std::sqrt(
+                std::pow(curpos.x-cells[i].x,2.0) +
+                std::pow(curpos.y-cells[i].y,2.0)
+            );
+            d = std::pow(0.5*d,2.0);
+            rates[i] = maxrate / (d+1.0);
+            // std::cout << rates[i] << "\n";
+
+        }
+    else if(type=="DOWN")
+        for(int i = 0; i < cells.size(); i++) {
+
+            double d = std::sqrt(
+                std::pow(curpos.x-cells[i].x,2.0) +
+                std::pow(curpos.y-cells[i].y,2.0)
+            );
+            d = std::pow(0.5*d,2.0);
+            rates[i] = maxrate / (d+1.0);
+            // std::cout << rates[i] << "\n";
+
+        }
 }

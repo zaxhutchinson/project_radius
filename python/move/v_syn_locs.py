@@ -10,10 +10,11 @@ import mycolors
 out = output.Output(defs.OUTPUT_PATH)
 LID = 1
 NID = 0
+SIZE = 100
 
 WEIGHT = 500
 
-for i in range(784):
+for i in range(SIZE):
     out.LoadSynapse(LID,NID,i)
 
 out.LoadNeuron(LID,NID)
@@ -25,7 +26,7 @@ rads = []
 strs = []
 actual_strs = []
 comps = []
-colors = mycolors.GetColors(784)
+colors = mycolors.GetColors(SIZE)
 comp_sizes=[]
 comp_strs = []
 
@@ -33,7 +34,7 @@ neu = out.neurons[f'{LID} {NID}']
 nlat = neu.lats[-1][-1]
 nlon = neu.lons[-1][-1]
 
-for i in range(784):
+for i in range(SIZE):
     syn = out.synapses[f'{LID} {NID} {i}']
 
     lats.append(syn.lats[-1][-1])
@@ -83,8 +84,8 @@ plt.show()
 
 plt.figure()
 plt.gca().invert_yaxis()
-for c in range(784):
-    plt.plot(c%28,c//28,color=colors[comps[c]],marker='s',markersize=10)#,alpha=comp_alphas[comps[c]])    
+for c in range(SIZE):
+    plt.plot(c%10,c//10,color=colors[comps[c]-1],marker='s',markersize=10)#,alpha=comp_alphas[comps[c]])    
 plt.show()
 
 plt.figure()
@@ -98,9 +99,9 @@ plt.show()
 
 x = []
 y = []
-for i in range(784):
-    x.append(i%28)
-    y.append(i//28)
+for i in range(SIZE):
+    x.append(i%10)
+    y.append(i//10)
 
 
 plt.figure()
@@ -112,7 +113,7 @@ plt.show()
 
 plt.figure()
 plt.gca().invert_yaxis()
-sc = plt.scatter(x,y,c=np.array(actual_strs),cmap='bwr',marker='s',linewidths=4)  
+sc = plt.scatter(x,y,c=np.array(actual_strs),cmap='bwr',marker='s',linewidths=16)  
 plt.colorbar(sc)  
 plt.show()
 

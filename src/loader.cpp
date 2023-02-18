@@ -70,6 +70,7 @@ NetData LoadNetworkOutput(std::string path) {
         str last_str;
         str last_rad;
         str last_lat;
+        str last_pid;
         str line;
         while(std::getline(ifs,line) ){
             if(!line.empty()) {
@@ -77,6 +78,7 @@ NetData LoadNetworkOutput(std::string path) {
                 if(line.substr(0,3)=="LAT") last_lat = line;
                 if(line.substr(0,3)=="LON") last_lon = line;
                 if(line.substr(0,3)=="RAD") last_rad = line;
+                if(line.substr(0,3)=="PID") last_pid = line;
             }
         }
 
@@ -84,11 +86,13 @@ NetData LoadNetworkOutput(std::string path) {
         str slat = SplitString(last_lat,' ')[1];
         str srad = SplitString(last_rad,' ')[1];
         str sstr = SplitString(last_str,' ')[1];
+        str spid = SplitString(last_pid,' ')[1];
 
         sdata.lat = std::stod(slat);
         sdata.lon = std::stod(slon);
         sdata.rad = std::stod(srad);
         sdata.str = std::stod(sstr);
+        sdata.pid = std::stol(spid);
 
         umap<i64,LayData>::iterator lit = netdata.laydata.find(lid);
 
