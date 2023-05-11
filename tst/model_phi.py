@@ -11,23 +11,29 @@ def gau(x,c,b,w):
 
 
 
-data = []
+data1 = []
+data2 = []
+data3 = []
 xvals = []
 
-i = -10.0
+i = 0.0
 c = 0.0
 
-while i <= 10.0:
-    result = gau(i,c,1,1)
-    data.append(result)
+while i <= 20.0:
+    data1.append(phi(i,5,1,2))
+    data2.append(phi(i,10,2,1))
+    data3.append(phi(i,15,0.5,0.5))
     xvals.append(i)
     i += 0.1
 
 
 plt.figure()
-plt.plot(xvals,data,color='green',linewidth=2)
-plt.xlabel(r"$x$")
-plt.ylabel("\u03C6"+r"(x), $c=0$" )
+plt.plot(xvals,data1,linewidth=2,label=r"$v_e$=5, b=1, w=2")
+plt.plot(xvals,data2,linewidth=2,label=r"$v_e$=10, b=2, w=1")
+plt.plot(xvals,data3,linewidth=2,label=r"$v_e$=15, b=0.5, w=0.5")
+plt.xlabel(r"$v_a$")
+plt.ylabel("\u03C6"+r"($v_a$)" )
+plt.legend()
 plt.show()
 
 

@@ -6,13 +6,13 @@ void MNISTData::NormalizeByTotalStrength() {
     for(sizet i = 0; i < image.size(); i++) {
         total += image[i];
     }
-    for(sizet i = 0; i < image.size(); i++) {
-        image[i] = (image[i] / total) * 1000.0;
-    }
-
     // for(sizet i = 0; i < image.size(); i++) {
-    //     image[i] = (image[i] / 255.0) * 100.0;
+    //     image[i] = (image[i] / total) * 1000.0;
     // }
+
+    for(sizet i = 0; i < image.size(); i++) {
+        image[i] = (image[i] / 255.0) * 20.0;
+    }
 }
 
 

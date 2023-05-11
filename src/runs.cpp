@@ -2605,7 +2605,7 @@ void RunRadialPosition2(
     };
 
     
-    sizet num_epochs = 2000;
+    sizet num_epochs = 1000;
     sizet train_iteration_size = 100; // don't make larger than num examples
     sizet test_iteration_size = 1; // don't make larger than num examples
     i64 time_per_example = 1000;
@@ -4973,7 +4973,7 @@ void RunMove(
     std::uniform_real_distribution<double> xDist(1,1000);
     std::uniform_real_distribution<double> yDist(1,1000);
 
-    double CORRECT_RATE = 10.0;
+    double CORRECT_RATE = 2.0;
     double INCORRECT_RATE = 1.0;
 
     vec<vec<double>> spike_rates;
@@ -4995,9 +4995,9 @@ void RunMove(
         // std::shuffle(move_types.begin(), move_types.end(), rng);
 
         output_layer->SetTraining(
-            false,
-            false,
-            false
+            true,
+            true,
+            true
         );
         
 
@@ -7564,3 +7564,1661 @@ void RunMove_Hand(
 }
 
 
+
+
+
+
+
+void RunFMNIST(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+) {
+    std::string TRAIN_LABELS_FILENAME("exp_fmnist/train-labels-idx1-ubyte");
+    std::string TRAIN_IMAGES_FILENAME("exp_fmnist/train-images-idx3-ubyte");
+    std::string TEST_LABELS_FILENAME("exp_fmnist/t10k-labels-idx1-ubyte");
+    std::string TEST_IMAGES_FILENAME("exp_fmnist/t10k-images-idx3-ubyte");
+
+    vec<unsigned> labels = {0,1,2,3,4,5,6,7,8,9};
+
+    std::cout << "START: LOADING MNIST DATA\n";
+
+    MNISTReader train_mnist;
+    MNISTReader test_mnist;
+    train_mnist.LoadData(TRAIN_LABELS_FILENAME,TRAIN_IMAGES_FILENAME,true);
+    test_mnist.LoadData(TEST_LABELS_FILENAME,TEST_IMAGES_FILENAME,true);
+    // vec<MNISTData> train_data;
+    // vec<MNISTData> test_data;
+    vec<vec<MNISTData>> test_data_by_id;
+    vec<vec<MNISTData>> train_data_by_id;
+    // vec<int> labels;
+    for(int i = 0; i < 10; i++) {
+        // labels.push_back(i);
+        vec<MNISTData> train_tmp = train_mnist.GetDataWithLabel(i);
+        vec<MNISTData> test_tmp = test_mnist.GetDataWithLabel(i);
+        test_data_by_id.push_back(std::move(test_tmp));
+        train_data_by_id.push_back(std::move(train_tmp));
+        // std::copy(train_tmp.begin(), train_tmp.end(), std::back_inserter(train_data));
+        // std::copy(test_tmp.begin(), test_tmp.end(), std::back_inserter(test_data));
+    }
+
+
+
+    std::cout << "DONE: LOADING MNIST DATA\n";
+    
+    sizet num_epochs = 1000;
+    sizet train_iteration_size = 100; // don't make larger than num examples
+    sizet test_iteration_size = 10; // don't make larger than num examples
+
+    i64 time_per_example = 1000;
+    i64 time;
+
+    double correct_rate = 10.0;
+    double incorrect_rate = 1.0;
+    vec<int> spikes_per_neuron;
+    
+    i64 output_layer_index = network->GetOutputLayerIndex();
+    Layer * input_layer = network->GetLayer(network->GetInputLayerIndex());
+    i64 input_layer_size = input_layer->GetLayerSize();
+    Layer * output_layer = network->GetLayer(network->GetOutputLayerIndex());
+
+    // vec<sizet> train_image_indexes;
+    // vec<sizet> test_image_indexes;
+    // for(sizet i = 0; i < train_mnist.GetData().size(); i++) {
+    //     train_image_indexes.push_back(i);
+    // }
+    // for(sizet i = 0; i < test_mnist.GetData().size(); i++) {
+    //     test_image_indexes.push_back(i);
+    // }
+
+
+    vec<vec<double>> spike_history;
+    vec<double> prates;
+    for(int j = 0; j < 10; j++) {
+        vec<double> srh;
+        for(i64 i = 0; i < output_layer->GetLayerSize(); i++) {
+            srh.push_back(correct_rate);
+        }
+        prates.push_back(1.0);
+        spike_history.push_back(std::move(srh));
+    }
+
+    uptr<InputGenerator_Poisson> ig_mask = std::make_unique<InputGenerator_Poisson>();
+    ig_mask->id = "0";
+    for(i64 i = 0; i < input_layer_size; i++) {
+        ig_mask->decay.push_back(std::exp(-1.0/10));
+        ig_mask->dist = std::uniform_real_distribution<double>(0.0,1.0);
+        ig_mask->strength.push_back(500.0);
+        ig_mask->signal.push_back(0.0);
+        ig_mask->rate.push_back(0.01);
+    }
+
+    
+
+    i64 mask_time = 1000;
+    double MASK_ERROR = -1;
+    vec<double> MASK_RATES;
+    for(unsigned int l = 0; l < 10; l++) {
+        MASK_RATES.push_back(MASK_ERROR);
+    }
+    
+
+    //-------------------------------------------------------------------------
+    // Build the rates vector. Default to incorrect rates.
+    vec<double> rates;
+    for(i64 i = 0; i < output_layer->GetLayerSize(); i++) {
+        rates.push_back(correct_rate);
+    }
+
+    //-------------------------------------------------------------------------
+    // Start the run
+
+    network->RebuildDendrites();
+
+    writer->StartRecording();
+
+    output_layer->SetRecordData(false);
+
+    for(sizet e = 0; e < num_epochs; e++) {
+
+        std::cout << "EPOCH: " << e << std::endl;
+
+        
+
+        // std::shuffle(test_data.begin(), test_data.end(), rng);
+
+        std::shuffle(labels.begin(), labels.end(), rng);
+
+        for(int i = 0; i < 10; i++) {
+            std::shuffle(test_data_by_id[i].begin(), test_data_by_id[i].end(), rng);
+            std::shuffle(train_data_by_id[i].begin(), train_data_by_id[i].end(), rng);
+        }
+    
+        // TRAINING SECTION
+        {
+
+            
+            
+
+            network->RandomizeOrder(rng);
+
+            for(sizet k = 0; k < train_iteration_size; k++) {
+                std::cout << "TRAIN " << k << "\r" << std::flush;
+
+                
+
+                // Get the image
+                // uptr<InputGenerator_Poisson> ig = train_mnist.GetDataAsPoissonInputGenerator(train_data[k]);
+                unsigned int label = train_data_by_id[k][labels[k%10]].label;
+
+                
+
+                ///////////////////////////////////////////////////////////////
+                /// TRAINING RUN
+
+                output_layer->SetTraining(
+                    zxlb::TRAIN_RAD,
+                    zxlb::TRAIN_ANG,
+                    zxlb::TRAIN_STR
+                );
+
+                
+                vec<double> wrate = spike_history[label];
+                for(unsigned int l = 0; l < 10; l++) {
+                    if(l==label) {
+                        prates[l] = 1.0 - (wrate[l] / correct_rate);
+                        wrate[l] = 1.0 - (wrate[l] / correct_rate);
+                        // rates[l] = spikes_per_neuron[l] > correct_rate ? 
+                        //                 0.0 : 
+                        //                 zxlb::CORRECT_EXPECTED * (1.0 - (spikes_per_neuron[l]/correct_rate));
+                    }
+                    else {
+                        prates[l] = 0.0;//1.0 - (wrate[l] / incorrect_rate);
+                        wrate[l] = 1.0 - (wrate[l] / incorrect_rate);
+                        // rates[l] = spikes_per_neuron[l] < incorrect_rate ? 
+                        //                 0.0 : 
+                        //                 zxlb::INCORRECT_EXPECTED * (1.0 - (incorrect_rate / spikes_per_neuron[l]));
+                    }
+                }
+
+                network->UpdateLayerErrorValuesSeparate(
+                    prates, wrate, output_layer_index
+                );
+
+                
+                input_layer->SetInputs(train_data_by_id[k][labels[k%10]].image);
+
+                time = 1;
+                for(; time <= time_per_example; time++) {
+                    network->Update(
+                        time,
+                        writer,
+                        rng
+                    );
+                }
+
+                vec<int> output_rate = output_layer->GetSpikesPerNeuron();
+                for(int i = 0; i < output_rate.size(); i++) {
+                    spike_history[label][i] = output_rate[i];
+                }
+
+                network->Reset();
+            }
+        }
+
+        std::cout << std::endl;
+
+        // TESTING SECTION
+        {
+
+            // Don't train anything
+            output_layer->SetTraining(
+                false,
+                false,
+                false // DON'T TRAIN STRENGTH
+            );
+
+            // Start saving data
+            output_layer->SetRecordData(true);
+
+            network->RandomizeOrder(rng);
+
+            network->RebuildDendrites();
+
+            for(sizet k = 0; k < test_iteration_size; k++) {
+                std::cout << "TEST " << k << "\r" << std::flush;
+
+                
+                input_layer->SetInputs(test_data_by_id[k][k/10].image);
+
+                i64 time = 1;
+                for(; time <= time_per_example; time++) {
+                    network->Update(
+                        time,
+                        writer,
+                        rng
+                    );
+                }
+
+                writer->AddExampleData(std::make_unique<ExampleData>(e,test_data_by_id[k][k/10].label,"None"));
+        
+                network->SaveData(-1);
+                network->WriteData(writer);
+
+                network->Reset();
+                
+            }
+
+            output_layer->SetRecordData(false);
+
+        }
+
+        std::cout << std::endl;
+
+
+    }
+
+    std::cout << "ALL DONE\n" << std::flush;
+
+    network->CleanUpData(writer);
+    writer->StopRecording();
+
+}
+
+
+void RunFMNISTSingle(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+) {
+    std::string TRAIN_LABELS_FILENAME("exp_fmnist/train-labels-idx1-ubyte");
+    std::string TRAIN_IMAGES_FILENAME("exp_fmnist/train-images-idx3-ubyte");
+    std::string TEST_LABELS_FILENAME("exp_fmnist/t10k-labels-idx1-ubyte");
+    std::string TEST_IMAGES_FILENAME("exp_fmnist/t10k-images-idx3-ubyte");
+
+    vec<str> label_desc = {
+        "t-shirt/top",
+        "trouser",
+        "pullover",
+        "dress",
+        "coat",
+        "sandal",
+        "shirt",
+        "sneaker",
+        "bag",
+        "ankle boot",
+    };
+
+    vec<unsigned> labels = {0,5};
+
+    std::cout << "START: LOADING FMNIST DATA\n";
+
+    MNISTReader train_mnist;
+    MNISTReader test_mnist;
+    train_mnist.LoadData(TRAIN_LABELS_FILENAME,TRAIN_IMAGES_FILENAME,true);
+    test_mnist.LoadData(TEST_LABELS_FILENAME,TEST_IMAGES_FILENAME,true);
+    // vec<MNISTData> train_data;
+    // vec<MNISTData> test_data;
+    umap<int,vec<MNISTData>> test_data_by_id;
+    umap<int,vec<MNISTData>> train_data_by_id;
+    vec<int> indexes;
+    for(int i = 0; i < labels.size(); i++) {
+        indexes.push_back(i);
+        vec<MNISTData> train_tmp = train_mnist.GetDataWithLabel(labels[i]);
+        vec<MNISTData> test_tmp = test_mnist.GetDataWithLabel(labels[i]);
+        test_data_by_id.emplace(labels[i],std::move(test_tmp));
+        train_data_by_id.emplace(labels[i],std::move(train_tmp));
+        // std::copy(train_tmp.begin(), train_tmp.end(), std::back_inserter(train_data));
+        // std::copy(test_tmp.begin(), test_tmp.end(), std::back_inserter(test_data));
+    }
+
+
+
+    std::cout << "DONE: LOADING FMNIST DATA\n";
+    
+    sizet num_epochs = 1000;
+    sizet num_train_iteration = 100; // don't make larger than num examples
+    sizet num_test_iteration = 10*labels.size(); // don't make larger than num examples
+    i64 time_per_example = 1000;
+    i64 time;
+    
+    i64 output_layer_index = network->GetOutputLayerIndex();
+    Layer * input_layer = network->GetLayer(network->GetInputLayerIndex());
+    i64 input_layer_size = input_layer->GetLayerSize();
+    Layer * output_layer = network->GetLayer(network->GetOutputLayerIndex());
+
+    vec<double> w_rate;
+    vec<double> p_rate;
+    for(int i = 0; i < labels.size(); i++) {
+        w_rate.push_back(0);
+        p_rate.push_back(1);
+    }
+
+    vec<vec<double>> p_error_rates;
+    vec<vec<double>> w_error_rates;
+    for(int i = 0; i < labels.size(); i++) {
+        vec<double> v1;
+        vec<double> v2;
+        for(int j = 0; j < labels.size(); j++) {
+            v1.push_back(0.0);
+            v2.push_back(0.0);
+        }
+        p_error_rates.push_back(v1);
+        w_error_rates.push_back(v2);
+    }
+
+    // vec<vec<double>> spike_history;
+    // vec<double> prates;
+    // for(int j = 0; j < labels.size(); j++) {
+    //     vec<double> srh;
+    //     for(i64 i = 0; i < output_layer->GetLayerSize(); i++) {
+    //         srh.push_back(0.0);
+    //     }
+    //     prates.push_back(1.0);
+    //     spike_history.push_back(std::move(srh));
+    // }
+
+    uptr<InputGenerator_Poisson> ig_mask = std::make_unique<InputGenerator_Poisson>();
+    ig_mask->id = "0";
+    for(i64 i = 0; i < input_layer_size; i++) {
+        ig_mask->decay.push_back(std::exp(-1.0/10));
+        ig_mask->dist = std::uniform_real_distribution<double>(0.0,1.0);
+        ig_mask->strength.push_back(500.0);
+        ig_mask->signal.push_back(0.0);
+        ig_mask->rate.push_back(0.01);
+    }
+
+    
+
+    i64 mask_time = 0;
+    double MASK_ERROR = -0.1;
+    vec<double> MASK_RATES;
+    for(unsigned int l = 0; l < labels.size(); l++) {
+        MASK_RATES.push_back(MASK_ERROR);
+    }
+    
+
+    //-------------------------------------------------------------------------
+    // Build the rates vector. Default to incorrect rates.
+    double CORRECT_RATE = 10.0;
+    double INCORRECT_RATE = 1.0;
+
+    vec<vec<double>> spike_rates;
+    vec<vec<double>> spike_history;
+    for(i64 i = 0; i < labels.size(); i++) {
+        vec<double> s;
+        for(i64 k = 0; k < labels.size(); k++) {
+            s.push_back(0);
+        }
+        spike_rates.push_back(std::move(s));
+    }
+
+    //-------------------------------------------------------------------------
+    // Start the run
+
+
+    network->RebuildDendrites();
+
+    writer->StartRecording();
+
+    output_layer->SetRecordData(false);
+
+    for(sizet e = 0; e < num_epochs; e++) {
+
+        std::cout << e << "\r" << std::flush;
+
+
+        // Calculate Error
+        for(int i = 0; i < labels.size(); i++) {
+            for(int j = 0; j < labels.size(); j++) {
+                double rate = ( spike_rates[i][j]/ 10 );
+                double target = (i==j) ? CORRECT_RATE : INCORRECT_RATE;
+                // if(i==j) {
+                //     w_error_rates[i][j] = (1.0 - rate/CORRECT_RATE);
+                //     p_error_rates[i][j] = (1.0 - rate/CORRECT_RATE);
+                // } else {
+                //     w_error_rates[i][j] = (rate >= INCORRECT_RATE) ? (INCORRECT_RATE/rate-1.0) : 1.0-rate;
+                //     p_error_rates[i][j] = 0.0;//(1.0 - rate/CORRECT_RATE);
+                //     //p_error_rates[i][j] = (rate >= 1) ? (INCORRECT_RATE/rate-1.0) : -rate;
+                // }
+                
+                if(rate <= target) {
+                    w_error_rates[i][j] = (1.0 - rate/target);
+                    p_error_rates[i][j] = 1.0;//(1.0 - rate/target);
+                } else {
+                    w_error_rates[i][j] = (target/rate-1.0);
+                    p_error_rates[i][j] = 1.0;//(target/rate-1.0);
+                }
+            }
+        }
+
+        //  Reset spike rates
+        for(int i = 0; i < labels.size(); i++) {
+            for(int j = 0; j < labels.size(); j++) {
+                spike_rates[i][j]=0;
+            }
+        }
+        
+
+        std::shuffle(indexes.begin(), indexes.end(), rng);
+        for(int i = 0; i < labels.size(); i++) {
+            std::shuffle(test_data_by_id[i].begin(), test_data_by_id[i].end(), rng);
+            std::shuffle(train_data_by_id[i].begin(), train_data_by_id[i].end(), rng);
+        }
+    
+        // TRAINING SECTION
+        {
+            output_layer->SetRecordData(false);
+
+            output_layer->SetTraining(
+                true,
+                true,
+                true
+            );
+
+            network->RandomizeOrder(rng);
+
+            for(sizet k = 0; k < num_train_iteration; k++) {
+                // std::cout << "TRAIN " << k << "\r" << std::flush;
+
+                
+
+                int neuron = indexes[k%indexes.size()];
+                int example = k/indexes.size();
+
+                // Get the image
+                // uptr<InputGenerator_Poisson> ig = train_mnist.GetDataAsPoissonInputGenerator(train_data[k]);
+                unsigned int label = train_data_by_id[labels[neuron]][example].label;
+
+                
+
+                ///////////////////////////////////////////////////////////////
+                /// TRAINING RUN
+
+                
+                // ORIGINAL
+                // for(unsigned int l = 0; l < indexes.size(); l++) {
+                //     if(l==neuron) {
+                //         w_rate[l] = (1.0 - spike_rates[neuron][l]/CORRECT_RATE);
+                //         p_rate[l] = (1.0 - spike_rates[neuron][l]/CORRECT_RATE);
+                //     }
+                //     else {
+                //         w_rate[l] = (spike_rates[neuron][l] > 0) ? (INCORRECT_RATE/spike_rates[neuron][l]-1.0) : 0.0;
+                //         p_rate[l] = 0.0;
+                //     }
+
+                // }
+                // network->UpdateLayerErrorValuesSeparate(
+                //     p_rate, w_rate, output_layer_index
+                // );
+
+                network->UpdateLayerErrorValuesSeparate(
+                    p_error_rates[neuron], w_error_rates[neuron], output_layer_index
+                );
+
+                
+                input_layer->SetInputs(train_data_by_id[labels[neuron]][example].image);
+
+                time = 1;
+                for(; time <= time_per_example; time++) {
+                    network->Update(
+                        time,
+                        writer,
+                        rng
+                    );
+                }
+
+                
+
+                network->Reset();
+            }
+        }
+
+        // TESTING SECTION
+        {
+
+            // Don't train anything
+            output_layer->SetTraining(
+                false,
+                false,
+                false
+            );
+
+            // Start saving data
+            output_layer->SetRecordData(true);
+
+            network->RandomizeOrder(rng);
+
+            network->RebuildDendrites();
+
+            for(sizet k = 0; k < num_test_iteration; k++) {
+
+                int neuron = indexes[k%indexes.size()];
+                int example = k/indexes.size();
+                unsigned int label = test_data_by_id[labels[neuron]][example].label;
+
+                input_layer->SetInputs(test_data_by_id[labels[neuron]][example].image);
+
+                i64 time = 1;
+                for(; time <= time_per_example; time++) {
+                    network->Update(
+                        time,
+                        writer,
+                        rng
+                    );
+                }
+
+                vec<int> spikes = output_layer->GetSpikesPerNeuron();
+                for(int s = 0; s < spikes.size(); s++) {
+                    // spike_rates[neuron][s] = spikes[s]; // ORIGINAL
+                    spike_rates[neuron][s] += spikes[s];
+                }
+
+                writer->AddExampleData(std::make_unique<ExampleData>(neuron,label,label_desc[label]));
+                network->SaveData(-1);
+                network->WriteData(writer);
+                network->Reset();
+                
+            }
+
+        }
+
+        
+
+        // MASK
+        {
+
+            output_layer->SetRecordData(false);
+
+            output_layer->SetTraining(
+                false,
+                true,
+                false
+            );
+
+            input_layer->AddInputGenerator(ig_mask.get());
+            
+            network->UpdateLayerErrorValues(
+                MASK_RATES, output_layer_index
+            );
+
+
+            i64 time = 1;
+            for(; time <= mask_time; time++) {
+                network->Update(
+                    time,
+                    writer,
+                    rng
+                );
+            }
+
+            // Reset the input generator
+            ig_mask->Reset();
+            network->Reset();
+            
+            // Remove input generator. Only needed for mask.
+            input_layer->AddInputGenerator(nullptr);
+        }
+
+    }
+
+    std::cout << "ALL DONE\n" << std::flush;
+
+    network->CleanUpData(writer);
+    writer->StopRecording();
+
+}
+
+
+
+
+
+void RunFMNISTDouble(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+) {
+    std::string TRAIN_LABELS_FILENAME("exp_fmnist/train-labels-idx1-ubyte");
+    std::string TRAIN_IMAGES_FILENAME("exp_fmnist/train-images-idx3-ubyte");
+    std::string TEST_LABELS_FILENAME("exp_fmnist/t10k-labels-idx1-ubyte");
+    std::string TEST_IMAGES_FILENAME("exp_fmnist/t10k-images-idx3-ubyte");
+
+    vec<str> label_desc = {
+        "t-shirt/top",
+        "trouser",
+        "pullover",
+        "dress",
+        "coat",
+        "sandal",
+        "shirt",
+        "sneaker",
+        "bag",
+        "ankle boot",
+    };
+
+    vec<unsigned> labels = {0,5};
+
+    std::cout << "START: LOADING FMNIST DATA\n";
+
+    MNISTReader train_mnist;
+    MNISTReader test_mnist;
+    train_mnist.LoadData(TRAIN_LABELS_FILENAME,TRAIN_IMAGES_FILENAME,true);
+    test_mnist.LoadData(TEST_LABELS_FILENAME,TEST_IMAGES_FILENAME,true);
+    // vec<MNISTData> train_data;
+    // vec<MNISTData> test_data;
+    umap<int,vec<MNISTData>> test_data_by_id;
+    umap<int,vec<MNISTData>> train_data_by_id;
+    vec<int> indexes;
+    for(int i = 0; i < labels.size(); i++) {
+        indexes.push_back(i);
+        vec<MNISTData> train_tmp = train_mnist.GetDataWithLabel(labels[i]);
+        vec<MNISTData> test_tmp = test_mnist.GetDataWithLabel(labels[i]);
+        test_data_by_id.emplace(labels[i],std::move(test_tmp));
+        train_data_by_id.emplace(labels[i],std::move(train_tmp));
+        // std::copy(train_tmp.begin(), train_tmp.end(), std::back_inserter(train_data));
+        // std::copy(test_tmp.begin(), test_tmp.end(), std::back_inserter(test_data));
+    }
+
+
+
+    std::cout << "DONE: LOADING FMNIST DATA\n";
+    
+    sizet num_epochs = 550;
+    sizet num_train_iteration = 100; // don't make larger than num examples
+    sizet num_test_iteration = 10*labels.size(); // don't make larger than num examples
+    i64 time_per_example = 1000;
+    i64 time;
+    
+    i64 output_layer_index = network->GetOutputLayerIndex();
+    Layer * input_layer = network->GetLayer(network->GetInputLayerIndex());
+    i64 input_layer_size = input_layer->GetLayerSize();
+    Layer * output_layer = network->GetLayer(network->GetOutputLayerIndex());
+
+    vec<double> w_rate;
+    vec<double> p_rate;
+    for(int i = 0; i < labels.size(); i++) {
+        w_rate.push_back(0);
+        p_rate.push_back(1);
+    }
+
+    vec<vec<double>> p_error_rates;
+    vec<vec<double>> w_error_rates;
+    for(int i = 0; i < labels.size(); i++) {
+        vec<double> v1;
+        vec<double> v2;
+        for(int j = 0; j < output_layer->GetLayerSize(); j++) {
+            v1.push_back(0.0);
+            v2.push_back(0.0);
+        }
+        p_error_rates.push_back(v1);
+        w_error_rates.push_back(v2);
+    }
+
+    // vec<vec<double>> spike_history;
+    // vec<double> prates;
+    // for(int j = 0; j < labels.size(); j++) {
+    //     vec<double> srh;
+    //     for(i64 i = 0; i < output_layer->GetLayerSize(); i++) {
+    //         srh.push_back(0.0);
+    //     }
+    //     prates.push_back(1.0);
+    //     spike_history.push_back(std::move(srh));
+    // }
+
+    uptr<InputGenerator_Poisson> ig_mask = std::make_unique<InputGenerator_Poisson>();
+    ig_mask->id = "0";
+    for(i64 i = 0; i < input_layer_size; i++) {
+        ig_mask->decay.push_back(std::exp(-1.0/10));
+        ig_mask->dist = std::uniform_real_distribution<double>(0.0,1.0);
+        ig_mask->strength.push_back(500.0);
+        ig_mask->signal.push_back(0.0);
+        ig_mask->rate.push_back(0.01);
+    }
+
+    
+
+    i64 mask_time = 0;//1000;
+    double MASK_ERROR = -0.01;
+    vec<double> MASK_RATES;
+    for(unsigned int l = 0; l < labels.size(); l++) {
+        MASK_RATES.push_back(MASK_ERROR);
+    }
+    
+
+    //-------------------------------------------------------------------------
+    // Build the rates vector. Default to incorrect rates.
+    double CORRECT_RATE = 10.0;
+    double INCORRECT_RATE = 1.0;
+
+    vec<double> TARGET_RATES = {10.0, 5.0};
+
+    vec<double> spike_rates;
+    vec<double> spike_history;
+
+    for(i64 k = 0; k < labels.size(); k++) {
+        spike_rates.push_back(0);
+    }
+        
+    //-------------------------------------------------------------------------
+    // Start the run
+
+
+    network->RebuildDendrites();
+
+    writer->StartRecording();
+
+    output_layer->SetRecordData(false);
+
+    for(sizet e = 0; e < num_epochs; e++) {
+
+        std::cout << e << "\r" << std::flush;
+
+
+        // Calculate Error
+        // for(int i = 0; i < labels.size(); i++) {
+        //     for(int j = 0; j < labels.size(); j++) {
+        //         double rate = ( spike_rates[i][j]/ (num_test_iteration) );
+        //         if(i==j) {
+        //             w_error_rates[i][j] = (1.0 - rate/CORRECT_RATE);
+        //             p_error_rates[i][j] = (1.0 - rate/CORRECT_RATE);
+        //         } else {
+        //             w_error_rates[i][j] = (rate >= INCORRECT_RATE) ? (INCORRECT_RATE/rate-1.0) : 1.0-rate;
+        //             p_error_rates[i][j] = 0.0;//(1.0 - rate/CORRECT_RATE);
+        //             //p_error_rates[i][j] = (rate >= 1) ? (INCORRECT_RATE/rate-1.0) : -rate;
+        //         }
+        //         // std::cout << i << " " << j << " " << rate << std::endl;
+        //     }
+        // }
+
+        // //  Reset spike rates
+        // for(int i = 0; i < labels.size(); i++) {
+        //     for(int j = 0; j < labels.size(); j++) {
+        //         spike_rates[i][j]=0;
+        //     }
+        // }
+        
+
+        std::shuffle(indexes.begin(), indexes.end(), rng);
+        for(int i = 0; i < labels.size(); i++) {
+            std::shuffle(test_data_by_id[i].begin(), test_data_by_id[i].end(), rng);
+            std::shuffle(train_data_by_id[i].begin(), train_data_by_id[i].end(), rng);
+        }
+    
+        // TRAINING SECTION
+        {
+            output_layer->SetRecordData(false);
+
+            output_layer->SetTraining(
+                false,
+                false,
+                true
+            );
+
+            network->RandomizeOrder(rng);
+
+            for(sizet k = 0; k < num_train_iteration; k++) {
+                // std::cout << "TRAIN " << k << "\r" << std::flush;
+
+                
+
+                int neuron = indexes[k%indexes.size()];
+                int example = k/indexes.size();
+
+                // Get the image
+                // uptr<InputGenerator_Poisson> ig = train_mnist.GetDataAsPoissonInputGenerator(train_data[k]);
+                unsigned int label = train_data_by_id[labels[neuron]][example].label;
+
+                
+
+                ///////////////////////////////////////////////////////////////
+                /// TRAINING RUN
+
+                
+                // ORIGINAL
+
+                if(spike_rates[neuron] <= TARGET_RATES[neuron]) {
+                    w_error_rates[neuron][0] = (1.0 - spike_rates[neuron]/TARGET_RATES[neuron]);
+                    p_error_rates[neuron][0] = 1.0;//(1.0 - spike_rates[neuron]/TARGET_RATES[neuron]);
+                } else {
+                    w_error_rates[neuron][0] = (TARGET_RATES[neuron]/spike_rates[neuron]-1.0);
+                    p_error_rates[neuron][0] = 1.0;//(TARGET_RATES[neuron]/spike_rates[neuron]-1.0);
+                }
+
+                // std::cout << w_error_rates[neuron][0] << " " << p_error_rates[neuron][0] << std::endl;
+
+                network->UpdateLayerErrorValuesSeparate(
+                    p_error_rates[neuron], w_error_rates[neuron], output_layer_index
+                );
+
+                // network->UpdateLayerErrorValuesSeparate(
+                //     p_error_rates[neuron], w_error_rates[neuron], output_layer_index
+                // );
+
+                
+                input_layer->SetInputs(train_data_by_id[labels[neuron]][example].image);
+
+                time = 1;
+                for(; time <= time_per_example; time++) {
+                    network->Update(
+                        time,
+                        writer,
+                        rng
+                    );
+                }
+
+                vec<int> spikes = output_layer->GetSpikesPerNeuron();
+                // for(int s = 0; s < spikes.size(); s++) {
+                //     // spike_rates[neuron][s] = spikes[s]; // ORIGINAL
+                spike_rates[neuron] = spikes[0];
+                // }
+
+                network->Reset();
+            }
+        }
+
+        // TESTING SECTION
+        {
+
+            // Don't train anything
+            output_layer->SetTraining(
+                false,
+                false,
+                false
+            );
+
+            // Start saving data
+            output_layer->SetRecordData(true);
+
+            network->RandomizeOrder(rng);
+
+            network->RebuildDendrites();
+
+            for(sizet k = 0; k < num_test_iteration; k++) {
+
+                int neuron = indexes[k%indexes.size()];
+                int example = k/indexes.size();
+                unsigned int label = test_data_by_id[labels[neuron]][example].label;
+
+                input_layer->SetInputs(test_data_by_id[labels[neuron]][example].image);
+
+                i64 time = 1;
+                for(; time <= time_per_example; time++) {
+                    network->Update(
+                        time,
+                        writer,
+                        rng
+                    );
+                }
+
+                
+
+                writer->AddExampleData(std::make_unique<ExampleData>(neuron,label,label_desc[label]));
+                network->SaveData(-1);
+                network->WriteData(writer);
+                network->Reset();
+                
+            }
+
+        }
+
+        
+
+        // MASK
+        {
+
+            output_layer->SetRecordData(false);
+
+            output_layer->SetTraining(
+                false,
+                true,
+                false
+            );
+
+            input_layer->AddInputGenerator(ig_mask.get());
+            
+            network->UpdateLayerErrorValues(
+                MASK_RATES, output_layer_index
+            );
+
+
+            i64 time = 1;
+            for(; time <= mask_time; time++) {
+                network->Update(
+                    time,
+                    writer,
+                    rng
+                );
+            }
+
+            // Reset the input generator
+            ig_mask->Reset();
+            network->Reset();
+            
+            // Remove input generator. Only needed for mask.
+            input_layer->AddInputGenerator(nullptr);
+        }
+
+    }
+
+    std::cout << "ALL DONE\n" << std::flush;
+
+    network->CleanUpData(writer);
+    writer->StopRecording();
+
+}
+
+
+
+
+
+void RunFMNISTTriple(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+) {
+    std::string TRAIN_LABELS_FILENAME("exp_fmnist/train-labels-idx1-ubyte");
+    std::string TRAIN_IMAGES_FILENAME("exp_fmnist/train-images-idx3-ubyte");
+    std::string TEST_LABELS_FILENAME("exp_fmnist/t10k-labels-idx1-ubyte");
+    std::string TEST_IMAGES_FILENAME("exp_fmnist/t10k-images-idx3-ubyte");
+
+    vec<str> label_desc = {
+        "t-shirt/top",
+        "trouser",
+        "pullover",
+        "dress",
+        "coat",
+        "sandal",
+        "shirt",
+        "sneaker",
+        "bag",
+        "ankle boot",
+    };
+
+    vec<unsigned> labels = {0,1,5};
+
+    std::cout << "START: LOADING FMNIST DATA\n";
+
+    MNISTReader train_mnist;
+    MNISTReader test_mnist;
+    train_mnist.LoadData(TRAIN_LABELS_FILENAME,TRAIN_IMAGES_FILENAME,true);
+    test_mnist.LoadData(TEST_LABELS_FILENAME,TEST_IMAGES_FILENAME,true);
+    // vec<MNISTData> train_data;
+    // vec<MNISTData> test_data;
+    umap<int,vec<MNISTData>> test_data_by_id;
+    umap<int,vec<MNISTData>> train_data_by_id;
+    vec<int> indexes;
+    for(int i = 0; i < labels.size(); i++) {
+        indexes.push_back(i);
+        vec<MNISTData> train_tmp = train_mnist.GetDataWithLabel(labels[i]);
+        vec<MNISTData> test_tmp = test_mnist.GetDataWithLabel(labels[i]);
+        test_data_by_id.emplace(labels[i],std::move(test_tmp));
+        train_data_by_id.emplace(labels[i],std::move(train_tmp));
+        // std::copy(train_tmp.begin(), train_tmp.end(), std::back_inserter(train_data));
+        // std::copy(test_tmp.begin(), test_tmp.end(), std::back_inserter(test_data));
+    }
+
+
+
+    std::cout << "DONE: LOADING FMNIST DATA\n";
+    
+    sizet num_epochs = 1000;
+    sizet num_train_iteration = 100; // don't make larger than num examples
+    sizet num_test_iteration = 10*labels.size(); // don't make larger than num examples
+    i64 time_per_example = 1000;
+    i64 time;
+    
+    i64 output_layer_index = network->GetOutputLayerIndex();
+    Layer * input_layer = network->GetLayer(network->GetInputLayerIndex());
+    i64 input_layer_size = input_layer->GetLayerSize();
+    Layer * output_layer = network->GetLayer(network->GetOutputLayerIndex());
+
+    vec<double> w_rate;
+    vec<double> p_rate;
+    for(int i = 0; i < labels.size(); i++) {
+        w_rate.push_back(0);
+        p_rate.push_back(1);
+    }
+
+    vec<vec<double>> p_error_rates;
+    vec<vec<double>> w_error_rates;
+    for(int i = 0; i < labels.size(); i++) {
+        vec<double> v1;
+        vec<double> v2;
+        for(int j = 0; j < output_layer->GetLayerSize(); j++) {
+            v1.push_back(0.0);
+            v2.push_back(0.0);
+        }
+        p_error_rates.push_back(v1);
+        w_error_rates.push_back(v2);
+    }
+
+    // vec<vec<double>> spike_history;
+    // vec<double> prates;
+    // for(int j = 0; j < labels.size(); j++) {
+    //     vec<double> srh;
+    //     for(i64 i = 0; i < output_layer->GetLayerSize(); i++) {
+    //         srh.push_back(0.0);
+    //     }
+    //     prates.push_back(1.0);
+    //     spike_history.push_back(std::move(srh));
+    // }
+
+    uptr<InputGenerator_Poisson> ig_mask = std::make_unique<InputGenerator_Poisson>();
+    ig_mask->id = "0";
+    for(i64 i = 0; i < input_layer_size; i++) {
+        ig_mask->decay.push_back(std::exp(-1.0/10));
+        ig_mask->dist = std::uniform_real_distribution<double>(0.0,1.0);
+        ig_mask->strength.push_back(500.0);
+        ig_mask->signal.push_back(0.0);
+        ig_mask->rate.push_back(0.01);
+    }
+
+    
+
+    i64 mask_time = 0;
+    double MASK_ERROR = -0.1;
+    vec<double> MASK_RATES;
+    for(unsigned int l = 0; l < labels.size(); l++) {
+        MASK_RATES.push_back(MASK_ERROR);
+    }
+    
+
+    //-------------------------------------------------------------------------
+    // Build the rates vector. Default to incorrect rates.
+    double CORRECT_RATE = 10.0;
+    double INCORRECT_RATE = 1.0;
+
+    vec<double> TARGET_RATES = {5.0, 7.5, 10.0};
+
+    vec<double> spike_rates;
+    vec<double> spike_history;
+
+    for(i64 k = 0; k < labels.size(); k++) {
+        spike_rates.push_back(0);
+    }
+        
+    //-------------------------------------------------------------------------
+    // Start the run
+
+
+    network->RebuildDendrites();
+
+    writer->StartRecording();
+
+    output_layer->SetRecordData(false);
+
+    for(sizet e = 0; e < num_epochs; e++) {
+
+        std::cout << e << "\r" << std::flush;
+
+
+        // Calculate Error
+        // for(int i = 0; i < labels.size(); i++) {
+        //     for(int j = 0; j < labels.size(); j++) {
+        //         double rate = ( spike_rates[i][j]/ (num_test_iteration) );
+        //         if(i==j) {
+        //             w_error_rates[i][j] = (1.0 - rate/CORRECT_RATE);
+        //             p_error_rates[i][j] = (1.0 - rate/CORRECT_RATE);
+        //         } else {
+        //             w_error_rates[i][j] = (rate >= INCORRECT_RATE) ? (INCORRECT_RATE/rate-1.0) : 1.0-rate;
+        //             p_error_rates[i][j] = 0.0;//(1.0 - rate/CORRECT_RATE);
+        //             //p_error_rates[i][j] = (rate >= 1) ? (INCORRECT_RATE/rate-1.0) : -rate;
+        //         }
+        //         // std::cout << i << " " << j << " " << rate << std::endl;
+        //     }
+        // }
+
+        // //  Reset spike rates
+        // for(int i = 0; i < labels.size(); i++) {
+        //     for(int j = 0; j < labels.size(); j++) {
+        //         spike_rates[i][j]=0;
+        //     }
+        // }
+
+        for(int i = 0; i < labels.size(); i++) {
+            spike_rates[i] /= 10.0;
+            // w_error_rates[i][0] = (1.0 - spike_rates[i]/TARGET_RATES[i]);
+            // p_error_rates[i][0] = (1.0 - spike_rates[i]/TARGET_RATES[i]);
+            if(spike_rates[i] <= TARGET_RATES[i]) {
+                w_error_rates[i][0] = (1.0 - spike_rates[i]/TARGET_RATES[i]);
+                p_error_rates[i][0] = 1.0;//(1.0 - spike_rates[i]/TARGET_RATES[i]);
+            } else {
+                w_error_rates[i][0] = (TARGET_RATES[i]/spike_rates[i]-1.0);
+                p_error_rates[i][0] = 1.0;//(TARGET_RATES[i]/spike_rates[i]-1.0);
+            }
+        }
+
+        for(int i = 0; i < labels.size(); i++) {
+            spike_rates[i] = 0.0;
+        }
+        
+
+        std::shuffle(indexes.begin(), indexes.end(), rng);
+        for(int i = 0; i < labels.size(); i++) {
+            std::shuffle(test_data_by_id[i].begin(), test_data_by_id[i].end(), rng);
+            std::shuffle(train_data_by_id[i].begin(), train_data_by_id[i].end(), rng);
+        }
+    
+        // TRAINING SECTION
+        {
+            output_layer->SetRecordData(false);
+
+            output_layer->SetTraining(
+                false,
+                false,
+                true
+            );
+
+            network->RandomizeOrder(rng);
+
+            for(sizet k = 0; k < num_train_iteration; k++) {
+                // std::cout << "TRAIN " << k << "\r" << std::flush;
+
+                
+
+                int neuron = indexes[k%indexes.size()];
+                int example = k/indexes.size();
+
+                // Get the image
+                // uptr<InputGenerator_Poisson> ig = train_mnist.GetDataAsPoissonInputGenerator(train_data[k]);
+                unsigned int label = train_data_by_id[labels[neuron]][example].label;
+
+                
+
+                ///////////////////////////////////////////////////////////////
+                /// TRAINING RUN
+
+                
+                // ORIGINAL
+
+                //if(spike_rates[neuron] <= TARGET_RATES[neuron]) {
+                    // w_error_rates[neuron][0] = (1.0 - spike_rates[neuron]/TARGET_RATES[neuron]);
+                    // p_error_rates[neuron][0] = (1.0 - spike_rates[neuron]/TARGET_RATES[neuron]);
+                // } else {
+                //     w_error_rates[neuron][0] = (TARGET_RATES[neuron]/spike_rates[neuron]-1.0);
+                //     p_error_rates[neuron][0] = 0.0;//(TARGET_RATES[neuron]/spike_rates[neuron]-1.0);
+                // }
+
+                // std::cout << w_error_rates[neuron][0] << " " << p_error_rates[neuron][0] << std::endl;
+
+                network->UpdateLayerErrorValuesSeparate(
+                    p_error_rates[neuron], w_error_rates[neuron], output_layer_index
+                );
+
+                // network->UpdateLayerErrorValuesSeparate(
+                //     p_error_rates[neuron], w_error_rates[neuron], output_layer_index
+                // );
+
+                
+                input_layer->SetInputs(train_data_by_id[labels[neuron]][example].image);
+
+                time = 1;
+                for(; time <= time_per_example; time++) {
+                    network->Update(
+                        time,
+                        writer,
+                        rng
+                    );
+                }
+
+                // vec<int> spikes = output_layer->GetSpikesPerNeuron();
+                // // for(int s = 0; s < spikes.size(); s++) {
+                // //     // spike_rates[neuron][s] = spikes[s]; // ORIGINAL
+                // spike_rates[neuron] = spikes[0];
+                // }
+
+                network->Reset();
+            }
+        }
+
+        // TESTING SECTION
+        {
+
+            // Don't train anything
+            output_layer->SetTraining(
+                false,
+                false,
+                false
+            );
+
+            // Start saving data
+            output_layer->SetRecordData(true);
+
+            network->RandomizeOrder(rng);
+
+            network->RebuildDendrites();
+
+            for(sizet k = 0; k < num_test_iteration; k++) {
+
+                int neuron = indexes[k%indexes.size()];
+                int example = k/indexes.size();
+                unsigned int label = test_data_by_id[labels[neuron]][example].label;
+
+                input_layer->SetInputs(test_data_by_id[labels[neuron]][example].image);
+
+                i64 time = 1;
+                for(; time <= time_per_example; time++) {
+                    network->Update(
+                        time,
+                        writer,
+                        rng
+                    );
+                }
+
+                vec<int> spikes = output_layer->GetSpikesPerNeuron();
+                // for(int s = 0; s < spikes.size(); s++) {
+                //     // spike_rates[neuron][s] = spikes[s]; // ORIGINAL
+                spike_rates[neuron] += spikes[0];                
+
+                writer->AddExampleData(std::make_unique<ExampleData>(neuron,label,label_desc[label]));
+                network->SaveData(-1);
+                network->WriteData(writer);
+                network->Reset();
+                
+            }
+
+        }
+
+        
+
+        // MASK
+        {
+
+            output_layer->SetRecordData(false);
+
+            output_layer->SetTraining(
+                false,
+                true,
+                false
+            );
+
+            input_layer->AddInputGenerator(ig_mask.get());
+            
+            network->UpdateLayerErrorValues(
+                MASK_RATES, output_layer_index
+            );
+
+
+            i64 time = 1;
+            for(; time <= mask_time; time++) {
+                network->Update(
+                    time,
+                    writer,
+                    rng
+                );
+            }
+
+            // Reset the input generator
+            ig_mask->Reset();
+            network->Reset();
+            
+            // Remove input generator. Only needed for mask.
+            input_layer->AddInputGenerator(nullptr);
+        }
+
+    }
+
+    std::cout << "ALL DONE\n" << std::flush;
+
+    network->CleanUpData(writer);
+    writer->StopRecording();
+
+}
+
+
+
+
+void RunFMNISTQuintuple(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+) {
+    std::string TRAIN_LABELS_FILENAME("exp_fmnist/train-labels-idx1-ubyte");
+    std::string TRAIN_IMAGES_FILENAME("exp_fmnist/train-images-idx3-ubyte");
+    std::string TEST_LABELS_FILENAME("exp_fmnist/t10k-labels-idx1-ubyte");
+    std::string TEST_IMAGES_FILENAME("exp_fmnist/t10k-images-idx3-ubyte");
+
+    vec<str> label_desc = {
+        "t-shirt/top",
+        "trouser",
+        "pullover",
+        "dress",
+        "coat",
+        "sandal",
+        "shirt",
+        "sneaker",
+        "bag",
+        "ankle boot",
+    };
+
+    vec<unsigned> labels = {0,5,1,3,8};
+    vec<double> TARGET_RATES = {10.0, 5.0, 7.5, 12.5, 15};
+
+    std::cout << "START: LOADING FMNIST DATA\n";
+
+    MNISTReader train_mnist;
+    MNISTReader test_mnist;
+    train_mnist.LoadData(TRAIN_LABELS_FILENAME,TRAIN_IMAGES_FILENAME,true);
+    test_mnist.LoadData(TEST_LABELS_FILENAME,TEST_IMAGES_FILENAME,true);
+    // vec<MNISTData> train_data;
+    // vec<MNISTData> test_data;
+    umap<int,vec<MNISTData>> test_data_by_id;
+    umap<int,vec<MNISTData>> train_data_by_id;
+    vec<int> indexes;
+    for(int i = 0; i < labels.size(); i++) {
+        indexes.push_back(i);
+        vec<MNISTData> train_tmp = train_mnist.GetDataWithLabel(labels[i]);
+        vec<MNISTData> test_tmp = test_mnist.GetDataWithLabel(labels[i]);
+        test_data_by_id.emplace(labels[i],std::move(test_tmp));
+        train_data_by_id.emplace(labels[i],std::move(train_tmp));
+        // std::copy(train_tmp.begin(), train_tmp.end(), std::back_inserter(train_data));
+        // std::copy(test_tmp.begin(), test_tmp.end(), std::back_inserter(test_data));
+    }
+
+
+
+    std::cout << "DONE: LOADING FMNIST DATA\n";
+    
+    sizet num_epochs = 1000;
+    sizet num_train_iteration = 100; // don't make larger than num examples
+    sizet num_test_iteration = 10*labels.size(); // don't make larger than num examples
+    i64 time_per_example = 1000;
+    i64 time;
+    
+    i64 output_layer_index = network->GetOutputLayerIndex();
+    Layer * input_layer = network->GetLayer(network->GetInputLayerIndex());
+    i64 input_layer_size = input_layer->GetLayerSize();
+    Layer * output_layer = network->GetLayer(network->GetOutputLayerIndex());
+
+    vec<double> w_rate;
+    vec<double> p_rate;
+    for(int i = 0; i < labels.size(); i++) {
+        w_rate.push_back(0);
+        p_rate.push_back(1);
+    }
+
+    vec<vec<double>> p_error_rates;
+    vec<vec<double>> w_error_rates;
+    for(int i = 0; i < labels.size(); i++) {
+        vec<double> v1;
+        vec<double> v2;
+        for(int j = 0; j < output_layer->GetLayerSize(); j++) {
+            v1.push_back(0.0);
+            v2.push_back(0.0);
+        }
+        p_error_rates.push_back(v1);
+        w_error_rates.push_back(v2);
+    }
+
+    // vec<vec<double>> spike_history;
+    // vec<double> prates;
+    // for(int j = 0; j < labels.size(); j++) {
+    //     vec<double> srh;
+    //     for(i64 i = 0; i < output_layer->GetLayerSize(); i++) {
+    //         srh.push_back(0.0);
+    //     }
+    //     prates.push_back(1.0);
+    //     spike_history.push_back(std::move(srh));
+    // }
+
+    uptr<InputGenerator_Poisson> ig_mask = std::make_unique<InputGenerator_Poisson>();
+    ig_mask->id = "0";
+    for(i64 i = 0; i < input_layer_size; i++) {
+        ig_mask->decay.push_back(std::exp(-1.0/10));
+        ig_mask->dist = std::uniform_real_distribution<double>(0.0,1.0);
+        ig_mask->strength.push_back(500.0);
+        ig_mask->signal.push_back(0.0);
+        ig_mask->rate.push_back(0.01);
+    }
+
+    
+
+    i64 mask_time = 0;
+    double MASK_ERROR = -0.1;
+    vec<double> MASK_RATES;
+    for(unsigned int l = 0; l < labels.size(); l++) {
+        MASK_RATES.push_back(MASK_ERROR);
+    }
+    
+
+    //-------------------------------------------------------------------------
+    // Build the rates vector. Default to incorrect rates.
+    double CORRECT_RATE = 10.0;
+    double INCORRECT_RATE = 1.0;
+
+    
+
+    vec<double> spike_rates;
+    vec<double> spike_history;
+
+    for(i64 k = 0; k < labels.size(); k++) {
+        spike_rates.push_back(0);
+    }
+        
+    //-------------------------------------------------------------------------
+    // Start the run
+
+
+    network->RebuildDendrites();
+
+    writer->StartRecording();
+
+    output_layer->SetRecordData(false);
+
+    for(sizet e = 0; e < num_epochs; e++) {
+
+        std::cout << e << "\r" << std::flush;
+
+
+        // Calculate Error
+        // for(int i = 0; i < labels.size(); i++) {
+        //     for(int j = 0; j < labels.size(); j++) {
+        //         double rate = ( spike_rates[i][j]/ (num_test_iteration) );
+        //         if(i==j) {
+        //             w_error_rates[i][j] = (1.0 - rate/CORRECT_RATE);
+        //             p_error_rates[i][j] = (1.0 - rate/CORRECT_RATE);
+        //         } else {
+        //             w_error_rates[i][j] = (rate >= INCORRECT_RATE) ? (INCORRECT_RATE/rate-1.0) : 1.0-rate;
+        //             p_error_rates[i][j] = 0.0;//(1.0 - rate/CORRECT_RATE);
+        //             //p_error_rates[i][j] = (rate >= 1) ? (INCORRECT_RATE/rate-1.0) : -rate;
+        //         }
+        //         // std::cout << i << " " << j << " " << rate << std::endl;
+        //     }
+        // }
+
+        // //  Reset spike rates
+        // for(int i = 0; i < labels.size(); i++) {
+        //     for(int j = 0; j < labels.size(); j++) {
+        //         spike_rates[i][j]=0;
+        //     }
+        // }
+
+        for(int i = 0; i < labels.size(); i++) {
+            spike_rates[i] /= 10.0;
+            // w_error_rates[i][0] = (1.0 - spike_rates[i]/TARGET_RATES[i]);
+            // p_error_rates[i][0] = (1.0 - spike_rates[i]/TARGET_RATES[i]);
+            if(spike_rates[i] <= TARGET_RATES[i]) {
+                w_error_rates[i][0] = (1.0 - spike_rates[i]/TARGET_RATES[i]);
+                p_error_rates[i][0] = 1.0;//(1.0 - spike_rates[i]/TARGET_RATES[i]);
+            } else {
+                w_error_rates[i][0] = (TARGET_RATES[i]/spike_rates[i]-1.0);
+                p_error_rates[i][0] = 1.0;//(TARGET_RATES[i]/spike_rates[i]-1.0);
+            }
+        }
+
+        for(int i = 0; i < labels.size(); i++) {
+            spike_rates[i] = 0.0;
+        }
+        
+
+        std::shuffle(indexes.begin(), indexes.end(), rng);
+        for(int i = 0; i < labels.size(); i++) {
+            std::shuffle(test_data_by_id[i].begin(), test_data_by_id[i].end(), rng);
+            std::shuffle(train_data_by_id[i].begin(), train_data_by_id[i].end(), rng);
+        }
+    
+        // TRAINING SECTION
+        {
+            output_layer->SetRecordData(false);
+
+            output_layer->SetTraining(
+                true,
+                true,
+                true
+            );
+
+            network->RandomizeOrder(rng);
+
+            for(sizet k = 0; k < num_train_iteration; k++) {
+                // std::cout << "TRAIN " << k << "\r" << std::flush;
+
+                
+
+                int neuron = indexes[k%indexes.size()];
+                int example = k/indexes.size();
+
+                // Get the image
+                // uptr<InputGenerator_Poisson> ig = train_mnist.GetDataAsPoissonInputGenerator(train_data[k]);
+                unsigned int label = train_data_by_id[labels[neuron]][example].label;
+
+                
+
+                ///////////////////////////////////////////////////////////////
+                /// TRAINING RUN
+
+                
+                // ORIGINAL
+
+                //if(spike_rates[neuron] <= TARGET_RATES[neuron]) {
+                    // w_error_rates[neuron][0] = (1.0 - spike_rates[neuron]/TARGET_RATES[neuron]);
+                    // p_error_rates[neuron][0] = (1.0 - spike_rates[neuron]/TARGET_RATES[neuron]);
+                // } else {
+                //     w_error_rates[neuron][0] = (TARGET_RATES[neuron]/spike_rates[neuron]-1.0);
+                //     p_error_rates[neuron][0] = 0.0;//(TARGET_RATES[neuron]/spike_rates[neuron]-1.0);
+                // }
+
+                // std::cout << w_error_rates[neuron][0] << " " << p_error_rates[neuron][0] << std::endl;
+
+                network->UpdateLayerErrorValuesSeparate(
+                    p_error_rates[neuron], w_error_rates[neuron], output_layer_index
+                );
+
+                // network->UpdateLayerErrorValuesSeparate(
+                //     p_error_rates[neuron], w_error_rates[neuron], output_layer_index
+                // );
+
+                
+                input_layer->SetInputs(train_data_by_id[labels[neuron]][example].image);
+
+                time = 1;
+                for(; time <= time_per_example; time++) {
+                    network->Update(
+                        time,
+                        writer,
+                        rng
+                    );
+                }
+
+                // vec<int> spikes = output_layer->GetSpikesPerNeuron();
+                // // for(int s = 0; s < spikes.size(); s++) {
+                // //     // spike_rates[neuron][s] = spikes[s]; // ORIGINAL
+                // spike_rates[neuron] = spikes[0];
+                // }
+
+                network->Reset();
+            }
+        }
+
+        // TESTING SECTION
+        {
+
+            // Don't train anything
+            output_layer->SetTraining(
+                false,
+                false,
+                false
+            );
+
+            // Start saving data
+            output_layer->SetRecordData(true);
+
+            network->RandomizeOrder(rng);
+
+            network->RebuildDendrites();
+
+            for(sizet k = 0; k < num_test_iteration; k++) {
+
+                int neuron = indexes[k%indexes.size()];
+                int example = k/indexes.size();
+                unsigned int label = test_data_by_id[labels[neuron]][example].label;
+
+                input_layer->SetInputs(test_data_by_id[labels[neuron]][example].image);
+
+                i64 time = 1;
+                for(; time <= time_per_example; time++) {
+                    network->Update(
+                        time,
+                        writer,
+                        rng
+                    );
+                }
+
+                vec<int> spikes = output_layer->GetSpikesPerNeuron();
+                // for(int s = 0; s < spikes.size(); s++) {
+                //     // spike_rates[neuron][s] = spikes[s]; // ORIGINAL
+                spike_rates[neuron] += spikes[0];                
+
+                writer->AddExampleData(std::make_unique<ExampleData>(neuron,label,label_desc[label]));
+                network->SaveData(-1);
+                network->WriteData(writer);
+                network->Reset();
+                
+            }
+
+        }
+
+        
+
+        // MASK
+        {
+
+            output_layer->SetRecordData(false);
+
+            output_layer->SetTraining(
+                false,
+                true,
+                false
+            );
+
+            input_layer->AddInputGenerator(ig_mask.get());
+            
+            network->UpdateLayerErrorValues(
+                MASK_RATES, output_layer_index
+            );
+
+
+            i64 time = 1;
+            for(; time <= mask_time; time++) {
+                network->Update(
+                    time,
+                    writer,
+                    rng
+                );
+            }
+
+            // Reset the input generator
+            ig_mask->Reset();
+            network->Reset();
+            
+            // Remove input generator. Only needed for mask.
+            input_layer->AddInputGenerator(nullptr);
+        }
+
+    }
+
+    std::cout << "ALL DONE\n" << std::flush;
+
+    network->CleanUpData(writer);
+    writer->StopRecording();
+
+}

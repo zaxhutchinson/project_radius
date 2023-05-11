@@ -403,7 +403,7 @@ void Neuron::PostsynapticSignal(i64 time, ConnectionMatrix & cm) {
 
         // Removes alpha function from the one above. All change is equal.
         double force =
-            error *
+            // error *
             distance * //(1.0 / (std::pow(distance,2.0)+1.0)) * distance *
             zxlb::POST_LEARNING_RATE;
 
@@ -478,8 +478,11 @@ void Neuron::bAP(i64 time, double signal, bool train_str, ConnectionMatrix & cm)
     double error = cm[layer_id][id].GetWeightTargetErrorRate();
 
     for(sizet i = 0; i < dendrites.size(); i++) {
-        synapses[dendrites[i]].ChangeStrengthCompartment_Between(time, error, spike_times_live, 0);
-        synapses[dendrites[i]].ChangeStrengthCompartment(time, error, synapses);
+        if(synapses[dendrites[i]].GetCompartment()==0) {
+            synapses[dendrites[i]].ChangeStrengthCompartment_Within(time, error, synapses, spike_times_live);
+        } else {
+            synapses[dendrites[i]].ChangeStrengthCompartment_Between(time, error, spike_times_live, 0);
+        }
         // if(synapses[dendrites[i]].GetCompartment()==SOMA_COMP_ID)
         //     synapses[dendrites[i]].ChangeStrengthCompartment_Within(time,error,synapses,compartment_spikes);
         // else
@@ -918,6 +921,7 @@ void Neuron::GetInputWitch4(i64 time, ConnectionMatrix & cm,bool train_str) {
             input += synapses[*it].GetInput_Within(
                 time,synapses,compartment_spikes,syns_per_comp,comp_izh,nt,-1,
                 0.0,cm[layer_id][id].GetWeightTargetErrorRate(),train_str);
+            
         } else {
             input += synapses[*it].GetInput_Between(
                 time,synapses,compartment_spikes,syns_per_comp,comp_izh,nt,-1,
@@ -1127,6 +1131,14 @@ bool Neuron::Update(i64 time, Writer * writer, i64 layer_id, ConnectionMatrix & 
         spike_times_live.push_back(time);
         if(record_data) spike_times_data.push_back(time);
         just_spiked = true;
+        // if(train_str) {
+        //     #pragma omp parallel for
+        //     for(int i = 0; i < dendrites.size(); i++) {
+        //         if(synapses[dendrites[i]].GetCompartment()==0) {
+        //             synapses[dendrites[i]].ChangeStrengthCompartment(time,cm[layer_id][id].GetWeightTargetErrorRate(), synapses);
+        //         }
+        //     }
+        // }
     } else {
         vpre = vcur;
         upre = ucur;
@@ -1552,9 +1564,12 @@ void Neuron::BuildDendrite2() {
             synapses[*min_uit].SetDendritePathLength(min_path_len);
             synapses[*min_uit].SetCompartmentLength(0.0);
             synapses[*min_uit].is_comp_root = true;
-            // Since it is connected to soma, new compartment.
-            // std::cout << "SOMA " << min_path_len << std::endl;
+            
+            // AD NEURON
             synapses[*min_uit].SetCompartment(comp_id++);
+            // POINT NEURON
+            // synapses[*min_uit].SetCompartment(0);
+
             syns_per_comp.push_back(1);
         } else {
             synapses[*min_cit].children.push_back(*min_uit);
@@ -1590,10 +1605,20 @@ void Neuron::BuildDendrite2() {
             if(cur_comp_length+add_comp_length <= zxlb::MAX_COMPARTMENT_LENGTH) {
                 synapses[*min_uit].SetCompartmentLength(cur_comp_length+add_comp_length);
                 synapses[*min_uit].is_comp_root = false;
+
+                // AD NEURON
                 synapses[*min_uit].SetCompartment(synapses[*min_cit].GetCompartment());
+                // POINT NEURON
+                // synapses[*min_uit].SetCompartment(0);
+
                 syns_per_comp[synapses[*min_cit].GetCompartment()]++;
             } else {
+
+                // AD NEURON
                 synapses[*min_uit].SetCompartment(comp_id++);
+                // POINT NEURON
+                // synapses[*min_uit].SetCompartment(0);
+
                 synapses[*min_uit].SetCompartmentLength(0.0);
                 synapses[*min_uit].is_comp_root = true;
                 syns_per_comp.push_back(1);

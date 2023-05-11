@@ -354,3 +354,36 @@ void RunMove(
     Network * network,
     RNG & rng
 );
+
+
+
+
+
+/******************************************************************************
+ * First MNIST test.
+ *****************************************************************************/
+void RunFMNIST(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+);
+void RunFMNISTSingle(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+);
+void RunFMNISTDouble(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+);
+void RunFMNISTTriple(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+);
+void RunFMNISTQuintuple(
+    Writer * writer,
+    Network * network,
+    RNG & rng
+);

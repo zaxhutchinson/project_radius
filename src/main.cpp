@@ -285,6 +285,26 @@ int main(int argc, char**argv) {
         network.get(),
         rng
     );
+    // RunFMNISTSingle(
+    //     &writer,
+    //     network.get(),
+    //     rng
+    // );
+    // RunFMNISTDouble(
+    //     &writer,
+    //     network.get(),
+    //     rng
+    // );
+    // RunFMNISTTriple(
+    //     &writer,
+    //     network.get(),
+    //     rng
+    // );
+    // RunFMNISTQuintuple(
+    //     &writer,
+    //     network.get(),
+    //     rng
+    // );
 
 
 

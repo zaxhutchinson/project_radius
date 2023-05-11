@@ -11,7 +11,7 @@ out = output.Output(defs.OUTPUT_PATH)
 LID = 1
 NID = 0
 
-SIZE = 21
+SIZE = 20
 
 pattern0=[11,12,13,14,15]
 # pattern1=[

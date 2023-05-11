@@ -501,7 +501,7 @@ double Synapse::GetInput_Between(
         train_str
     );
 
-    sig /= syns_per_comp[compartment];
+    // sig /= syns_per_comp[compartment];
 
     double vpre = comp_izh[compartment].first;
     double upre = comp_izh[compartment].second;
