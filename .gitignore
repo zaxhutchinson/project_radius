@@ -44,7 +44,6 @@ out
 \exp_mnist
 \exp_dota2
 \exp_eeg
-\exp_fmnist
 
 # Python
 *.pyc
